@@ -50,10 +50,15 @@ android {
 }
 
 dependencies {
-    //thu them
-    
+    //----------------------------------------------thu them-----------------------
+    //pager
+    implementation ("com.google.accompanist:accompanist-pager:0.12.0")
+    // gif
+    implementation("io.coil-kt:coil:2.0.0-rc02")
+    implementation("io.coil-kt:coil-gif:2.0.0-rc02")
+    implementation("io.coil-kt:coil-compose:2.0.0-rc02")
 
-
+    //-----------------------------------------------end------------
     //quynh them
 //    implementation("io.coil-kt:coil-compose:1.4.0")
     implementation("androidx.compose.material3:material3:1.2.1")
