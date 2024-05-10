@@ -4,14 +4,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.sttc.model.UserService
+import com.example.sttc.model.User
 import com.example.sttc.view.HomeScreen
 import com.example.sttc.view.LoginForm
 import com.example.sttc.view.MenuScreen
 import com.example.sttc.view.SignUp
 import com.example.sttc.view.SignUpForm
 
-class AuthController(private val userService: UserService) {
+class AuthController(private val userService: User) {
     fun login(username: String, password: String): Boolean {
         return userService.login(username, password)
     }

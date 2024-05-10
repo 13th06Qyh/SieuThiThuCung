@@ -84,24 +84,10 @@ fun DetailProductsScreen() {
                 ),
                 modifier = Modifier.padding(10.dp)
             )
-            HorizontalDivider(
-                modifier = Modifier.padding(top = 10.dp),
-                thickness = 10.dp,
-                color = Color(0xFFe6e6e6)
-            )
-        }
-        Text(
-            text = "Bình Luận",
-            style = TextStyle(
-                fontSize = 18.sp,
-                fontWeight = FontWeight.W400,
-                fontStyle = FontStyle.Normal ,
-                letterSpacing = 0.5.sp
-            ) ,
-            modifier = Modifier.padding(10.dp)
 
-        )
+        }
     }
+
 }
 
 
