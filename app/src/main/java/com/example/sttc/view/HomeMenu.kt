@@ -240,21 +240,23 @@ fun MenuScreen() {
         },
 
         content = {paddingValues ->
-            Box(modifier = Modifier.fillMaxSize()
+            Box(modifier = Modifier
+                .fillMaxSize()
                 .padding(paddingValues)
                 .background(
-                Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFFFF8BAC),
-                        Color(0xFFF1A3C7),
-                        Color(0xFFF6F5F2)),
-                    radius = 1000f
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFFFF8BAC),
+                            Color(0xFFF1A3C7),
+                            Color(0xFFF6F5F2)
+                        ),
+                        radius = 1000f
+                    )
                 )
-            )
                 ,
                 contentAlignment = Alignment.Center) {
-                HomeScreen()
-//                HeroSection()
+//                HomeScreen()
+                BillShipScreen()
             }
         }
     )
