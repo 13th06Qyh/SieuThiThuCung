@@ -44,12 +44,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -58,9 +54,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import kotlinx.coroutines.delay
@@ -71,14 +68,14 @@ class Home : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-
+            val navController = rememberNavController()
             STTCTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    HomeScreen()
+                    HomeScreen(navController)
                 }
             }
         }
@@ -87,7 +84,7 @@ class Home : ComponentActivity() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController) {
     val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
@@ -527,146 +524,16 @@ fun RecentSalesSection() {
 
 }
 
-data class Item (
-    val imageResId: Int,
-    val tagName: String,
-    val productName: String,
-    val productPrice: String
-)
 
-@Composable
-fun SuggestToday() {
-    val items = listOf(
-        Item(R.drawable.rs1, "Tag A", "Product A", "10.000đ"),
-        Item(R.drawable.rs2, "Tag B", "Product B", "102.000đ"),
-        Item(R.drawable.rs3, "Tag C", "Product C", "2.345.000đ"),
-        Item(R.drawable.rs1, "Tag D", "Product D", "30.000đ"),
-        Item(R.drawable.rs2, "Tag E", "Product E", "8.000đ"),
-//        Item(R.drawable.rs3, "Tag F", "Product F", "19.000đ")
-    )
 
-    // Chia danh sách thành các nhóm có 3 mặt hàng
-    val rows = items.chunked(2)
 
-    Column(
-//        modifier = Modifier.verticalScroll(rememberScrollState())
-    ) {
-        rows.forEach { rowItems ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(2.dp)
-            ) {
-                Row (
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xFFF6F2F2),
-                                    Color(0xFFFFC1B6),
-                                    Color(0xFFFF9999)
-                                ),
-                                startY = 720f,
-                                endY = 0f
-                            )
-                        ),
-//                    horizontalArrangement = Arrangement.SpaceEvenly
-                ){
-                    for (item in rowItems) {
-                        Column (
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .width(200.dp)
-                                .border(1.dp, color = Color(0xFFff4d4d))
-                                .clickable(onClick = {
-                                    // Xử lý sự kiện khi một mục được nhấp vào
-                                }),
-                        ){
-                            Box(
-                                modifier = Modifier
-                                    .size(200.dp, 210.dp)
-                                    .border(1.dp, color = Color(0xFFff4d4d)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                // Thay thế bằng hình ảnh thực tế của bạn
-                                Image(
-                                    painter = painterResource(id = item.imageResId),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                            Text(
-                                text = item.tagName, // Thay thế bằng tên thẻ thực tế của bạn
-                                modifier = Modifier.padding(8.dp),
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    fontStyle = FontStyle.Italic,
-                                    color = Color.Gray
-                                ),
-                            )
-                            Text(
-                                text = item.productName, // Thay thế bằng tên sản phẩm thực tế của bạn
-                                modifier = Modifier.padding(horizontal = 8.dp),
-                                style = TextStyle(
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.Black
-                                ),
-                            )
-                            Text(
-                                text = item.productPrice, // Thay thế bằng giá sản phẩm thực tế của bạn
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 9.dp),
-                                style = TextStyle(
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFff4d4d),
-                                    textAlign = TextAlign.End
-                                ),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun CustomPagerIndicator(
-    pageCount: Int,
-    currentPage: Int,
-    modifier: Modifier = Modifier,
-    activeColor: Color = Color(0xFF000000),
-    inactiveColor: Color = Color(0xFFE96B56),
-    indicatorSize: Dp = 10.dp
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        for (i in 0 until pageCount) {
-            Box(
-                modifier = Modifier
-                    .padding(4.dp, 13.dp)
-                    .size(indicatorSize)
-                    .background(
-                        if (currentPage == i) activeColor else inactiveColor,
-                        CircleShape
-                    )
-            )
-        }
-    }
-}
+
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
     STTCTheme {
-        HomeScreen()
+        HomeScreen(rememberNavController())
 //        MyApp()
 //        SignUpForm(navController = rememberNavController(), authController = AuthController())
     }

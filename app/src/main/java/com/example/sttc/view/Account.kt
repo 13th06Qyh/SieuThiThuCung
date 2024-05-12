@@ -56,17 +56,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import com.example.sttc.R
+import com.example.sttc.controller.AuthController
+import com.example.sttc.controller.MyApp
 import com.example.sttc.ui.theme.STTCTheme
 
 class Account : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val navController = rememberNavController()
 
             STTCTheme {
                 // A surface container using the 'background' color from the theme
@@ -74,7 +79,8 @@ class Account : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AccountScreen()
+
+                    AccountScreen(navController)
                 }
             }
         }
@@ -82,7 +88,7 @@ class Account : ComponentActivity() {
 }
 
 @Composable
-fun AccountScreen() {
+fun AccountScreen(navController: NavController) {
     val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
@@ -260,14 +266,7 @@ fun StatusBill() {
     }
 }
 
-data class ItemAccount (
-    var name: String,
-    var email: String,
-    var phone: Int,
-    var pass: String,
-    var address: String
 
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -987,7 +986,7 @@ fun InfoAccount() {
 
                             border = BorderStroke(1.dp, Color(0xFF018B0F)),
                         ) {
-                            Text("Sửa",
+                            Text("Xác nhận",
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold
                                 )
@@ -1020,7 +1019,8 @@ fun InfoAccount() {
 @Preview(showBackground = true)
 @Composable
 fun AccountScreenPreview() {
+    val navController = rememberNavController()
     STTCTheme {
-        AccountScreen()
+        AccountScreen(navController)
     }
 }

@@ -8,10 +8,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,20 +23,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -60,10 +67,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
+import com.example.sttc.controller.AuthController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -72,26 +82,38 @@ class ListProductsDog : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            DetailDog()
+            val navController = rememberNavController()
+            STTCTheme {
+                // A surface container using the 'background' color from the theme
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    ListProductScreen(navController)
+                }
+            }
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
 @Composable
-fun DetailDog() {
-    Column(
+fun ListProductScreen(navController: NavController) {
+    LazyColumn(
         modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
+        item {
             Slide_Gif()
         }
-        Row {
+        stickyHeader {
             var selectedIndex by remember { mutableIntStateOf(0) }
-            val options = listOf("Áo quần", "Đồ ăn", "Đồ chơi")
+            val options = listOf("Áo quần", "Thức ăn", "Vật dụng")
+            Row {
+
+            }
             SingleChoiceSegmentedButtonRow {
                 options.forEachIndexed { index, label ->
                     SegmentedButton(
@@ -100,230 +122,58 @@ fun DetailDog() {
                             count = options.size
                         ),
                         onClick = { selectedIndex = index },
-                        selected = index == selectedIndex
-                    ) {
-                        Text(label)
-                    }
-                }
-            }
-        }
-        Row {
-            ListProducts()
-        }
-
-
-    }
-}
-
-@Composable
-fun Sanpham() {
-    val items = listOf(
-        R.drawable.rs1,
-        R.drawable.rs2,
-        R.drawable.rs1,
-        R.drawable.rs2,
-        R.drawable.rs3,
-    )
-    val coroutineScope = rememberCoroutineScope()
-    val state = rememberLazyListState()
-    val currentPage = remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000L)
-            coroutineScope.launch {
-                val nextPage = if (currentPage.value < items.size - 1) {
-                    currentPage.value + 1
-                } else {
-                    0
-                }
-                state.animateScrollToItem(nextPage)
-                currentPage.value = nextPage
-            }
-        }
-    }
-
-    LazyRow(state = state) {
-        items(items) { item ->
-            Box(
-                modifier = Modifier
-                    .size(170.dp, 200.dp)
-                    .padding(0.1.dp)
-                    .border(1.dp, color = Color(0xFFffe1c2))
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFFF6F5F2),
-                                Color(0xFFF1C4A3),
-                                Color(0xFFDF4F4B)
-                            ),
-                            startY = 470f,
-                            endY = 0f
-                        )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Image(
-                        painter = painterResource(id = item),
-                        contentDescription = null,
+                        selected = index == selectedIndex,
                         modifier = Modifier
-                            .width(200.dp)
-                            .height(155.dp)
-                            .padding(8.dp)
-                    )
-
-                    HorizontalDivider(thickness = 2.dp, color = Color(0xFFffdab3))
-
-                    val colors = listOf(Color.Red, Color.Transparent)
-                    var colorIndex by remember { mutableStateOf(0) }
-                    val animatedColor by animateColorAsState(targetValue = colors[colorIndex])
-
-                    LaunchedEffect(key1 = true) {
-                        while (true) {
-                            delay(300) // delay in milliseconds you want between each blink
-                            colorIndex = 1 - colorIndex
-                        }
-                    }
-
-                    Text(
-                        text = "100K", // Thay đổi thành tiêu đề thực tế của bạn
-                        style = TextStyle(
-                            fontSize = 19.sp,
-                            fontFamily = FontFamily.Monospace,
-                            fontStyle = FontStyle.Italic,
-                            fontWeight = FontWeight.Bold,
-                            color = animatedColor,
-                            textAlign = TextAlign.Center
+                            .size(100.dp, 56.dp)
+                            .padding(0.dp, 1.dp, 0.dp, 5.dp),
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = Color(0xFFffad33),
+                            inactiveContainerColor = Color(0xFF990000)
                         ),
-                        modifier = Modifier.padding(0.dp, 10.dp)
-                    )
-                }
-            }
-        }
-    }
-
-    CustomPagerIndicator(
-        pageCount = items.size,
-        currentPage = currentPage.value,
-    )
-
-
-}
-
-@Composable
-fun ListProducts() {
-    val listProducts = listOf(
-        ProductsItems(1, R.drawable.rs1, "Tag A", "Product A", "10.000đ"),
-        ProductsItems(2, R.drawable.rs2, "Tag B", "Product B", "102.000đ"),
-        ProductsItems(3, R.drawable.rs3, "Tag C", "Product C", "2.345.000đ"),
-        ProductsItems(4, R.drawable.rs1, "Tag D", "Product D", "30.000đ"),
-    )
-    val rows = listProducts.chunked(2)
-    Column{
-        rows.forEach { rowItems ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(2.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xFFF6F2F2),
-                                    Color(0xFFFFC1B6),
-                                    Color(0xFFFF9999)
-                                ),
-                                startY = 720f,
-                                endY = 0f
+                        border = BorderStroke(2.dp, Color(0xFFcc2900))
+                    ) {
+                        Text(
+                            label,
+                            style = TextStyle(
+                            fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFFFFFF)
                             )
-                        ),
-                ) {
-                    for (item in rowItems) {
-                        Column(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .width(200.dp)
-                                .border(1.dp, color = Color(0xFFff4d4d))
-                                .clickable(onClick = {
-                                    // Xử lý sự kiện khi một mục được nhấp vào
-                                }),
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(200.dp, 210.dp)
-                                    .border(1.dp, color = Color(0xFFff4d4d)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                // Thay thế bằng hình ảnh thực tế của bạn
-                                Image(
-                                    painter = painterResource(id = item.imageResId),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                            Text(
-                                text = item.tagName, // Thay thế bằng tên thẻ thực tế của bạn
-                                modifier = Modifier.padding(8.dp),
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    fontStyle = FontStyle.Italic,
-                                    color = Color.Gray
-                                ),
-                            )
-                            Text(
-                                text = item.productName, // Thay thế bằng tên sản phẩm thực tế của bạn
-                                modifier = Modifier.padding(horizontal = 8.dp),
-                                style = TextStyle(
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.Black
-                                ),
-                            )
-                            Text(
-                                text = item.productPrice, // Thay thế bằng giá sản phẩm thực tế của bạn
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 9.dp),
-                                style = TextStyle(
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFff4d4d),
-                                    textAlign = TextAlign.End
-                                ),
-                            )
-                        }
+                        )
                     }
                 }
             }
         }
+        item {
+            HorizontalDivider(thickness = 2.dp, color = Color(0xFFffdab3), modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 5.dp))
+            SuggestToday()
+        }
     }
 }
+
 @Composable
 fun Slide_Gif() {
-//    val context = LocalContext.current
-//    val imageLoader = ImageLoader.Builder(context)
-//        .components {
-//            add(GifDecoder.Factory())
-//        }
-//        .build()
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .components {
+            add(GifDecoder.Factory())
+        }
+        .build()
 //    Image(
 //        painter = rememberAsyncImagePainter(
 //            ImageRequest.Builder(context).data(data = R.drawable.gifcho).apply(block = {
 //            }).build(), imageLoader = imageLoader
 //        ),
-//        contentDescription = null,
+//        contentDescription = "gifcho",
+//            modifier = Modifier.fillMaxWidth()
+//            .height(220.dp)
 //    )
     Image(
         painter = painterResource(id = R.drawable.gifcho), // Thay đổi vị trí file theo tên file của bạn
-        contentDescription = null,
-        modifier = Modifier.fillMaxWidth()
+        contentDescription = "gifcho",
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(220.dp)
     )
 }
 
@@ -336,10 +186,10 @@ data class ProductsItems(
 )
 
 @ExperimentalMaterial3Api
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 fun DetailDogMainPreview() {
     STTCTheme {
-        DetailDog()
+        ListProductScreen(rememberNavController())
     }
 }

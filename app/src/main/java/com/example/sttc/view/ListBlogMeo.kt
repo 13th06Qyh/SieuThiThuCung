@@ -13,99 +13,142 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 
-class Blog : ComponentActivity() {
+class ListBlogMeo : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BaiVietScreen()
+            val navController = rememberNavController()
+            STTCTheme {
+                // A surface container using the 'background' color from the theme
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    ListBlogScreen(navController)
+                }
+            }
         }
     }
 }
 
 @Composable
-fun BaiVietScreen() {
+fun ListBlogScreen(navController: NavController) {
 
     val itemsBV = listOf(
-        ItemsBaiViet(1, "Một số đặc điểm nổi bậc của loài mèo Ba Tư", "Nội dung bài viết 1"),
-        ItemsBaiViet(2, "Bài viết 2", "Nội dung bài viết 2"),
-        ItemsBaiViet(3, "Bài viết 3", "Nội dung bài viết 3"),
-        ItemsBaiViet(4, "Bài viết 4", "Nội dung bài viết 4"),
-        ItemsBaiViet(5, "Bài viết 5", "Nội dung bài viết 5"),
-        ItemsBaiViet(6, "Bài viết 6", "Nội dung bài viết 6")
+        ItemsBaiViet(1, "Một số đặc điểm nổi bậc của loài mèo Ba Tư", "Nội dung bài viết 1", R.drawable.bg1),
+        ItemsBaiViet(2, "Bài viết 2", "Nội dung bài viết 2", R.drawable.bg2),
+        ItemsBaiViet(3, "Bài viết 3", "Nội dung bài viết 3", R.drawable.bg3),
+        ItemsBaiViet(4, "Bài viết 4", "Nội dung bài viết 4", R.drawable.bg4),
+        ItemsBaiViet(5, "Bài viết 5", "Nội dung bài viết 5", R.drawable.bg5),
+        ItemsBaiViet(6, "Bài viết 6", "Nội dung bài viết 6", R.drawable.bg6)
     )
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF000000)),
     ) {
         items(items = itemsBV, key = { it.id }) { task ->
-            Column {
+            Column (
+                modifier = Modifier
+                    .fillMaxWidth()
+            ){
                 Surface(
                     color = Color.White,
-                    shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(
-                            width = 1.dp,
-                            color = Color(0xFFe6e6e6),
-                            shape = RoundedCornerShape(1.dp)
-                        )
+                        .border(BorderStroke(2.dp, Color(0xFF000000)))
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+//                            .background(Color(0xFFe6f5ff))
+                            .background(
+                                Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFF9CD8FF),
+                                        Color(0xFFFFFFFF),
+                                        Color(0xFFDAEBFF),
+                                        Color(0xFFFFFFFF),
+                                    ),
+                                    startX = 1000f,
+                                    endX = 70f
+                                )
+                            )
                     ) {
                         Avatar()
+//                        HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
                         Column(
                             modifier = Modifier
-                                .background(Color(0xFFfff2e6))
+                                .padding(0.dp, 5.dp, 0.dp, 0.dp)
+                                .background(Color(0xFFffffff))
                                 .fillMaxWidth()
                         ) {
                             Text(
                                 text = task.tieude,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    fontStyle = FontStyle.Italic
+                                ),
+                                modifier = Modifier.padding(top = 12.dp, bottom = 4.dp, start = 10.dp, end = 10.dp)
                             )
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = task.noidung,
-                                fontSize = 14.sp
+                            Image(
+                                painter = painterResource(id = task.imageblog),
+                                contentDescription = "blog image",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .padding(start = 5.dp, end = 5.dp)
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                                    .clip(shape = RoundedCornerShape(4.dp))
                             )
                         }
 
                     }
                 }
             }
+
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
+                    .background(Color.White),
 
             ) {
                 Button(
@@ -156,6 +199,7 @@ fun BaiVietScreen() {
                     Text(text = "Chi Tiết", color = Color.Gray)
                 }
             }
+            HorizontalDivider( thickness = 7.dp, color = Color(0xFF99d6ff))
 
         }
     }
@@ -164,44 +208,52 @@ fun BaiVietScreen() {
 @Composable
 fun Avatar() {
     Row(
+        modifier = Modifier
+            .padding(start = 5.dp, top = 5.dp)
+        ,
         verticalAlignment = Alignment.CenterVertically // Center items vertically
     ) {
         Surface(
             modifier = Modifier
                 .size(40.dp)
-                .border(BorderStroke(2.dp, Color.Black), shape = CircleShape)
-                .clip(shape = CircleShape)
         ) {
 
-            Image(
-                painter = painterResource(R.drawable.user),
+            Icon(
+                painter = painterResource(R.drawable.logo),
                 contentDescription = "avatar",
-                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(30.dp)
-                    .clip(CircleShape)
+                    .size(30.dp),
+                tint = Color(0xFF990000)
             )
         }
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = "ADMIN",
-            style = TextStyle(fontSize = 18.sp),
-            fontWeight = FontWeight.Bold
-        )
+        Column (
+            modifier = Modifier.padding(10.dp, 10.dp, 10.dp, 5.dp)
+        ){
+            Text(
+                text = "Pet Shop",
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                color = Color(0xFF990000),
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            Text(
+                text = "23:45 12-05-2024",
+                style = TextStyle(
+                    fontSize = 10.sp,
+                    fontStyle = FontStyle.Italic
+                ),
+            )
+        }
     }
 }
 
-data class ItemsBaiViet(
-    val id: Int,
-    val tieude: String,
-    val noidung: String
-)
-
-
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 fun BaiVietPreview() {
     STTCTheme {
-        BaiVietScreen()
+        ListBlogScreen(rememberNavController())
     }
 }

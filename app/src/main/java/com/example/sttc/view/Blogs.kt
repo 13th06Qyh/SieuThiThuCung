@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -43,7 +44,7 @@ import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 
 
-class Products : ComponentActivity() {
+class Blogs : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -54,14 +55,14 @@ class Products : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ProductScreens(navController)
+                    BlogsScreens(navController)
                 }
             }
         }
     }
 }
 @Composable
-fun ProductScreens(navController: NavController) {
+fun BlogsScreens(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -73,11 +74,11 @@ fun ProductScreens(navController: NavController) {
                 .background(
                     Brush.radialGradient(
                         colors = listOf(
-                            Color(0xFFffffff),
-                            Color(0xFFffd6cc),
-                            Color(0xFFffffff),
-                            Color(0xFFffd6b3),
-                            Color(0xFFff8566)
+                            Color(0xFFFFFFFF),
+                            Color(0xFFE0EEFF),
+                            Color(0xFFFFFFFF),
+                            Color(0xFF9CD8FF),
+                            Color(0xFF9ED9FF),
                         ),
                         radius = 800f,
                     )
@@ -85,18 +86,18 @@ fun ProductScreens(navController: NavController) {
 //            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TopIconProducts()
-            RowItems(
+            TopIconBlogs()
+            BlogsRowItems(
                 R.drawable.icon_dog, R.drawable.icon_cat,
                 colors = listOf(Color(0xFFffff99), Color(0xFFccffcc)),
                 onItemClick = { }
             )
-            RowItems(
+            BlogsRowItems(
                 R.drawable.icon_chim,
                 colors = listOf(Color(0xFFffcccc)),
                 onItemClick = { }
             )
-            RowItems(
+            BlogsRowItems(
                 R.drawable.icon_ca, R.drawable.icon_hamster,
                 colors = listOf(Color(0xFFb3f0ff), Color(0xFFffd699)),
                 onItemClick = {}
@@ -106,7 +107,7 @@ fun ProductScreens(navController: NavController) {
 }
 
 @Composable
-fun TopIconProducts() {
+fun TopIconBlogs() {
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context)
         .components {
@@ -116,10 +117,10 @@ fun TopIconProducts() {
 
     Image(
         painter = rememberAsyncImagePainter(
-            ImageRequest.Builder(context).data(data = R.drawable.productanimal).apply(block = {
+            ImageRequest.Builder(context).data(data = R.drawable.blogs).apply(block = {
             }).build(), imageLoader = imageLoader
         ),
-        contentDescription = "TopIconProductsAnimals",
+        contentDescription = "TopIconBlogsAnimals",
         modifier = Modifier
             .fillMaxWidth()
             .height(145.dp)
@@ -127,33 +128,33 @@ fun TopIconProducts() {
             .background(
                 Brush.radialGradient(
                     colors = listOf(
-                        Color(0xFF9ED9FF),
-                        Color(0xFFD2F0FF),
-                        Color(0xFFE0EEFF),
-                        Color(0xFFDAEBFF),
-                        Color(0xFF9CD8FF),
+                        Color(0xFFFFE3DC),
+                        Color(0xFFFFE3DC),
+                        Color(0xFFFFEBEB),
+                        Color(0xFFFFE8D4),
+                        Color(0xFFFFBDAC),
                     ),
-                    radius = 360f
+                    radius = 350f
                 )
             )
     )
 
 //    Image(
-//        painter = painterResource(id = R.drawable.productanimal),
-//        contentDescription = "TopIconProductsAnimals",
+//        painter = painterResource(id = R.drawable.blogs),
+//        contentDescription = "TopIconBlogsAnimals",
 //        modifier = Modifier
 //            .fillMaxWidth()
 //            .height(130.dp)
 //            .background(
 //                Brush.radialGradient(
 //                    colors = listOf(
-//                        Color(0xFF9ED9FF),
-//                        Color(0xFFD2F0FF),
-//                        Color(0xFFE0EEFF),
-//                        Color(0xFFDAEBFF),
-//                        Color(0xFF9CD8FF),
+//                        Color(0xFFFFE3DC),
+//                        Color(0xFFFFE3DC),
+//                        Color(0xFFFFEBEB),
+//                        Color(0xFFFFE8D4),
+//                        Color(0xFFFFBDAC),
 //                    ),
-//                    radius = 360f
+//                    radius = 350f
 //                )
 //            )
 //            .border(1.dp, color = Color(0xFFcc00cc))
@@ -161,7 +162,7 @@ fun TopIconProducts() {
 }
 
 @Composable
-fun RowItems(vararg images: Int, colors: List<Color> = listOf(), onItemClick: (Int) -> Unit) {
+fun BlogsRowItems(vararg images: Int, colors: List<Color> = listOf(), onItemClick: (Int) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth()
             .padding(0.dp, 10.dp, 0.dp, 5.dp),
@@ -170,18 +171,18 @@ fun RowItems(vararg images: Int, colors: List<Color> = listOf(), onItemClick: (I
     ) {
         images.forEachIndexed { index, image ->
             val color = if (index < colors.size) colors[index] else Color.Transparent
-            BoxItem(image = image, color = color, onItemClick = { onItemClick(image) })
+            BlogsBoxItem(image = image, color = color, onItemClick = { onItemClick(image) })
         }
     }
 }
 
 @Composable
-fun BoxItem(image: Int, color: Color, onItemClick: () -> Unit) {
+fun BlogsBoxItem(image: Int, color: Color, onItemClick: () -> Unit) {
     Box(
         modifier = Modifier.size(170.dp)
             .padding(10.dp)
-            .background(color, shape = RoundedCornerShape(10.dp))
-            .border(2.dp, color = Color(0xFF000000), shape = RoundedCornerShape(10.dp))
+            .background(color, shape = CircleShape)
+            .border(2.dp, color = Color(0xFF000000), shape = CircleShape)
             .clickable(onClick = onItemClick),
         contentAlignment = Alignment.Center
     ) {
@@ -195,8 +196,8 @@ fun BoxItem(image: Int, color: Color, onItemClick: () -> Unit) {
 
 @Preview(showBackground = true)
 @Composable
-fun ProductPreview() {
+fun BlogsScreensPreview() {
     STTCTheme {
-        ProductScreens(rememberNavController())
+        BlogsScreens(rememberNavController())
     }
 }

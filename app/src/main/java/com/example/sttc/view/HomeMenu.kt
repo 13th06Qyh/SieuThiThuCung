@@ -48,8 +48,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
+import com.example.sttc.controller.MyApp
 import com.example.sttc.ui.theme.STTCTheme
 
 
@@ -64,7 +68,7 @@ class HomeMenu : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MenuScreen()
+                    MenuScreen(navController)
                 }
             }
         }
@@ -74,7 +78,7 @@ class HomeMenu : ComponentActivity() {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MenuScreen() {
+fun MenuScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
@@ -163,7 +167,7 @@ fun MenuScreen() {
                             )
                     ) {
                         IconButton(onClick = {
-                            /*TODO*/
+                            navController.navigate("home")
                         },
                             modifier = Modifier
                                 .weight(1f)
@@ -181,7 +185,7 @@ fun MenuScreen() {
                         }
 
                         IconButton(onClick = {
-                            /*TODO*/
+                            navController.navigate("products")
                         },
                             modifier = Modifier
                                 .weight(1f)
@@ -199,7 +203,7 @@ fun MenuScreen() {
                         }
 
                         IconButton(onClick = {
-                            /*TODO*/
+                            navController.navigate("blogs")
                         },
                             modifier = Modifier
                                 .weight(1f)
@@ -217,7 +221,7 @@ fun MenuScreen() {
                         }
 
                         IconButton(onClick = {
-                            /*TODO*/
+                            navController.navigate("account")
                         },
                             modifier = Modifier
                                 .weight(1f)
@@ -256,7 +260,8 @@ fun MenuScreen() {
                 ,
                 contentAlignment = Alignment.Center) {
 //                HomeScreen()
-                BillShipScreen()
+
+
             }
         }
     )
@@ -265,5 +270,5 @@ fun MenuScreen() {
 @Preview(showBackground = true)
 @Composable
 fun MenuScreenPreview() {
-    MenuScreen()
+    MenuScreen(rememberNavController())
 }

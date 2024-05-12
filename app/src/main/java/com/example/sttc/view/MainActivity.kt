@@ -92,7 +92,7 @@ fun LoginForm(navController: NavController) {
                 contentDescription = "Logo",
                 modifier = Modifier
                     .size(250.dp)
-                    .clickable { navController.navigate("home") },
+                    .clickable { navController.navigate("menu") },
 
             )
 

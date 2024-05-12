@@ -5,40 +5,53 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import java.text.NumberFormat
@@ -48,154 +61,255 @@ class Cart : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            CartScreen()
+            val navController = rememberNavController()
+            STTCTheme {
+                // A surface container using the 'background' color from the theme
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    CartScreen(navController)
+                }
+            }
         }
     }
 }
 
 @Composable
-fun CartScreen() {
+fun CartScreen(navController: NavController) {
     Column(
         modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFffddcc)),
-            verticalAlignment = Alignment.CenterVertically,
+//            .height(50.dp)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFFFFFFFF),
+                            Color(0xFFFFE4E4),
+                            Color(0xFFF6F2F2),
+                        ),
+                        radius = 600f
+                    )
+                )
+                .padding(top = 0.dp)
+//                .border(1.dp, color = Color(0xFFff6666))
+            ,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(onClick = { /*TODO*/ }) {
+            Icon(
+                Icons.Default.ArrowBack, contentDescription = "Back",
+                modifier = Modifier
+                    .size(50.dp)
+                    .padding(10.dp, 0.dp)
+                    .clickable { /*TODO*/ },
+                tint = Color.Black
+            )
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ){
                 Icon(
-                    painter = painterResource(id = R.drawable.arrow_back),
-                    contentDescription = "arrow back",
-                    tint = Color.Black,
-                    modifier = Modifier.size(37.dp)
+                    Icons.Default.ShoppingCart, contentDescription = "Add to cart",
+                    modifier = Modifier
+                        .size(35.dp)
+                        .padding(0.dp, 0.dp, 5.dp, 0.dp),
+                    tint = Color(0xFFcc2900)
+                )
+                Text(
+                    text = "Giỏ hàng",
+                    style = TextStyle(
+                        fontSize = 25.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        color = Color(0xFFcc2900)
+                    ),
+                    modifier = Modifier
+                        .padding(5.dp, 10.dp)
                 )
             }
-            Text(
-                text = "Giỏ hàng",
-            )
+
             IconButton(onClick = { /*TODO*/ }) {
                 Icon(
-                    imageVector = Icons.Default.Delete,
+                    painter = painterResource(id = R.drawable.trash3),
                     contentDescription = "Delete",
-                    tint = Color.Red
+                    tint = Color.Red,
+                    modifier = Modifier.size(25.dp)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
 
+        val items = listOf(
+            BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), Bill(1)),
+            BillProduct(Product(R.drawable.rs2, "Tag B", "Product B", 102000), Bill(2)),
+            BillProduct(Product(R.drawable.rs3, "Tag C", "Product C", 2345000), Bill(2)),
+            BillProduct(Product(R.drawable.rs1, "Tag D", "Product D", 30000), Bill(2)),
+            BillProduct(Product(R.drawable.rs2, "Tag E", "Product E", 8000), Bill(2)),
 
-        val itemsCart = listOf(
-            ItemsCart(
-                id = 1,
-                image = R.drawable.rs1,
-                productName = "Thức ăn ngon cho Quỳnh ",
-                productPrice = 200000,
-                quantity = 1
-            ),
-            ItemsCart(
-                id = 2,
-                image = R.drawable.rs1,
-                productName = "Thức ăn ngon cho Quỳnh ",
-                productPrice = 200000,
-                quantity = 1
-            ),
-            ItemsCart(
-                id = 3,
-                image = R.drawable.rs2,
-                productName = "Thức ăn ngon cho Thư",
-                productPrice = 870000,
-                quantity = 5
-            ),
-            ItemsCart(
-                id = 4,
-                image = R.drawable.rs2,
-                productName = "Thức ăn ngon cho Thư",
-                productPrice = 870000,
-                quantity = 5
-            ),
-            ItemsCart(
-                id = 5,
-                image = R.drawable.rs2,
-                productName = "Thức ăn ngon cho Thư",
-                productPrice = 870000,
-                quantity = 5
-            ),
-            ItemsCart(
-                id = 6,
-                image = R.drawable.rs2,
-                productName = "Thức ăn ngon cho Thư",
-                productPrice = 870000,
-                quantity = 5
-            ),
-            ItemsCart(
-                id = 7,
-                image = R.drawable.rs2,
-                productName = "Thức ăn ngon cho Thư",
-                productPrice = 870000,
-                quantity = 5
-            ),
+            )
 
-        )
         LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
                 .weight(1f)
+                .fillMaxWidth()
+                .background(Color(0xFFffcccc))
+                .padding(5.dp, 5.dp)
         ) {
-            items(items = itemsCart, key = { it.id }) { task ->
-                Row(
-                    modifier = Modifier.background(Color(0xFFf2f2f2)),
-                    verticalAlignment = Alignment.CenterVertically
+            items(items) { item ->
+
+                Column(
+                    modifier = Modifier
+                        .padding(0.dp, 0.dp, 0.dp, 10.dp)
+                        .border(1.dp, color = Color(0xFFFFFFFF))
+                        .fillMaxWidth()
+                        .background(
+                            Color.White
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    val checkedState = remember { mutableStateOf(false) }
-                    Checkbox(
-                        checked = checkedState.value,
-                        onCheckedChange = { checkedState.value = it },
-                        modifier = Modifier.size(20.dp) // Thay đổi kích thước của checkbox
-                    )
-                    Image(
-                        painter = painterResource(id = task.image),
-                        contentDescription = "Product Image",
-                        modifier = Modifier.size(100.dp) // Thay đổi kích thước của ảnh
-                    )
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f)
+                            .height(40.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = task.productName,
-                            fontSize = 20.sp
+                            text = "Công ty TNHH QuacQUac",
+                            style = TextStyle(
+                                fontSize = 15.sp,
+                                fontStyle = FontStyle.Italic,
+                                textAlign = TextAlign.Start,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF000000),
+                            ),
+                            modifier = Modifier
+                                .padding(10.dp, 5.dp)
                         )
-                        Row {
-                            val format = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+
+                        val checkedState = remember { mutableStateOf(false) }
+                        Checkbox(
+                            checked = checkedState.value,
+                            onCheckedChange = { checkedState.value = it },
+                            modifier = Modifier
+                                .size(20.dp) // Thay đổi kích thước của checkbox
+                                .padding(0.dp, 0.dp, 15.dp, 0.dp)
+                        )
+                    }
+
+                    HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+
+                    Row(
+                        modifier = Modifier
+//                        .border(2.dp, color = Color(0xFFff6666))
+                            .clickable { /*TODO*/ },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Image(
+                            painter = painterResource(id = item.product.imageResId),
+                            contentDescription = "Image",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .padding(5.dp, 5.dp)
+                                .border(0.1.dp, color = Color.Black)
+                        )
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp)
+                                .padding(5.dp, 16.dp),
+                        ) {
                             Text(
-                                text = format.format(task.productPrice),
-                                modifier = Modifier.width(100.dp)
+                                text = item.product.productName,
+                                style = TextStyle(
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
+                            Text(
+                                text = item.product.tagName,
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontStyle = FontStyle.Italic,
+                                    color = Color.Black,
+                                )
+                            )
+                            Text(
+                                "Giá: " + formatNumber(item.product.productPrice) + "đ",
+                                style = TextStyle(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Red,
+                                    textAlign = TextAlign.End
+                                ),
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                    }
+
+                    HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+                    HorizontalDivider(thickness = 10.dp, color = Color.White)
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .padding(end = 10.dp),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .padding()
+                                .height(40.dp)
+                                .border(1.dp, color = Color(0xFFd9d9d9)),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+
                         ) {
-                            IconButton(onClick = { /*TODO*/ }) {
+
+                            IconButton(
+                                onClick = { /*TODO*/ },
+                            )
+                            {
                                 Icon(
                                     painterResource(id = R.drawable.remove),
                                     contentDescription = "remove",
-                                    tint = Color(0xFF4d4d4d)
+                                    tint = Color(0xFF4d4d4d),
                                 )
                             }
-                            Text(
-                                text = task.quantity.toString(),
-                                modifier = Modifier.width(30.dp),
-                                textAlign = TextAlign.Center
-                            )
-                            IconButton(onClick = { /*TODO*/ }) {
+                            Row(
+                                modifier = Modifier
+                                    .width(60.dp)
+                                    .height(40.dp)
+                                    .border(1.dp, Color.Gray),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = item.bill.soluongmua.toString(),
+                                    modifier = Modifier
+                                        .width(60.dp),
+                                    style = TextStyle(
+                                        fontSize = 20.sp,
+                                        color = Color.Black,
+                                        textAlign = TextAlign.Center,
+                                    )
+                                )
+                            }
+
+                            IconButton(
+                                onClick = { /*TODO*/ },
+                            ) {
                                 Icon(
                                     Icons.Default.Add,
                                     contentDescription = "Add",
@@ -204,73 +318,98 @@ fun CartScreen() {
                             }
                         }
                     }
+                    HorizontalDivider(thickness = 10.dp, color = Color.White)
+
+
                 }
-                HorizontalDivider(thickness = 15.dp, color = Color.White)
             }
         }
+
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFcc2900))
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFffddcc)),
+                .background(Color(0xFFe6ffff))
+//                .border(2.dp, color = Color(0xFFcc2900))
+            ,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Checkbox(
-                checked = false,
-                onCheckedChange = { /*TODO: Add your action here*/ },
-                modifier = Modifier.size(20.dp)
-            )
-            Text(text = "Tất cả")
+            Row(
+                modifier = Modifier
+                    .width(95.dp)
+                    .padding(start = 10.dp)
+                    .clickable { /*TODO*/ },
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Checkbox(
+                    checked = false,
+                    onCheckedChange = { /*TODO: Add your action here*/ },
+                    modifier = Modifier
+                        .size(20.dp),
+                    colors = CheckboxDefaults.colors(
+                        checkmarkColor = Color(0xFFcc2900),
+                        checkedColor = Color(0xFFcc2900),
+                        uncheckedColor = Color.Gray,
+                    )
+                )
+                Text(
+                    text = "Tất cả",
+                    modifier = Modifier.padding(start = 10.dp),
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Tổng cộng: ",
-                    fontSize = 13.sp
-                )
-                val format = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
-                Text(
-                    text = format.format(1070000),
-                    modifier = Modifier.width(100.dp),
-                    color = Color.Red,
-                    fontWeight = FontWeight.Bold
-                )
+                Column(
+                ) {
+                    Text(
+                        text = "Tổng cộng: ",
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        ),
+                        modifier = Modifier.padding(bottom = 3.dp)
+                    )
+                    Text(
+                        text = formatNumber(1000000) + "đ ",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Button(
                     shape = RectangleShape,
                     onClick = { /*TODO: Add your action here*/ },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Red,
-                    )
+                    ),
+                    modifier = Modifier.height(63.dp)
                 ) {
                     Text(
-                        text = "Thanh toán",
-                        color = Color.White
+                        text = "Mua hàng",
+                        style = TextStyle(
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        ),
                     ) // Change the color of the text
                 }
             }
         }
-
-
     }
+
 }
 
-data class ItemsCart(
-    val id: Int,
-    val image: Int,
-    val productName: String,
-    val productPrice: Int,
-    val quantity: Int,
-)
 
-
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 fun CartPreview() {
     STTCTheme {
-        CartScreen()
+        CartScreen(rememberNavController())
     }
 }
 
