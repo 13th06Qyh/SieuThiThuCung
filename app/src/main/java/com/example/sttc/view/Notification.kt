@@ -16,15 +16,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,9 +34,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,8 +46,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
-import java.text.NumberFormat
-import java.util.Locale
 
 class Notification : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,59 +67,87 @@ class Notification : ComponentActivity() {
 fun NotificationScreen() {
     Column(
         modifier = Modifier.fillMaxSize()
+            .background(Color(0xFFffe6cc))
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFffddcc)),
+                .background(Color(0xFFffd7b3)),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
+
         ) {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(
+                onClick = { /*TODO*/ },
+            ) {
                 Icon(
                     painter = painterResource(id = R.drawable.arrow_back),
                     contentDescription = "arrow back",
-                    tint = Color.Black,
-                    modifier = Modifier.size(37.dp)
+                    tint = Color(0xFF994a00),
+                    modifier = Modifier.size(35.dp)
                 )
             }
-            Text(
-                text = "Thông báo",
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+
+            Row(
+                modifier = Modifier
+                    .padding(start = 60.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ){
+                Icon(
+                    Icons.Filled.Notifications,
+                    contentDescription = "Notifications",
+                    tint = Color(0xFFcc6300),
+                    modifier = Modifier.size(33.dp)
+                )
+                Text(
+                    text = "Thông báo",
+                    style = TextStyle(
+                        fontSize = 25.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF994a00)
+                    ),
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 5.dp)
+                )
+            }
+
         }
         val items = listOf(
             ItemsNotification(
                 id = 1,
-                content = "Thông báo đến từ Thư  ",
+                content = "Bạn có thông báo mới 0",
                 time = "20/10/2021"
             ),
             ItemsNotification(
                 id = 2,
-                content = "Thông báo đến từ Quỳnh",
-                time = "20/10/2021"
+                content = "Bạn có thông báo mới 1",
+                time = "21/10/2021"
             ),
             ItemsNotification(
                 id = 3,
-                content = "Thông báo đến từ Huy",
-                time = "20/10/2021"
+                content = "Bạn có thông báo mới 2",
+                time = "23/10/2021"
             ),
             ItemsNotification(
                 id = 4,
-                content = "Thông báo đến từ Thư",
-                time = "20/10/2021"
+                content = "Bạn có thông báo mới 3",
+                time = "27/10/2021"
             ),
             ItemsNotification(
                 id = 5,
-                content = "Thông báo đến từ Quỳnh",
-                time = "20/10/2021"
+                content = "Bạn có thông báo mới 4",
+                time = "20/12/2021"
             ),
         )
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
+                .background(Color(0xFFfff2e6))
         ) {
             items(items = items, key = { it.id }) { task ->
                 Surface(
@@ -131,32 +155,33 @@ fun NotificationScreen() {
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(5.dp)
 
                 ) {
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(5.dp)
-
+                            .padding(5.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Surface(
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(27.dp)
                                 .border(
-                                    BorderStroke(2.dp, Color.Black),
+                                    BorderStroke(1.dp, Color(0xFFff9933)),
                                     shape = CircleShape
                                 )
                                 .clip(shape = CircleShape)
                         ) {
 
                             Image(
-                                painter = painterResource(id = R.drawable.icon_notifications),
-                                contentDescription = "thongbao",
+                                Icons.Filled.Notifications,
+                                contentDescription = "Notifications",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
-                                    .size(30.dp)
                                     .clip(CircleShape) ,
-                                        colorFilter = ColorFilter.tint(Color.Black)
+                                        colorFilter = ColorFilter.tint(Color(0xFFff9933))
                             )
                         }
                         Column(
@@ -172,31 +197,26 @@ fun NotificationScreen() {
                             Text(
                                 text = task.time,
                                 color = Color.Black,
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    fontStyle = FontStyle.Italic
+                                )
                             )
 
                         }
                         Spacer(modifier =Modifier.height(50.dp))
 
                     }
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.Gray)
-                    )
+
                 }
+                HorizontalDivider(thickness = 1.dp, color = Color(0xFFff9933))
+
             }
         }
     }
 }
 
-data class ItemsNotification(
-    val id: Int,
-    val content: String,
-    val time: String
-)
-
-
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 fun NotificationPreview() {
     STTCTheme {

@@ -75,7 +75,11 @@ data class ItemAccount (
     var address: String
 
 )
-
+data class ItemsNotification(
+    val id: Int,
+    val content: String,
+    val time: String
+)
 @Composable
 fun formatNumber(number: Int): String {
     val format = NumberFormat.getNumberInstance(Locale.GERMAN)

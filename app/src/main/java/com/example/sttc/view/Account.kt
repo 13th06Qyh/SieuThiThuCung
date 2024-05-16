@@ -1,7 +1,5 @@
 package com.example.sttc.view
 
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -29,19 +27,26 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,8 +68,6 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import com.example.sttc.R
-import com.example.sttc.controller.AuthController
-import com.example.sttc.controller.MyApp
 import com.example.sttc.ui.theme.STTCTheme
 
 class Account : ComponentActivity() {
@@ -96,12 +99,12 @@ fun AccountScreen(navController: NavController) {
             .verticalScroll(scrollState)
 
     ) {
-        Column (
+        Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
-            TopIcon()
+        ) {
+            TopIcon(navController)
             StatusBill()
             InfoAccount()
         }
@@ -110,7 +113,9 @@ fun AccountScreen(navController: NavController) {
 }
 
 @Composable
-fun TopIcon() {
+fun TopIcon(navController: NavController) {
+    var openDialogLogout by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context)
         .components {
@@ -118,29 +123,129 @@ fun TopIcon() {
         }
         .build()
 
-    Image(
-        painter = rememberAsyncImagePainter(
-            ImageRequest.Builder(context).data(data = R.drawable.topiconaccount).apply(block = {
-            }).build(), imageLoader = imageLoader
-        ),
-        contentDescription = "TopIconAccount",
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(225.dp)
-            .border(1.dp, color = Color(0xFFff6666))
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFFFF6794),
-                        Color(0xFFF4FFFF),
-                        Color(0xFFFFDCD2),
-                        Color(0xFFFFE4F9),
-                        Color(0xFFF6F5F2),
-                    ),
-                    radius = 750f
+    Box(
+    ) {
+
+        Image(
+            painter = rememberAsyncImagePainter(
+                ImageRequest.Builder(context).data(data = R.drawable.topiconaccount)
+                    .apply(block = {
+                    }).build(), imageLoader = imageLoader
+            ),
+            contentDescription = "TopIconAccount",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(225.dp)
+                .border(1.dp, color = Color(0xFFff6666))
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFFFF6794),
+                            Color(0xFFF4FFFF),
+                            Color(0xFFFFDCD2),
+                            Color(0xFFFFE4F9),
+                            Color(0xFFF6F5F2),
+                        ),
+                        radius = 750f
+                    )
                 )
+        )
+
+        IconButton(
+            onClick = { expanded = true },
+            modifier = Modifier
+                .padding(4.dp, 5.dp)
+                .align(Alignment.TopEnd)
+        ) {
+            Icon(
+                Icons.Default.Settings,
+                contentDescription = "Logout",
+                modifier = Modifier
+                    .size(37.dp)
+
             )
-    )
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Đăng xuất",
+                        style = TextStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFcc2900),
+                        )
+                    ) },
+                    onClick = {
+                        expanded = false
+                        openDialogLogout = true
+                    },
+                    modifier = Modifier.background(Color(0xFFffffff))                )
+
+            }
+        }
+
+
+    }
+
+    if (openDialogLogout) {
+        AlertDialog(
+            containerColor = Color(0xFFfffff5),
+            onDismissRequest = { openDialogLogout = false },
+            title = {
+                Text(
+                    "Bạn chắc chắn muốn đăng xuất?",
+                    style = TextStyle(
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        openDialogLogout = false
+                        navController.navigate("login")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFFA483), // Màu nền của nút
+                        contentColor = Color.Black, // Màu chữ của nút
+                    ),
+
+                    border = BorderStroke(1.dp, Color(0xFF8B2701)),
+                ) {
+                    Text(
+                        "Xác nhận",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        openDialogLogout = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFA2FFAB), // Màu nền của nút
+                        contentColor = Color.Black, // Màu chữ của nút
+                    ),
+
+                    border = BorderStroke(1.dp, Color(0xFF018B0F)),
+                ) {
+                    Text(
+                        "Hủy",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
+        )
+    }
 
 //    Image(
 //        painter = painterResource(id = R.drawable.topiconaccount),
@@ -182,17 +287,18 @@ fun StatusBill() {
                     radius = 600f
                 )
             )
-    ){
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(130.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
-        ){
-            IconButton(onClick = {
-                /*TODO*/
-            },
+        ) {
+            IconButton(
+                onClick = {
+                    /*TODO*/
+                },
                 modifier = Modifier
                     .size(135.dp, 130.dp)
             ) {
@@ -204,20 +310,22 @@ fun StatusBill() {
                         tint = Color(0xFFcc2900)
                     )
                     Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
-                    Text("Đang giao",
+                    Text(
+                        "Đang giao",
                         style = TextStyle(
                             fontSize = 16.sp,
                             color = Color(0xFFcc2900),
 
-                        )
+                            )
                     )
                 }
 
             }
 
-            IconButton(onClick = {
-                /*TODO*/
-            },
+            IconButton(
+                onClick = {
+                    /*TODO*/
+                },
                 modifier = Modifier
                     .size(135.dp, 160.dp)
             ) {
@@ -229,7 +337,8 @@ fun StatusBill() {
                         tint = Color(0xFFcc2900)
                     )
                     Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
-                    Text("Lịch sử mua",
+                    Text(
+                        "Lịch sử mua",
                         style = TextStyle(
                             fontSize = 16.sp,
                             color = Color(0xFFcc2900)
@@ -239,9 +348,10 @@ fun StatusBill() {
 
             }
 
-            IconButton(onClick = {
-                /*TODO*/
-            },
+            IconButton(
+                onClick = {
+                    /*TODO*/
+                },
                 modifier = Modifier
                     .size(135.dp, 160.dp)
             ) {
@@ -253,7 +363,8 @@ fun StatusBill() {
                         tint = Color(0xFFcc2900)
                     )
                     Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
-                    Text("Đơn đã hủy",
+                    Text(
+                        "Đơn đã hủy",
                         style = TextStyle(
                             fontSize = 16.sp,
                             color = Color(0xFFcc2900)
@@ -265,7 +376,6 @@ fun StatusBill() {
         }
     }
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -299,7 +409,7 @@ fun InfoAccount() {
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .border(1.dp, color = Color.Red)
@@ -317,7 +427,7 @@ fun InfoAccount() {
                     )
                 ),
             horizontalArrangement = Arrangement.Center
-        ){
+        ) {
             Icon(
                 painter = painterResource(id = R.drawable.infor),
                 contentDescription = "Info",
@@ -334,7 +444,7 @@ fun InfoAccount() {
             )
         }
 
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .border(0.1.dp, color = Color(0xFF000000))
@@ -353,7 +463,7 @@ fun InfoAccount() {
                 ),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
             Icon(
                 Icons.Default.Person,
                 contentDescription = "Person",
@@ -390,7 +500,7 @@ fun InfoAccount() {
                     tint = Color.Gray,
                     modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp),
 
-                )
+                    )
             }
 
             if (showDialogName) {
@@ -406,7 +516,8 @@ fun InfoAccount() {
                                 fontSize = 23.sp,
                             ),
                             modifier = Modifier.fillMaxWidth()
-                        ) },
+                        )
+                    },
                     text = {
                         TextField(
                             value = newName,
@@ -421,7 +532,7 @@ fun InfoAccount() {
                     confirmButton = {
                         Button(
                             onClick = {
-                            itemAccount[0].name = newName
+                                itemAccount[0].name = newName
                                 showDialogName = false
                             },
                             colors = ButtonDefaults.buttonColors(
@@ -431,7 +542,8 @@ fun InfoAccount() {
 
                             border = BorderStroke(1.dp, Color(0xFF018B0F)),
                         ) {
-                            Text("Sửa",
+                            Text(
+                                "Sửa",
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold
                                 )
@@ -448,7 +560,8 @@ fun InfoAccount() {
 
                             border = BorderStroke(1.dp, Color(0xFF8B2701)),
                         ) {
-                            Text("Hủy",
+                            Text(
+                                "Hủy",
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold
                                 )
@@ -459,7 +572,7 @@ fun InfoAccount() {
             }
         }
 
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .border(0.1.dp, color = Color(0xFF000000))
@@ -478,7 +591,7 @@ fun InfoAccount() {
                 ),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
             Icon(
                 Icons.Default.Lock,
                 contentDescription = "Lock",
@@ -533,19 +646,23 @@ fun InfoAccount() {
                                 fontWeight = FontWeight.Bold,
                             ),
                             modifier = Modifier.fillMaxWidth()
-                        ) },
+                        )
+                    },
                     text = {
                         Column {
                             TextField(
                                 value = currentPassword,
                                 onValueChange = { currentPassword = it },
-                                label = { Text("*Mật khẩu hiện tại:",
-                                    style = TextStyle(
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    ),
-                                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
-                                ) },
+                                label = {
+                                    Text(
+                                        "*Mật khẩu hiện tại:",
+                                        style = TextStyle(
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                        ),
+                                        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
+                                    )
+                                },
                                 placeholder = { Text("-- Nhập mật khẩu hiện tại --") },
                                 colors = TextFieldDefaults.textFieldColors(
                                     containerColor = Color(0xffD7F0FF),
@@ -557,13 +674,16 @@ fun InfoAccount() {
                             TextField(
                                 value = newPassword,
                                 onValueChange = { newPassword = it },
-                                label = { Text("*Mật khẩu mới:",
-                                    style = TextStyle(
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    ),
-                                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
-                                ) },
+                                label = {
+                                    Text(
+                                        "*Mật khẩu mới:",
+                                        style = TextStyle(
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                        ),
+                                        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
+                                    )
+                                },
                                 placeholder = { Text("-- Nhập mật khẩu mới --") },
                                 colors = TextFieldDefaults.textFieldColors(
                                     containerColor = Color(0xffD7F0FF),
@@ -575,13 +695,16 @@ fun InfoAccount() {
                             TextField(
                                 value = repeatedNewPassword,
                                 onValueChange = { repeatedNewPassword = it },
-                                label = { Text("*Nhập lại:",
-                                    style = TextStyle(
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    ),
-                                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
-                                ) },
+                                label = {
+                                    Text(
+                                        "*Nhập lại:",
+                                        style = TextStyle(
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                        ),
+                                        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
+                                    )
+                                },
                                 placeholder = { Text("-- Nhập lại mật khẩu mới --") },
                                 colors = TextFieldDefaults.textFieldColors(
                                     containerColor = Color(0xffD7F0FF),
@@ -603,7 +726,8 @@ fun InfoAccount() {
 
                             border = BorderStroke(1.dp, Color(0xFF018B0F)),
                         ) {
-                            Text("Đổi mật khẩu",
+                            Text(
+                                "Đổi mật khẩu",
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold
                                 )
@@ -620,7 +744,8 @@ fun InfoAccount() {
 
                             border = BorderStroke(1.dp, Color(0xFF8B2701)),
                         ) {
-                            Text("Hủy",
+                            Text(
+                                "Hủy",
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold
                                 )
@@ -631,7 +756,7 @@ fun InfoAccount() {
             }
         }
 
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(67.dp)
@@ -651,7 +776,7 @@ fun InfoAccount() {
                 ),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
             Icon(
                 Icons.Default.Email,
                 contentDescription = "Email",
@@ -707,7 +832,8 @@ fun InfoAccount() {
                                 fontSize = 23.sp,
                             ),
                             modifier = Modifier.fillMaxWidth()
-                        ) },
+                        )
+                    },
                     text = {
                         TextField(
                             value = newEmail,
@@ -732,7 +858,8 @@ fun InfoAccount() {
 
                             border = BorderStroke(1.dp, Color(0xFF018B0F)),
                         ) {
-                            Text("Sửa",
+                            Text(
+                                "Sửa",
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold
                                 )
@@ -749,7 +876,8 @@ fun InfoAccount() {
 
                             border = BorderStroke(1.dp, Color(0xFF8B2701)),
                         ) {
-                            Text("Hủy",
+                            Text(
+                                "Hủy",
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold
                                 )
@@ -760,7 +888,7 @@ fun InfoAccount() {
             }
         }
 
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .border(0.1.dp, color = Color(0xFF000000))
@@ -779,7 +907,7 @@ fun InfoAccount() {
                 ),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
             Icon(
                 Icons.Default.Phone,
                 contentDescription = "Phone",
@@ -834,7 +962,8 @@ fun InfoAccount() {
                                 fontSize = 23.sp,
                             ),
                             modifier = Modifier.fillMaxWidth()
-                        ) },
+                        )
+                    },
                     text = {
                         TextField(
                             value = newPhone,
@@ -859,7 +988,8 @@ fun InfoAccount() {
 
                             border = BorderStroke(1.dp, Color(0xFF018B0F)),
                         ) {
-                            Text("Sửa",
+                            Text(
+                                "Sửa",
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold
                                 )
@@ -876,7 +1006,8 @@ fun InfoAccount() {
 
                             border = BorderStroke(1.dp, Color(0xFF8B2701)),
                         ) {
-                            Text("Hủy",
+                            Text(
+                                "Hủy",
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold
                                 )
@@ -887,7 +1018,7 @@ fun InfoAccount() {
             }
         }
 
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(110.dp)
@@ -907,7 +1038,7 @@ fun InfoAccount() {
                 ),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
             Icon(
                 Icons.Default.LocationOn,
                 contentDescription = "LocationOn",
@@ -944,7 +1075,8 @@ fun InfoAccount() {
                     Icons.Default.Create,
                     contentDescription = "EditAddressAccount",
                     tint = Color.Gray,
-                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp),)
+                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp),
+                )
             }
 
             if (showDialogAddress) {
@@ -960,7 +1092,8 @@ fun InfoAccount() {
                                 fontSize = 23.sp,
                             ),
                             modifier = Modifier.fillMaxWidth()
-                        ) },
+                        )
+                    },
                     text = {
                         TextField(
                             value = newAddress,
@@ -986,7 +1119,8 @@ fun InfoAccount() {
 
                             border = BorderStroke(1.dp, Color(0xFF018B0F)),
                         ) {
-                            Text("Xác nhận",
+                            Text(
+                                "Xác nhận",
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold
                                 )
@@ -1003,7 +1137,8 @@ fun InfoAccount() {
 
                             border = BorderStroke(1.dp, Color(0xFF8B2701)),
                         ) {
-                            Text("Hủy",
+                            Text(
+                                "Hủy",
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold
                                 )

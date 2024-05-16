@@ -74,7 +74,7 @@ class DetailBlogs : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    DetailBlogsScreen(navController,)
+                    DetailBlogsScreen(navController)
                 }
             }
         }

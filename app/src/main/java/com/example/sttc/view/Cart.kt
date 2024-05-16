@@ -3,6 +3,7 @@ package com.example.sttc.view
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -34,9 +36,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -77,6 +82,7 @@ class Cart : ComponentActivity() {
 
 @Composable
 fun CartScreen(navController: NavController) {
+    var openDialogDeleteCart by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -134,7 +140,7 @@ fun CartScreen(navController: NavController) {
                 )
             }
 
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { openDialogDeleteCart = true }) {
                 Icon(
                     painter = painterResource(id = R.drawable.trash3),
                     contentDescription = "Delete",
@@ -142,6 +148,64 @@ fun CartScreen(navController: NavController) {
                     modifier = Modifier.size(25.dp)
                 )
             }
+        }
+
+        if (openDialogDeleteCart) {
+            AlertDialog(
+                containerColor = Color(0xFFfffff5),
+                onDismissRequest = { openDialogDeleteCart = false },
+                title = {
+                    Text(
+                        "Bạn chắc chắn muốn xóa khỏi giỏ hàng?",
+                        style = TextStyle(
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            openDialogDeleteCart = false
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFFA483), // Màu nền của nút
+                            contentColor = Color.Black, // Màu chữ của nút
+                        ),
+
+                        border = BorderStroke(1.dp, Color(0xFF8B2701)),
+                    ) {
+                        Text(
+                            "Xác nhận",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            openDialogDeleteCart = false
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFA2FFAB), // Màu nền của nút
+                            contentColor = Color.Black, // Màu chữ của nút
+                        ),
+
+                        border = BorderStroke(1.dp, Color(0xFF018B0F)),
+                    ) {
+                        Text(
+                            "Hủy",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+            )
         }
 
 

@@ -79,7 +79,10 @@ class HomeMenu : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MenuScreen(navController: NavController) {
-
+    var clickedHome by remember { mutableStateOf(false) }
+    var clickedProducts by remember { mutableStateOf(false) }
+    var clickedBlogs by remember { mutableStateOf(false) }
+    var clickedAccount by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -167,7 +170,7 @@ fun MenuScreen(navController: NavController) {
                             )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate("home")
+                            clickedHome = !clickedHome
                         },
                             modifier = Modifier
                                 .weight(1f)
@@ -185,7 +188,7 @@ fun MenuScreen(navController: NavController) {
                         }
 
                         IconButton(onClick = {
-                            navController.navigate("products")
+                            clickedProducts = !clickedProducts
                         },
                             modifier = Modifier
                                 .weight(1f)
@@ -203,7 +206,7 @@ fun MenuScreen(navController: NavController) {
                         }
 
                         IconButton(onClick = {
-                            navController.navigate("blogs")
+                            clickedBlogs = !clickedBlogs
                         },
                             modifier = Modifier
                                 .weight(1f)
@@ -221,7 +224,7 @@ fun MenuScreen(navController: NavController) {
                         }
 
                         IconButton(onClick = {
-                            navController.navigate("account")
+                            clickedAccount = !clickedAccount
                         },
                             modifier = Modifier
                                 .weight(1f)
@@ -259,9 +262,17 @@ fun MenuScreen(navController: NavController) {
                 )
                 ,
                 contentAlignment = Alignment.Center) {
-//                HomeScreen()
-
-
+                if(clickedAccount){
+                    AccountScreen(navController)
+                }else if(clickedBlogs){
+                    BlogsScreens(navController)
+                }else if(clickedProducts){
+                    ProductScreens(navController)
+                }else if(clickedHome){
+                    HomeScreen(navController)
+                }else{
+                    HomeScreen(navController)
+                }
             }
         }
     )
