@@ -1,39 +1,34 @@
 package com.example.sttc.view
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.sttc.ui.theme.STTCTheme
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -43,40 +38,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
-import com.example.sttc.controller.AuthController
-import com.example.sttc.controller.MyApp
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            val navController = rememberNavController()
-            MyApp(navController = navController)
-            STTCTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MyApp(navController = navController)
-//                    MyApp()
-//                    LoginForm(navController, AuthController())
-                }
-            }
-        }
-    }
-}
+import com.example.sttc.ui.theme.STTCTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginForm(navController: NavController) {
+fun SignUpScreen(openLogin : () -> Unit){
     val username = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
 
@@ -90,14 +62,12 @@ fun LoginForm(navController: NavController) {
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "Logo",
-                modifier = Modifier
-                    .size(250.dp)
-                    .clickable { navController.navigate("menu") },
+                modifier = Modifier.size(100.dp).clickable { openLogin() },
 
-            )
+                )
 
             Text(
-                text = "Pet Shop đảm bảo 100% về chất lượng và độ an toàn!\n___",
+                text = "Pet Shop là thiên đường thú cưng\n___",
                 style = TextStyle(
                     fontFamily = FontFamily.Cursive, // Chọn font chữ
                     fontSize = 15.sp, // Kích thước chữ
@@ -105,15 +75,14 @@ fun LoginForm(navController: NavController) {
                     fontStyle = FontStyle.Italic // Kiểu chữ
                 ),
                 textAlign = TextAlign.Center, // Căn giữa đoạn văn bản
-                modifier = Modifier.paddingFromBaseline(0.dp, 20.dp),
-
+                modifier = Modifier.paddingFromBaseline(0.dp, 20.dp)
             )
 
-            Text(text = "Bạn đã có tài khoản?",
+            Text(text = "Bạn chưa có tài khoản?",
                 style = TextStyle(
                     fontFamily = FontFamily.Serif,
-                    fontSize = 33.sp,
-                    color = Color(0xFFE96B56),
+                    fontSize = 27.sp,
+                    color = Color(0xFF003399),
                     fontWeight = FontWeight.Bold
                 ),
                 textAlign = TextAlign.Center,
@@ -122,16 +91,16 @@ fun LoginForm(navController: NavController) {
             TextField(
                 colors = TextFieldDefaults.textFieldColors(
                     disabledTextColor = Color.Gray,
-                    containerColor = Color(0xffffd6cc),
+                    containerColor = Color(0xffccf2ff),
                     focusedIndicatorColor = Color.Green,
-                    unfocusedIndicatorColor = Color(0xffe62e00),
+                    unfocusedIndicatorColor = Color(0xff3385ff),
                     disabledIndicatorColor = Color.Gray,
                     cursorColor = Color.Blue,
                     errorCursorColor = Color.Red
                 ),
                 value = username.value,
                 onValueChange = { username.value = it },
-                placeholder = { Text("Tên đăng nhập") },
+                placeholder = { Text("Họ và tên") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 leadingIcon = {
                     Icon(imageVector = Icons.Filled.Person, contentDescription = "AcountIcon" )}
@@ -141,9 +110,49 @@ fun LoginForm(navController: NavController) {
                 modifier = Modifier.padding(0.dp, 10.dp, 0.dp, 0.dp),
                 colors = TextFieldDefaults.textFieldColors(
                     disabledTextColor = Color.Gray,
-                    containerColor = Color(0xffffebe6),
+                    containerColor = Color(0xffe6f9ff),
                     focusedIndicatorColor = Color.Green,
-                    unfocusedIndicatorColor = Color(0xffe62e00),
+                    unfocusedIndicatorColor = Color(0xff3385ff),
+                    disabledIndicatorColor = Color.Gray,
+                    cursorColor = Color.Blue,
+                    errorCursorColor = Color.Red
+                ),
+                value = password.value,
+                onValueChange = { password.value = it },
+                placeholder = { Text("Email") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = PasswordVisualTransformation(),
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.MailOutline, contentDescription = "PassIcon" )}
+            )
+
+            TextField(
+                modifier = Modifier.padding(0.dp, 10.dp, 0.dp, 0.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    disabledTextColor = Color.Gray,
+                    containerColor = Color(0xffccf2ff),
+                    focusedIndicatorColor = Color.Green,
+                    unfocusedIndicatorColor = Color(0xff3385ff),
+                    disabledIndicatorColor = Color.Gray,
+                    cursorColor = Color.Blue,
+                    errorCursorColor = Color.Red
+                ),
+                value = password.value,
+                onValueChange = { password.value = it },
+                placeholder = { Text("Số điện thoại") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = PasswordVisualTransformation(),
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.Call, contentDescription = "PassIcon" )}
+            )
+            
+            TextField(
+                modifier = Modifier.padding(0.dp, 10.dp, 0.dp, 0.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    disabledTextColor = Color.Gray,
+                    containerColor = Color(0xffe6f9ff),
+                    focusedIndicatorColor = Color.Green,
+                    unfocusedIndicatorColor = Color(0xff3385ff),
                     disabledIndicatorColor = Color.Gray,
                     cursorColor = Color.Blue,
                     errorCursorColor = Color.Red
@@ -172,12 +181,12 @@ fun LoginForm(navController: NavController) {
                     .padding(9.dp),
                 shape = RoundedCornerShape(16.dp), // Định dạng góc bo tròn của nút
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFB8E1FF), // Màu nền của nút
+                    containerColor = Color(0xFFffad99), // Màu nền của nút
                     contentColor = Color.Black // Màu chữ của nút
                 )
             ) {
                 Text(
-                    text = "Đăng nhập",
+                    text = "Đăng kí",
                     style = TextStyle(
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
@@ -186,7 +195,7 @@ fun LoginForm(navController: NavController) {
                 )
             }
 
-            Text(text = "Chưa có tài khoản? Nhanh tay đăng kí ngay!",
+            Text(text = "Bạn đã có tài khoản? Đi đến đăng nhập!",
                 style = TextStyle(
                     color = Color.Blue,
                     fontSize = 15.sp,
@@ -201,7 +210,7 @@ fun LoginForm(navController: NavController) {
             Button(
                 onClick = {
                     // Điều hướng tới màn hình đăng kí
-                    navController.navigate("signup")
+                          openLogin()
                 },
                 shape = RoundedCornerShape(10.dp), // Định dạng góc bo tròn của nút
                 colors = ButtonDefaults.buttonColors(
@@ -209,7 +218,7 @@ fun LoginForm(navController: NavController) {
                     contentColor = Color.White // Màu chữ của nút
                 )
             ) {
-                Text(text = "Đăng kí ngay!")
+                Text(text = "Đăng nhập ngay!")
             }
 
 
@@ -229,10 +238,8 @@ fun LoginForm(navController: NavController) {
 
 @Preview(showBackground = true)
 @Composable
-fun LoginPreview() {
+fun SignUpPreview() {
     STTCTheme {
-        MyApp(navController = rememberNavController())
-//        MyApp()
-//        LoginForm(navController = rememberNavController(), authController = AuthController())
+        SignUpScreen(openLogin = {})
     }
 }

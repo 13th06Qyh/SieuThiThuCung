@@ -1,8 +1,5 @@
 package com.example.sttc.view
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,8 +22,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -45,31 +40,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
-import com.example.sttc.controller.MyApp
 import com.example.sttc.ui.theme.STTCTheme
-
-class BillCancel : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            val navController = rememberNavController()
-            MyApp(navController = navController)
-            STTCTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MyApp(navController = navController)
-                    BillCancelScreen(navController)
-                }
-            }
-        }
-    }
-}
+import com.example.sttc.view.BillProduct
+import com.example.sttc.view.Product
+import com.example.sttc.view.formatNumber
 
 @Composable
-fun BillCancelScreen(navController: NavController) {
+fun BillHistoryScreen() {
     val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
@@ -82,49 +59,49 @@ fun BillCancelScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-            TopIconBillCancel()
-            TitleBillCancel()
-            ContentBillCancel()
+            TopIconBillHistory()
+            TitleBillHistory()
+            ContentBillHistory()
         }
     }
 
 }
 
 @Composable
-fun TopIconBillCancel() {
+fun TopIconBillHistory() {
     val context = LocalContext.current
 
     Image(
-        painter = painterResource(id = R.drawable.cancelproduct),
-        contentDescription = "TopIconCancelProduct",
+        painter = painterResource(id = R.drawable.buyhistory),
+        contentDescription = "TopIconHistorFAFFFAy",
         modifier = Modifier
             .fillMaxWidth()
-            .height(165.dp)
+            .height(130.dp)
             .background(
                 Brush.radialGradient(
                     colors = listOf(
-                        Color(0xFF706D6D),
-                        Color(0xFFF1E9E9),
-                        Color(0xFFB6B2B2),
-                        Color(0xFFAFACAC),
-                        Color(0xFFF6F2F2),
+                        Color(0xFF9EFFA4),
+                        Color(0xFFD5F1D7),
+                        Color(0xFFFFFFFF),
+                        Color(0xFFDCFFDA),
+                        Color(0xFFFAFFFA),
                     ),
-                    radius = 550f
+                    radius = 360f
                 )
             )
-            .border(1.dp, color = Color(0xFFcc00cc))
+            .border(1.dp, color = Color(0xFF006600))
     )
 }
 
 @Composable
-fun TitleBillCancel() {
+fun TitleBillHistory() {
     Text(
-        text = "Đơn Hàng Bị Hủy",
+        text = "Lịch Sử Mua Hàng",
         style = TextStyle(
             fontSize = 25.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
-            color = Color.Black
+            color = Color(0xFFcc2900)
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -133,25 +110,25 @@ fun TitleBillCancel() {
                 Brush.radialGradient(
                     colors = listOf(
                         Color(0xFFFFFFFF),
-                        Color(0xFFAFACAC),
+                        Color(0xFFFFE4E4),
                         Color(0xFFF6F2F2),
                     ),
                     radius = 600f
                 )
             )
             .padding(0.dp, 10.dp)
-            .border(1.dp, color = Color.Black)
+            .border(1.dp, color = Color(0xFFff6666))
     )
 }
 
 @Composable
-fun ContentBillCancel() {
+fun ContentBillHistory() {
     val items = listOf(
-        BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), Bill(1)),
-        BillProduct(Product(R.drawable.rs2, "Tag B", "Product B", 102000), Bill(2)),
-        BillProduct(Product(R.drawable.rs3, "Tag C", "Product C", 2345000), Bill(2)),
-        BillProduct(Product(R.drawable.rs1, "Tag D", "Product D", 30000), Bill(2)),
-        BillProduct(Product(R.drawable.rs2, "Tag E", "Product E", 8000), Bill(2)),
+        BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.Bill(1)),
+        BillProduct(Product(R.drawable.rs2, "Tag B", "Product B", 102000), com.example.sttc.view.Bill(2)),
+        BillProduct(Product(R.drawable.rs3, "Tag C", "Product C", 2345000), com.example.sttc.view.Bill(2)),
+        BillProduct(Product(R.drawable.rs1, "Tag D", "Product D", 30000), com.example.sttc.view.Bill(2)),
+        BillProduct(Product(R.drawable.rs2, "Tag E", "Product E", 8000), com.example.sttc.view.Bill(2)),
 
         )
 
@@ -159,7 +136,7 @@ fun ContentBillCancel() {
         modifier = Modifier
             .fillMaxWidth()
 //            .border(1.dp, color = Color(0xFF006600))
-            .background(Color(0xFFe6e6e6))
+            .background(Color(0xFFccffcc))
             .padding(5.dp, 0.dp)
     ) {
         items(items) { item ->
@@ -176,14 +153,26 @@ fun ContentBillCancel() {
                 Row (
                     modifier = Modifier
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ){
-                    Text(text = "Ngày huỷ đơn: ",
+                    Text(text = "Công ty TNHH QuacQUac",
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            fontStyle = FontStyle.Italic,
+                            textAlign = TextAlign.Start,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF000000),
+                        ),
+                        modifier = Modifier
+                            .padding(10.dp, 5.dp)
+                    )
+
+                    Text(text = "Mã đơn hàng: ",
                         style = TextStyle(
                             fontSize = 14.sp,
                             fontStyle = FontStyle.Italic,
                             textAlign = TextAlign.Start,
-                            color = Color.Gray,
+                            color = Color(0xFF006600),
                         ),
                         modifier = Modifier
                             .padding(10.dp, 5.dp)
@@ -192,9 +181,8 @@ fun ContentBillCancel() {
 
                 HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
                 Row(
-                    modifier = Modifier
-//                        .border(2.dp, color = Color(0xFF006600))
-                    ,
+                    modifier = Modifier.clickable { /* Do something! */}
+                        ,
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ){
@@ -238,7 +226,7 @@ fun ContentBillCancel() {
                         )
                         Text("Giá: " + formatNumber(item.product.productPrice) + "đ",
                             style = TextStyle(
-                                fontSize = 15.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.Black,
                                 textAlign = TextAlign.End
@@ -266,7 +254,7 @@ fun ContentBillCancel() {
                             .padding(0.dp, 9.dp, 0.dp, 0.dp)
                     )
                     Text(
-                        text = "Thành tiền: " + formatNumber(item.product.productPrice * item.bill.soluongmua) + "đ",
+                        text = "Đã thanh toán: " + formatNumber(item.product.productPrice * item.bill.soluongmua) + "đ",
                         style = TextStyle(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -277,6 +265,34 @@ fun ContentBillCancel() {
                             .padding(5.dp, 10.dp)
                     )
 
+                }
+
+                HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
+
+                Row (
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start
+                ){
+                    Icon(
+                        painter = painterResource(id = R.drawable.ship),
+                        contentDescription = "Money",
+                        tint = Color(0xFF006600),
+                        modifier = Modifier
+                            .size(40.dp)
+                            .padding(10.dp, 5.dp)
+                    )
+
+                    Text(text = "Giao hàng thành công",
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontStyle = FontStyle.Italic,
+                            textAlign = TextAlign.Start,
+                            color = Color(0xFF006600),
+                        ),
+                        modifier = Modifier
+                            .padding(0.dp, 11.dp)
+                    )
                 }
 
                 HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
@@ -320,9 +336,8 @@ fun ContentBillCancel() {
 
 @Preview(showBackground = true)
 @Composable
-fun BillCancelScreenPreview() {
-    val navController = rememberNavController()
+fun BillHistoryScreenPreview() {
     STTCTheme {
-        BillCancelScreen(navController)
+        BillHistoryScreen()
     }
 }

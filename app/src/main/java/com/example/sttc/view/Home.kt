@@ -1,8 +1,5 @@
 package com.example.sttc.view
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -28,12 +25,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -63,28 +56,12 @@ import com.example.sttc.ui.theme.STTCTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-
-class Home : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            val navController = rememberNavController()
-            STTCTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    HomeScreen(navController)
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(
+    openListProducts : () -> Unit,
+    openDetailBlogs : () -> Unit,
+    openDetailProducts : () -> Unit
+) {
     val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
@@ -98,7 +75,7 @@ fun HomeScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ){
             HeroSection()
-            Animal()
+            Animal(openListProducts)
 
             Row (
                 modifier = Modifier.fillMaxWidth()
@@ -137,7 +114,7 @@ fun HomeScreen(navController: NavController) {
                     ),
                 )
             }
-            RecentBlogsSection()
+            RecentBlogsSection(openDetailBlogs)
 
             Row (
                 modifier = Modifier.fillMaxWidth()
@@ -176,7 +153,7 @@ fun HomeScreen(navController: NavController) {
                     ),
                 )
             }
-            RecentSalesSection()
+            RecentSalesSection(openDetailProducts)
 
             Row (
                 modifier = Modifier.fillMaxWidth()
@@ -215,7 +192,7 @@ fun HomeScreen(navController: NavController) {
                     ),
                 )
             }
-            SuggestToday()
+            SuggestTodayopen(openDetailProducts)
         }
     }
 }
@@ -264,7 +241,7 @@ fun HeroSection() {
 }
 
 @Composable
-fun Animal() {
+fun Animal(openListProducts: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -291,7 +268,7 @@ fun Animal() {
                     .padding(10.dp, 10.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ){
-                IconButton(onClick = { /*TODO*/ },
+                IconButton(onClick = { openListProducts() },
                     modifier = Modifier
                         .size(70.dp)
                         .border(1.dp, color = Color(0xFFE96B56), shape = CircleShape)
@@ -303,7 +280,7 @@ fun Animal() {
                         modifier = Modifier.size(46.dp))
                 }
 
-                IconButton(onClick = { /*TODO*/ },
+                IconButton(onClick = {openListProducts() },
                     modifier = Modifier
                         .size(70.dp)
                         .border(1.dp, color = Color(0xFF005ce6), shape = CircleShape)
@@ -363,7 +340,7 @@ fun Animal() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun RecentBlogsSection() {
+fun RecentBlogsSection(openDetailBlogs: () -> Unit) {
     val items = listOf(
         R.drawable.cm4,
         R.drawable.cm7,
@@ -403,6 +380,7 @@ fun RecentBlogsSection() {
                         .size(137.dp, 73.dp)
                         .padding(6.dp, 0.dp, 6.dp, 0.dp)
                         .border(1.dp, color = Color(0xFF4d4d4d))
+                        .clickable{openDetailBlogs()}
                 )
                 Text(
                     text = "Tiêu đề", // Thay đổi thành tiêu đề thực tế của bạn
@@ -427,7 +405,7 @@ fun RecentBlogsSection() {
 }
 
 @Composable
-fun RecentSalesSection() {
+fun RecentSalesSection(openDetailProducts: () -> Unit) {
     val items = listOf(
         R.drawable.rs1,
         R.drawable.rs2,
@@ -484,6 +462,7 @@ fun RecentSalesSection() {
                             .width(200.dp)
                             .height(155.dp)
                             .padding(8.dp)
+                            .clickable { openDetailProducts() }
                     )
 
                     HorizontalDivider(thickness = 2.dp, color = Color(0xFFffdab3))
@@ -533,8 +512,6 @@ fun RecentSalesSection() {
 @Composable
 fun HomeScreenPreview() {
     STTCTheme {
-        HomeScreen(rememberNavController())
-//        MyApp()
-//        SignUpForm(navController = rememberNavController(), authController = AuthController())
+        HomeScreen(openListProducts = {}, openDetailBlogs = {}, openDetailProducts = {})
     }
 }

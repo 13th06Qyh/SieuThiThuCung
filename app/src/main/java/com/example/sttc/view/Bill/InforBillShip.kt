@@ -1,8 +1,5 @@
 package com.example.sttc.view
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,8 +22,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -45,25 +40,11 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
-
-class InforBillShip : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            val navController = rememberNavController()
-            STTCTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    InforBillShipScreen(navController)
-
-                }
-            }
-        }
-    }
-}
+import com.example.sttc.view.BillProduct
+import com.example.sttc.view.ItemAccount
+import com.example.sttc.view.Product
+import com.example.sttc.view.SuggestToday
+import com.example.sttc.view.formatNumber
 
 @Composable
 fun InforBillShipScreen(navController: NavController) {
@@ -300,7 +281,7 @@ fun ContentInforBill() {
                 "Product A",
                 10000
             ),
-            Bill(1)
+            com.example.sttc.view.Bill(1)
         ),
     )
 
@@ -379,7 +360,8 @@ fun ContentInforBill() {
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
-                Text(formatNumber(items[0].product.productPrice) + "đ",
+                Text(
+                    formatNumber(items[0].product.productPrice) + "đ",
                     style = TextStyle(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,

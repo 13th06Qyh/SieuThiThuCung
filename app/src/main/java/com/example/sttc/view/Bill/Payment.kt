@@ -1,8 +1,5 @@
 package com.example.sttc.view
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,22 +14,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -54,26 +45,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
-import java.text.NumberFormat
-import java.util.Locale
-
-class Payment : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            val navController = rememberNavController()
-            STTCTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    PaymentScreen(navController)
-                }
-            }
-        }
-    }
-}
+import com.example.sttc.view.BillProduct
+import com.example.sttc.view.Product
+import com.example.sttc.view.formatNumber
 
 @Composable
 fun PaymentScreen(navController: NavController) {
@@ -96,9 +70,9 @@ fun PaymentScreen(navController: NavController) {
             TitlePayment()
             LocationPayment()
             val items = listOf(
-                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), Bill(1)),
-                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), Bill(1)),
-                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), Bill(1)),
+                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.Bill(1)),
+                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.Bill(1)),
+                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.Bill(1)),
             )
             LazyColumn(
                 modifier = Modifier

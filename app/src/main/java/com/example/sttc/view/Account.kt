@@ -1,8 +1,5 @@
 package com.example.sttc.view
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,9 +33,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuItemColors
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -61,8 +55,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
@@ -70,28 +62,12 @@ import coil.request.ImageRequest
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 
-class Account : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            val navController = rememberNavController()
-
-            STTCTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-
-                    AccountScreen(navController)
-                }
-            }
-        }
-    }
-}
-
 @Composable
-fun AccountScreen(navController: NavController) {
+fun AccountScreen(
+    openBillShip : () -> Unit ,
+    openBillHistory : () -> Unit ,
+    openBillCancel : () -> Unit ,
+) {
     val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
@@ -104,8 +80,8 @@ fun AccountScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TopIcon(navController)
-            StatusBill()
+            TopIcon()
+            StatusBill( openBillShip  , openBillHistory  , openBillCancel )
             InfoAccount()
         }
     }
@@ -113,7 +89,7 @@ fun AccountScreen(navController: NavController) {
 }
 
 @Composable
-fun TopIcon(navController: NavController) {
+fun TopIcon() {
     var openDialogLogout by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -207,7 +183,7 @@ fun TopIcon(navController: NavController) {
                 TextButton(
                     onClick = {
                         openDialogLogout = false
-                        navController.navigate("login")
+//                        navController.navigate("login")
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFFFA483), // Màu nền của nút
@@ -270,7 +246,11 @@ fun TopIcon(navController: NavController) {
 }
 
 @Composable
-fun StatusBill() {
+fun StatusBill(
+    openBillShip: () -> Unit ,
+    openBillHistory: () -> Unit ,
+    openBillCancel: () -> Unit ,
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -296,9 +276,7 @@ fun StatusBill() {
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             IconButton(
-                onClick = {
-                    /*TODO*/
-                },
+                onClick ={openBillShip()},
                 modifier = Modifier
                     .size(135.dp, 130.dp)
             ) {
@@ -323,9 +301,7 @@ fun StatusBill() {
             }
 
             IconButton(
-                onClick = {
-                    /*TODO*/
-                },
+                onClick = {openBillHistory()},
                 modifier = Modifier
                     .size(135.dp, 160.dp)
             ) {
@@ -349,9 +325,7 @@ fun StatusBill() {
             }
 
             IconButton(
-                onClick = {
-                    /*TODO*/
-                },
+                onClick ={openBillCancel()  },
                 modifier = Modifier
                     .size(135.dp, 160.dp)
             ) {
@@ -1154,8 +1128,7 @@ fun InfoAccount() {
 @Preview(showBackground = true)
 @Composable
 fun AccountScreenPreview() {
-    val navController = rememberNavController()
     STTCTheme {
-        AccountScreen(navController)
+        AccountScreen(openBillShip = {}, openBillHistory = {}, openBillCancel = {})
     }
 }

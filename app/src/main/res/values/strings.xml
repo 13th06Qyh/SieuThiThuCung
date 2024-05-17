@@ -3,4 +3,10 @@
     <string name="motasanpham">Xương cho chó gặm vị thịt bò VEGEBRAND Meat Beef Bone Small là thức ăn dinh dưỡng dành cho mọi kích cỡ và lứa tuổi chó cưng.
 Lợi ích chính
 Xương cho chó gặm vị thịt bò VEGEBRAND Meat Beef Bone Small với thành phần từ tự nhiên không chất bảo quản.</string>
+    <string name= "signup">Sign Up</string>
+    <string name="login">Login</string>
+    <string name="home"> Trang Chủ</string>
+    <string name="products">Sản Phẩm</string>
+    <string name="blogs">Bài viết</string>
+    <string name="account">Liên Hệ</string>
 </resources>

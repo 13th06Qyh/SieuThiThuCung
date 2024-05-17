@@ -160,7 +160,6 @@ fun SuggestToday() {
                                 .width(200.dp)
                                 .border(1.dp, color = Color(0xFFff4d4d))
                                 .clickable(onClick = {
-                                    // Xử lý sự kiện khi một mục được nhấp vào
                                 }),
                         ){
                             Box(
@@ -214,3 +213,106 @@ fun SuggestToday() {
         }
     }
 }
+
+@Composable
+fun SuggestTodayopen(openDetailProducts :  () -> Unit) {
+    val items = listOf(
+        BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), Bill(1)),
+        BillProduct(Product(R.drawable.rs2, "Tag B", "Product B", 102000), Bill(2)),
+        BillProduct(Product(R.drawable.rs3, "Tag C", "Product C", 2345000), Bill(2)),
+        BillProduct(Product(R.drawable.rs1, "Tag D", "Product D", 30000), Bill(2)),
+        BillProduct(Product(R.drawable.rs2, "Tag E", "Product E", 8000), Bill(2)),
+
+        )
+
+    // Kết quả: "10,000"
+    // Chia danh sách thành các nhóm có 3 mặt hàng
+    val rows = items.chunked(2)
+
+    Column(
+//        modifier = Modifier.verticalScroll(rememberScrollState())
+    ) {
+        rows.forEach { rowItems ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(2.dp)
+            ) {
+                Row (
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFFF6F2F2),
+                                    Color(0xFFFFC1B6),
+                                    Color(0xFFFF9999)
+                                ),
+                                startY = 720f,
+                                endY = 0f
+                            )
+                        ),
+//                    horizontalArrangement = Arrangement.SpaceEvenly
+                ){
+                    for (item in rowItems) {
+                        Column (
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .width(200.dp)
+                                .border(1.dp, color = Color(0xFFff4d4d))
+                                .clickable(onClick = {
+                                    openDetailProducts()
+                                }),
+                        ){
+                            Box(
+                                modifier = Modifier
+                                    .size(200.dp, 210.dp)
+                                    .border(1.dp, color = Color(0xFFff4d4d)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                // Thay thế bằng hình ảnh thực tế của bạn
+                                Image(
+                                    painter = painterResource(id = item.product.imageResId),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                            Text(
+                                text = item.product.tagName, // Thay thế bằng tên thẻ thực tế của bạn
+                                modifier = Modifier.padding(8.dp),
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    fontStyle = FontStyle.Italic,
+                                    color = Color.Gray
+                                ),
+                            )
+                            Text(
+                                text = item.product.productName, // Thay thế bằng tên sản phẩm thực tế của bạn
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                                style = TextStyle(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                ),
+                            )
+                            Text(
+                                text = formatNumber(item.product.productPrice).toString() + "đ", // Thay thế bằng giá sản phẩm thực tế của bạn
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 9.dp),
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFff4d4d),
+                                    textAlign = TextAlign.End
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+

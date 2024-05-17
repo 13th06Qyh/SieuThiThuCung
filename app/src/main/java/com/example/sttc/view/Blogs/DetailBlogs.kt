@@ -10,26 +10,29 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,98 +60,201 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
+import com.example.sttc.view.Blogs.Avatar
+@Composable
+fun DetailBlogsScreen() {
+    val scrollState = rememberScrollState()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFf2f2f2))
+            .verticalScroll(scrollState),
+    ) {
+        NavagationTop()
+        HorizontalDivider( color = Color(0xFFcccccc), thickness = 1.dp)
+        ContentBlogs()
+        HorizontalDivider( color = Color(0xFFcccccc), thickness = 5.dp, modifier = Modifier.padding(0.dp, 10.dp))
+        TitleCmt()
+        ShowCmt()
 
-class DetailComment : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            val navController = rememberNavController()
-            STTCTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    DetailCommentScreen(navController)
-                }
-            }
+    }
+
+}
+
+@Composable
+fun NavagationTop() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+
+    ) {
+        IconButton(
+            onClick = { /*TODO*/ },
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.arrow_back),
+                contentDescription = "arrow back",
+                tint = Color.Black,
+                modifier = Modifier.size(35.dp)
+            )
         }
+        Text(
+            text = "Chi tiết bài viết",
+            style = TextStyle(
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold
+            ),
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 50.dp)
+        )
     }
 }
 
+@Composable
+fun ContentBlogs() {
+
+    Surface(
+        color = Color.White,
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = Color(0xFFe6e6e6),
+                shape = RoundedCornerShape(1.dp)
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFFf2f2f2))
+        ) {
+            Avatar()
+            Column(
+                modifier = Modifier
+                    .background(Color(0xFFf0f0f5))
+                    .fillMaxWidth(),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.bg4),
+                        contentDescription = "blog image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .padding(start = 5.dp, end = 5.dp)
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(shape = RoundedCornerShape(4.dp))
+                    )
+                }
+
+                Text(
+                    text = "Một số đặc điểm nổi bậc của loài mèo Ba Tư",
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 27.sp,
+                        fontStyle = FontStyle.Italic
+                    ),
+                    modifier = Modifier.padding(top = 12.dp, bottom = 4.dp, start = 10.dp, end = 10.dp)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Card (
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp, 0.dp)
+                        .border(
+                            width = 1.dp,
+                            color = Color(0xFFcccccc),
+                            shape = RoundedCornerShape(5.dp)
+                        ),
+                    shape = RoundedCornerShape(5.dp),
+                    colors = CardDefaults.cardColors(
+                        Color(0xFFFFFFFF)
+                    ),
+                    content = {
+                        Text(
+                            text = "Nội dung bài viết 1",
+                            style = TextStyle(
+                                fontSize = 18.sp,
+                            ),
+                            modifier = Modifier.padding(10.dp, 12.dp)
+                        )
+                    }
+                )
+            }
+
+        }
+    }
+
+}
+
+@Composable
+fun TitleCmt(){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp, 0.dp, 10.dp, 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ){
+        Icon(
+            painter = painterResource(id = R.drawable.cmt),
+            contentDescription = "Cmt",
+            tint = Color(0xFF8A8686),
+            modifier = Modifier.size(33.dp)
+        )
+        Text(
+            text = "Bình luận",
+            fontWeight = FontWeight.Bold,
+            fontSize = 22.sp ,
+            modifier = Modifier.padding(start = 10.dp)
+        )
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailCommentScreen(navController: NavController) {
+fun ShowCmt(){
     //dialog
     var openDialogDelete by remember { mutableStateOf(false) }
     var openDialogBuild by remember { mutableStateOf(false) }
 
     val itemsCmt = listOf(
-        ItemsCmt(1, "Nguyen Anh Thu", "Nội dung binh luan 1"),
-        ItemsCmt(2, "Pham Nhu Quynh", "Nội dung binh luan 2"),
-        ItemsCmt(3, "Nguyen Van A", "Nội dung binh luan 3"),
-        ItemsCmt(4, "Pham Nhu Quynh", "Nội dung binh luan 4"),
-        ItemsCmt(5, "Pham Nhu Quynh", "Nội dung binh luan 5"),
-        ItemsCmt(6, "Nguyen Anh Thu", "Nội dung binh luan 5"),
+        ItemsCmt(1, "Nguyen Anh Thu", "Nội dung bài viết 1"),
+        ItemsCmt(2, "Pham Nhu Quynh", "Nội dung bài viết 2"),
+        ItemsCmt(3, "Nguyen Van A", "Nội dung bài viết 3"),
+        ItemsCmt(4, "Pham Nhu Quynh", "Nội dung bài viết 4"),
+        ItemsCmt(5, "Pham Nhu Quynh", "Nội dung bài viết 5"),
+        ItemsCmt(6, "Nguyen Anh Thu", "Nội dung bài viết 5"),
     )
     var selectedTaskCmt by remember { mutableStateOf("") }
     var newCmt by remember { mutableStateOf("") }
-    Column(
+    val rows = itemsCmt.chunked(2)
+    Row(
         modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFf2f2f2)),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxWidth()
     ) {
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-
-        ) {
-            IconButton(
-                onClick = { /*TODO*/ },
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.arrow_back),
-                    contentDescription = "arrow back",
-                    tint = Color.Black,
-                    modifier = Modifier.size(35.dp)
-                )
-            }
-            Text(
-                text = "Bình Luận",
-                style = TextStyle(
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold
-                ),
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Start,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 15.dp)
-            )
-        }
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
-                items(items = itemsCmt, key = { it.id }) { task ->
-                    Surface(
-                        color = Color.White,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp)
-                    ) {
-
+            rows.forEach { rowItems ->
+                Surface(
+                    color = Color.White,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp, 5.dp)
+                ) {
+                    for (item in rowItems) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -190,7 +297,7 @@ fun DetailCommentScreen(navController: NavController) {
                                         )
                                     }
                                     Text(
-                                        text = task.nameUser,
+                                        text = item.nameUser,
                                         style = TextStyle(fontSize = 18.sp),
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier
@@ -214,7 +321,7 @@ fun DetailCommentScreen(navController: NavController) {
                                         }
                                         IconButton(onClick = {
                                             openDialogBuild = true
-                                            selectedTaskCmt = task.cmt
+                                            selectedTaskCmt = item.cmt
                                         }) {
                                             Icon(
                                                 Icons.Default.Create,
@@ -232,7 +339,7 @@ fun DetailCommentScreen(navController: NavController) {
                                         .padding(horizontal = 8.dp, vertical = 1.dp)
                                 ) {
                                     Text(
-                                        text = task.cmt,
+                                        text = item.cmt,
                                         style = TextStyle(fontSize = 18.sp),
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier
@@ -373,58 +480,12 @@ fun DetailCommentScreen(navController: NavController) {
                 }
             }
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-
-            val comment = remember { mutableStateOf("") }
-            OutlinedTextField(
-                value = comment.value,
-                onValueChange = { comment.value = it },
-                placeholder = {
-                    Text(
-                        "Nhập bình luận của bạn tại đây",
-                        style = TextStyle(
-                            fontSize = 18.sp,
-                        ),
-                        modifier = Modifier
-                            .padding(10.dp, 0.dp, 10.dp, 0.dp)
-                    )
-                },
-                shape = RoundedCornerShape(25.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(5.dp)
-                    .border(
-                        3.dp,
-                        Color(0xFF4d4dff),
-                        RoundedCornerShape(25.dp)
-                    ), // Thêm dòng này
-                singleLine = false,
-                trailingIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.icon_send),
-                            contentDescription = "send",
-                            tint = Color.Blue,
-                            modifier = Modifier.size(37.dp)
-                        )
-                    }
-                },
-            )
-        }
-
     }
 }
-
-
 @Preview(showBackground = true)
 @Composable
-fun DetailCommentPreview() {
+fun DetailBlogPreview() {
     STTCTheme {
-        DetailCommentScreen(rememberNavController())
+        DetailBlogsScreen()
     }
 }

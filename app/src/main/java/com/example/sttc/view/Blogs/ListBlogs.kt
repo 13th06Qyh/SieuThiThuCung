@@ -1,8 +1,5 @@
-package com.example.sttc.view
+package com.example.sttc.view.Blogs
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,7 +23,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,31 +40,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
-
-class ListBlogMeo : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            val navController = rememberNavController()
-            STTCTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    ListBlogScreen(navController)
-                }
-            }
-        }
-    }
-}
+import com.example.sttc.view.ItemsBaiViet
 
 @Composable
-fun ListBlogScreen(navController: NavController) {
+fun ListBlogScreen(
+    openDetailCmt : () -> Unit ,
+    openDetailBlogs : () -> Unit
+) {
 
     val itemsBV = listOf(
         ItemsBaiViet(1, "Một số đặc điểm nổi bậc của loài mèo Ba Tư", "Nội dung bài viết 1", R.drawable.bg1),
@@ -170,7 +150,7 @@ fun ListBlogScreen(navController: NavController) {
                 }
                 Button(
                     shape = RectangleShape,
-                    onClick = { /*TODO*/ },
+                    onClick = {openDetailCmt()},
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
                     )
@@ -185,7 +165,7 @@ fun ListBlogScreen(navController: NavController) {
                 }
                 Button(
                     shape = RectangleShape,
-                    onClick = { /*TODO*/ },
+                    onClick = {openDetailBlogs() },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
                     )
@@ -254,6 +234,6 @@ fun Avatar() {
 @Composable
 fun BaiVietPreview() {
     STTCTheme {
-        ListBlogScreen(rememberNavController())
+        ListBlogScreen(openDetailCmt = {}, openDetailBlogs = {})
     }
 }
