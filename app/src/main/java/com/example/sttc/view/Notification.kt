@@ -43,7 +43,9 @@ import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 
 @Composable
-fun NotificationScreen() {
+fun NotificationScreen(
+    back: () -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxSize()
             .background(Color(0xFFffe6cc))
@@ -57,7 +59,7 @@ fun NotificationScreen() {
 
         ) {
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = { back() },
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.arrow_back),
@@ -199,7 +201,7 @@ fun NotificationScreen() {
 @Composable
 fun NotificationPreview() {
     STTCTheme {
-        NotificationScreen()
+        NotificationScreen(back = {})
     }
 }
 

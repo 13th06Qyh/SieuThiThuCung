@@ -52,6 +52,7 @@ import com.example.sttc.R
 import com.example.sttc.view.Blogs.BlogsScreens
 import com.example.sttc.view.Blogs.DetailCommentScreen
 import com.example.sttc.view.Blogs.ListBlogScreen
+import com.example.sttc.view.Cart.CartScreen
 import com.example.sttc.view.Products.DetailProductsScreen
 import com.example.sttc.view.Products.ListProductScreen
 import com.example.sttc.view.Products.ProductScreens
@@ -112,7 +113,7 @@ fun HomeMenuScreen() { //
                     )
                 }
             }
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { navController.navigate("cart")}) {
                 Icon(
                     Icons.Filled.ShoppingCart,
                     contentDescription = "Cart",
@@ -120,7 +121,7 @@ fun HomeMenuScreen() { //
                     tint = Color(0xFFE96B56)
                 )
             }
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { navController.navigate("notification") }) {
                 Icon(
                     Icons.Filled.Notifications,
                     contentDescription = "Notice",
@@ -142,8 +143,8 @@ fun HomeMenuScreen() { //
                 NavHost(navController = navController, startDestination = "home") {
                     composable("home") {
                         HomeScreen(
-                            openListProducts = { navController.navigate("listProducts") } ,
-                            openDetailProducts = { navController.navigate("detailProducts") } ,
+                            openListProducts = { navController.navigate("listProducts") },
+                            openDetailProducts = { navController.navigate("detailProducts") },
                             openDetailBlogs = { navController.navigate("DetailBlogs") }
                         )
                     }
@@ -164,21 +165,28 @@ fun HomeMenuScreen() { //
                     composable("listProducts") {
                         ListProductScreen(openDetailProducts = { navController.navigate("detailProducts") })
                     }
-                    composable("detailProducts"){
-                        DetailProductsScreen()
+                    composable("detailProducts") {
+                        DetailProductsScreen(
+                            back = { navController.popBackStack() },
+                            openCart =  { navController.navigate("cart") }
+                        )
                     }
                     //---------------blogs------------
                     composable("listBlogs") {
                         ListBlogScreen(
                             openDetailBlogs = { navController.navigate("DetailBlogs") },
-                            openDetailCmt = { navController.navigate("DetailComments") } ,
+                            openDetailCmt = { navController.navigate("DetailComments") },
                         )
                     }
-                    composable("DetailBlogs"){
-                        DetailBlogsScreen()
+                    composable("DetailBlogs") {
+                        DetailBlogsScreen(
+                            back = { navController.popBackStack() },
+                        )
                     }
-                    composable("DetailComments"){
-                        DetailCommentScreen()
+                    composable("DetailComments") {
+                        DetailCommentScreen(
+                            back = { navController.popBackStack() },
+                        )
                     }
                     // ------------account---------------
                     composable("billShip") {
@@ -190,17 +198,24 @@ fun HomeMenuScreen() { //
                     composable("billCancel") {
                         BillCancelScreen()
                     }
+                    // ------------cart---------------
+                    composable("cart"){
+                        CartScreen(back = { navController.popBackStack() })
+                    }
+                    // ------------notification---------------
+                    composable("notification"){
+                        NotificationScreen(back = { navController.popBackStack() })
+                    }
+
                 }
             }
         }
-    }
 
+    }
 }
 
 @Composable
-fun BottomBar(
-    navController: NavHostController
-) {
+fun BottomBar(navController: NavHostController) {
 
     val screens = listOf(
         BottomBarScreen.Home,

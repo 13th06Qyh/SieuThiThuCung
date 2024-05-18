@@ -42,14 +42,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
+import com.example.sttc.navagation.Screens
 import com.example.sttc.ui.theme.STTCTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(
-    openHomeMenu : () -> Unit,
-    openSignin : () -> Unit
-) {
+fun LoginForm(navController: NavController) {
     val username = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
 
@@ -65,7 +63,7 @@ fun LoginScreen(
                 contentDescription = "Logo",
                 modifier = Modifier
                     .size(250.dp)
-                    .clickable {openHomeMenu() },
+                    .clickable {},
 
                 )
 
@@ -131,12 +129,12 @@ fun LoginScreen(
             )
 
             Button(onClick = {
-                openHomeMenu()
-
+                navController.navigate("homemenu")
                 val name = username.value
                 val pass = password.value
-//                if (name == "admin" && pass == "123") {
+//                if (userViewModel.login(name, pass)) {
 //                    println("Đăng nhập thành công")
+//                    navController.navigate("home")
 //                } else {
 //                    println("Đăng nhập thất bại")
 //                }
@@ -174,8 +172,9 @@ fun LoginScreen(
 
             Button(
                 onClick = {
+                    navController.navigate("signup")
                     // Điều hướng tới màn hình đăng kí
-                    openSignin()
+//                    navController.navigate("signup")
                 },
                 shape = RoundedCornerShape(10.dp), // Định dạng góc bo tròn của nút
                 colors = ButtonDefaults.buttonColors(
@@ -199,10 +198,13 @@ fun LoginScreen(
     }
 }
 
+
+
 @Preview(showBackground = true)
 @Composable
 fun LoginPreview() {
     STTCTheme {
-        LoginScreen(openHomeMenu = {}, openSignin = {})
+        val navController = rememberNavController()
+        LoginForm(navController)
     }
 }

@@ -56,7 +56,7 @@ import com.example.sttc.view.ItemsCmt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailCommentScreen() {
+fun DetailCommentScreen(back: () -> Unit) {
     //dialog
     var openDialogDelete by remember { mutableStateOf(false) }
     var openDialogBuild by remember { mutableStateOf(false) }
@@ -86,7 +86,7 @@ fun DetailCommentScreen() {
 
         ) {
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = { back() },
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.arrow_back),
@@ -404,6 +404,6 @@ fun DetailCommentScreen() {
 @Composable
 fun DetailCommentPreview() {
     STTCTheme {
-        DetailCommentScreen()
+        DetailCommentScreen(back = {})
     }
 }

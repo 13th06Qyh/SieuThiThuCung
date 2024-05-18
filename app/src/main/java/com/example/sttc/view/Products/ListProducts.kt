@@ -32,13 +32,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.ImageLoader
 import coil.decode.GifDecoder
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
-import com.example.sttc.view.SuggestToday
 import com.example.sttc.view.SuggestTodayopen
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -123,15 +120,6 @@ fun Slide_Gif() {
             .height(220.dp)
     )
 }
-
-data class ProductsItems(
-    val id: Int,
-    val imageResId: Int,
-    val tagName: String,
-    val productName: String,
-    val productPrice: String
-)
-
 @ExperimentalMaterial3Api
 @Preview(showBackground = true)
 @Composable

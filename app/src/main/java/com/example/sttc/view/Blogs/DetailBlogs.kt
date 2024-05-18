@@ -62,7 +62,9 @@ import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.Blogs.Avatar
 @Composable
-fun DetailBlogsScreen() {
+fun DetailBlogsScreen(
+    back : () -> Unit
+) {
     val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
@@ -70,7 +72,7 @@ fun DetailBlogsScreen() {
             .background(Color(0xFFf2f2f2))
             .verticalScroll(scrollState),
     ) {
-        NavagationTop()
+        NavagationTop(back)
         HorizontalDivider( color = Color(0xFFcccccc), thickness = 1.dp)
         ContentBlogs()
         HorizontalDivider( color = Color(0xFFcccccc), thickness = 5.dp, modifier = Modifier.padding(0.dp, 10.dp))
@@ -82,7 +84,7 @@ fun DetailBlogsScreen() {
 }
 
 @Composable
-fun NavagationTop() {
+fun NavagationTop(back : () -> Unit){
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -91,7 +93,7 @@ fun NavagationTop() {
 
     ) {
         IconButton(
-            onClick = { /*TODO*/ },
+            onClick = {back()},
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.arrow_back),
@@ -486,6 +488,6 @@ fun ShowCmt(){
 @Composable
 fun DetailBlogPreview() {
     STTCTheme {
-        DetailBlogsScreen()
+        DetailBlogsScreen(back = {})
     }
 }

@@ -260,9 +260,7 @@ fun SuggestTodayopen(openDetailProducts :  () -> Unit) {
                                 .padding(4.dp)
                                 .width(200.dp)
                                 .border(1.dp, color = Color(0xFFff4d4d))
-                                .clickable(onClick = {
-                                    openDetailProducts()
-                                }),
+                                .clickable{openDetailProducts()},
                         ){
                             Box(
                                 modifier = Modifier

@@ -59,7 +59,9 @@ import com.example.sttc.view.Product
 import com.example.sttc.view.formatNumber
 
 @Composable
-fun CartScreen(navController: NavController) {
+fun CartScreen(
+    back : () -> Unit
+) {
     var openDialogDeleteCart by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -91,7 +93,7 @@ fun CartScreen(navController: NavController) {
                 modifier = Modifier
                     .size(50.dp)
                     .padding(10.dp, 0.dp)
-                    .clickable { /*TODO*/ },
+                    .clickable { back() },
                 tint = Color.Black
             )
             Row(
@@ -451,7 +453,7 @@ fun CartScreen(navController: NavController) {
 @Composable
 fun CartPreview() {
     STTCTheme {
-        CartScreen(rememberNavController())
+        CartScreen(back = {})
     }
 }
 

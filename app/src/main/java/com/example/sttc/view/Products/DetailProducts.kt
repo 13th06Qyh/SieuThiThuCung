@@ -59,7 +59,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun DetailProductsScreen() {
+fun DetailProductsScreen(
+    back : () -> Unit ,
+    openCart : () -> Unit
+) {
     val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
@@ -67,11 +70,11 @@ fun DetailProductsScreen() {
 //            .background(Color(0xFFF6F2F2))
             .verticalScroll(scrollState)
     ) {
-        TitleInforProduct()
+        TitleInforProduct(back)
         SlideImage()
         NameAndPrice()
         InforProduct()
-        BuyProduct()
+        BuyProduct(openCart)
         ContentProduct()
         Row(
             modifier = Modifier.fillMaxWidth()
@@ -108,7 +111,7 @@ fun DetailProductsScreen() {
 }
 
 @Composable
-fun TitleInforProduct() {
+fun TitleInforProduct(back : () -> Unit){
     Row (
         modifier = Modifier
             .fillMaxWidth()
@@ -130,7 +133,7 @@ fun TitleInforProduct() {
             modifier = Modifier
                 .size(50.dp)
                 .padding(10.dp, 0.dp)
-                .clickable { /*TODO*/ },
+                .clickable { back()},
             tint = Color(0xFFcc2900)
         )
         Text(
@@ -358,7 +361,7 @@ fun InforProduct(){
 }
 
 @Composable
-fun BuyProduct(){
+fun BuyProduct( openCart : () -> Unit){
     Row (
         modifier = Modifier
             .fillMaxWidth()
@@ -367,7 +370,7 @@ fun BuyProduct(){
         horizontalArrangement = Arrangement.SpaceEvenly
     ){
         Button(
-            onClick = { /* Do something! */ },
+            onClick = { openCart() },
             shape = RoundedCornerShape(2.dp), // Định dạng góc bo tròn của nút
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF0a2929), // Màu nền của nút
@@ -399,7 +402,7 @@ fun BuyProduct(){
         }
 
         Button(
-            onClick = { /* Do something! */ },
+            onClick = { openCart() },
             shape = RoundedCornerShape(2.dp), // Định dạng góc bo tròn của nút
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFFcc2900), // Màu nền của nút
@@ -457,6 +460,6 @@ fun ContentProduct(){
 @Composable
 fun DetailProductsPreview() {
     STTCTheme {
-        DetailProductsScreen()
+        DetailProductsScreen(back = {} , openCart = {})
     }
 }
