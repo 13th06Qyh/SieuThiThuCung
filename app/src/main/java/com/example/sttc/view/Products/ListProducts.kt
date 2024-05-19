@@ -1,5 +1,6 @@
 package com.example.sttc.view.Products
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -36,13 +37,16 @@ import coil.ImageLoader
 import coil.decode.GifDecoder
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
-import com.example.sttc.view.SuggestTodayopen
+import com.example.sttc.view.System.SuggestTodayopen
+import com.example.sttc.viewmodel.ProductViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalMaterial3Api
 @Composable
 fun ListProductScreen(
-    openDetailProducts: () -> Unit
+    openDetailProducts: () -> Unit,
+    productViewModel: ProductViewModel,
+    context: Context
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -90,7 +94,7 @@ fun ListProductScreen(
         }
         item {
             HorizontalDivider(thickness = 2.dp, color = Color(0xFFffdab3), modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 5.dp))
-            SuggestTodayopen(openDetailProducts)
+            SuggestTodayopen(openDetailProducts, productViewModel, context)
         }
     }
 }
@@ -125,6 +129,6 @@ fun Slide_Gif() {
 @Composable
 fun DetailDogMainPreview() {
     STTCTheme {
-        ListProductScreen(openDetailProducts = {})
+        ListProductScreen(openDetailProducts = {}, ProductViewModel(), LocalContext.current)
     }
 }

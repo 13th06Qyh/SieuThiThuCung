@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
-import com.example.sttc.view.ItemsBaiViet
+import com.example.sttc.view.System.ItemsBaiViet
 
 @Composable
 fun ListBlogScreen(

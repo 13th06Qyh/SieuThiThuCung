@@ -45,9 +45,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
-import com.example.sttc.view.BillProduct
-import com.example.sttc.view.Product
-import com.example.sttc.view.formatNumber
+import com.example.sttc.view.System.BillProduct
+import com.example.sttc.view.System.Product
+import com.example.sttc.view.System.formatNumber
 
 @Composable
 fun PaymentScreen(navController: NavController) {
@@ -70,9 +70,9 @@ fun PaymentScreen(navController: NavController) {
             TitlePayment()
             LocationPayment()
             val items = listOf(
-                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.Bill(1)),
-                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.Bill(1)),
-                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.Bill(1)),
+                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.System.Bill(1)),
+                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.System.Bill(1)),
+                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.System.Bill(1)),
             )
             LazyColumn(
                 modifier = Modifier
