@@ -37,6 +37,7 @@ import coil.ImageLoader
 import coil.decode.GifDecoder
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
+import com.example.sttc.view.System.SuggestToday
 import com.example.sttc.view.System.SuggestTodayopen
 import com.example.sttc.viewmodel.ProductViewModel
 

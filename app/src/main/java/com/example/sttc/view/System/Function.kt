@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -99,12 +100,6 @@ fun formatNumber(number: Int): String {
     return format.format(number)
 }
 
-@Composable
-fun formatNumber1(number: String): String {
-    val format = NumberFormat.getNumberInstance(Locale.GERMAN)
-    return format.format(number)
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CustomPagerIndicator(
@@ -137,7 +132,7 @@ fun CustomPagerIndicator(
 fun SuggestToday() {
     val items = listOf(
         BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), Bill(1)),
-        BillProduct(Product(R.drawable.rs2, "Tag B", "Product B", 102000), Bill(2)),
+        BillProduct(Product(R.drawable.rs2, "Tag B", "Product Bgg haãy sống kho", 102000), Bill(2)),
         BillProduct(Product(R.drawable.rs3, "Tag C", "Product C", 2345000), Bill(2)),
         BillProduct(Product(R.drawable.rs1, "Tag D", "Product D", 30000), Bill(2)),
         BillProduct(Product(R.drawable.rs2, "Tag E", "Product E", 8000), Bill(2)),
@@ -207,7 +202,7 @@ fun SuggestToday() {
                             )
                             Text(
                                 text = item.product.productName, // Thay thế bằng tên sản phẩm thực tế của bạn
-                                modifier = Modifier.padding(horizontal = 8.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp).height(50.dp),
                                 style = TextStyle(
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
@@ -215,7 +210,7 @@ fun SuggestToday() {
                                 ),
                             )
                             Text(
-                                text = item.product.productName + "đ", // Thay thế bằng giá sản phẩm thực tế của bạn
+                                text = formatNumber(item.product.productPrice) + "đ", // Thay thế bằng giá sản phẩm thực tế của bạn
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 8.dp, vertical = 9.dp),
@@ -277,12 +272,13 @@ fun SuggestTodayopen(
 //                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     for (item in rowItems) {
+                        val number = item.buyprice.toInt()
                         Column(
                             modifier = Modifier
                                 .padding(4.dp)
                                 .width(200.dp)
                                 .border(1.dp, color = Color(0xFFff4d4d))
-                                .clickable { openDetailProducts() },
+//                                .clickable { openDetailProducts() },
                         ) {
                             LaunchedEffect(key1 = item.maSP) {
                                 productViewModel.fetchImages(item.maSP)
@@ -343,7 +339,9 @@ fun SuggestTodayopen(
                             )
                             Text(
                                 text = item.tensp, // Thay thế bằng tên sản phẩm thực tế của bạn
-                                modifier = Modifier.padding(horizontal = 8.dp),
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp)
+                                    .height(50.dp),
                                 style = TextStyle(
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
@@ -351,7 +349,8 @@ fun SuggestTodayopen(
                                 ),
                             )
                             Text(
-                                text = formatNumber1(item.buyprice) + "đ", // Thay thế bằng giá sản phẩm thực tế của bạn
+
+                                text = formatNumber(number) + "đ", // Thay thế bằng giá sản phẩm thực tế của bạn
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 8.dp, vertical = 9.dp),
