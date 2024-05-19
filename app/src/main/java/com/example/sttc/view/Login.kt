@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
-import com.example.sttc.navagation.Screens
+//import com.example.sttc.navagation.Screens
 import com.example.sttc.ui.theme.STTCTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
