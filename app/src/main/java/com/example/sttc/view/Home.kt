@@ -60,7 +60,8 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     openListProducts : () -> Unit,
     openDetailBlogs : () -> Unit,
-    openDetailProducts : () -> Unit
+    openDetailProducts : () -> Unit ,
+    openListBlogs : () -> Unit
 ) {
     val scrollState = rememberScrollState()
     Box(
@@ -105,7 +106,7 @@ fun HomeScreen(
                     text = "Xem thêm",
                     modifier = Modifier.fillMaxWidth()
                         .padding(0.dp, 30.dp, 0.dp, 0.dp)
-                        .clickable { /*TODO*/ },
+                        .clickable {openListBlogs() },
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontStyle = FontStyle.Italic,
@@ -144,7 +145,7 @@ fun HomeScreen(
                     text = "Xem thêm",
                     modifier = Modifier.fillMaxWidth()
                         .padding(0.dp, 30.dp, 0.dp, 0.dp)
-                        .clickable { /*TODO*/ },
+                        .clickable { openListProducts()},
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontStyle = FontStyle.Italic,
@@ -512,6 +513,6 @@ fun RecentSalesSection(openDetailProducts: () -> Unit) {
 @Composable
 fun HomeScreenPreview() {
     STTCTheme {
-        HomeScreen(openListProducts = {}, openDetailBlogs = {}, openDetailProducts = {})
+        HomeScreen(openListProducts = {}, openDetailBlogs = {}, openDetailProducts = {} , openListBlogs = {})
     }
 }

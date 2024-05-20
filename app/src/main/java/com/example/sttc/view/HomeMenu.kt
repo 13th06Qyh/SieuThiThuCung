@@ -145,7 +145,8 @@ fun HomeMenuScreen() { //
                         HomeScreen(
                             openListProducts = { navController.navigate("listProducts") },
                             openDetailProducts = { navController.navigate("detailProducts") },
-                            openDetailBlogs = { navController.navigate("DetailBlogs") }
+                            openDetailBlogs = { navController.navigate("DetailBlogs") } ,
+                            openListBlogs = { navController.navigate("listBlogs") },
                         )
                     }
                     composable("product") {
