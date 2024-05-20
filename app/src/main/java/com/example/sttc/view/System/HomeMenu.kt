@@ -156,7 +156,7 @@ fun HomeMenuScreen() { //
                     composable("home") {
                         HomeScreen(
                             openListProducts = { navController.navigate("listProducts") },
-                            openDetailProducts = { navController.navigate("detailProducts") },
+                            openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
                             openDetailBlogs = { navController.navigate("DetailBlogs") },
                             productViewModel = ProductViewModel(),
                             context = LocalContext.current
@@ -183,21 +183,35 @@ fun HomeMenuScreen() { //
                     // ------------sanPham---------------
                     composable("listProducts") {
                         ListProductScreen(
-                            openDetailProducts = { navController.navigate("detailProducts") },
+                            openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
                             productType = selectedProductType,
                             productViewModel = ProductViewModel(),
                             context = LocalContext.current
                         )
                     }
-                    composable("detailProducts") {
+//                    composable("detailProducts") {
+//                        DetailProductsScreen(
+//                            back = { navController.popBackStack() },
+//                            openCart = { navController.navigate("cart") },
+//                            openDetailProducts = { navController.navigate("detailProducts") },
+//                            productViewModel = ProductViewModel(),//cai nay la hien cai khuc suggesttoday phia duoi, chu khong phai la noi dung chi tiet cua sanpham
+//                            context = LocalContext.current,
+//                            productId = 0
+//                        )
+//                    }
+
+                    composable("detailProducts/{productId}") { backStackEntry ->
+                        val productId = backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
                         DetailProductsScreen(
                             back = { navController.popBackStack() },
                             openCart = { navController.navigate("cart") },
-                            openDetailProducts = { navController.navigate("detailProducts") },
-                            productViewModel = ProductViewModel(),//cai nay la hien cai khuc suggesttoday phia duoi, chu khong phai la noi dung chi tiet cua sanpham
-                            context = LocalContext.current
+                            openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
+                            productViewModel = ProductViewModel(),
+                            context = LocalContext.current,
+                            productId = productId
                         )
                     }
+
                     //---------------blogs------------
                     composable("listBlogs") {
                         ListBlogScreen(

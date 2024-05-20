@@ -73,7 +73,8 @@ fun DetailProductsScreen(
     openCart: () -> Unit,
     openDetailProducts: (id: Int) -> Unit,
     productViewModel: ProductViewModel,
-    context: Context
+    context: Context,
+    productId: Int
 ) {
     val scrollState = rememberScrollState()
     val selectedOption = remember { mutableStateOf("") }
@@ -85,7 +86,7 @@ fun DetailProductsScreen(
             .verticalScroll(scrollState)
     ) {
         TitleInforProduct(back)
-        SlideImage(Modifier, productViewModel, context, id = openDetailProducts.hashCode())
+        SlideImage(Modifier, productViewModel, context, productId)
         NameAndPrice()
         InforProduct()
         BuyProduct(openCart)
@@ -184,9 +185,8 @@ fun SlideImage(
     LaunchedEffect(key1 = Unit) {
         delay(1000)
         productViewModel.fetchProduct()
-//        productViewModel.fetchImages()
     }
- Log.d("test", "SlideImage: $id")
+    Log.d("test", "SlideImage: $id")
     val product = products.find { it.maSP == id }
     val productImages = if (product != null) {
         imagesMap[product.maSP].orEmpty()
@@ -533,7 +533,8 @@ fun DetailProductsPreview() {
             openCart = {},
             openDetailProducts = {},
             ProductViewModel(),
-            LocalContext.current
+            LocalContext.current,
+            0
         )
     }
 }

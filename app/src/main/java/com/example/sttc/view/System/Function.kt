@@ -148,7 +148,6 @@ fun SuggestTodayopen(
         productViewModel.fetchProduct()
         delay(15000)
         productViewModel.fetchTag()
-//        productViewModel.fetchProductDogTA()
     }
 
     val filteredProducts = when (selectedOption) {
