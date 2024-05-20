@@ -54,7 +54,7 @@ import com.example.sttc.viewmodel.ProductViewModel
 @Composable
 fun InforBillShipScreen(
     back: () -> Unit,
-    openDetailProducts: () -> Unit,
+    openDetailProducts: (id:Int) -> Unit,
     productViewModel: ProductViewModel,
     context: Context
 

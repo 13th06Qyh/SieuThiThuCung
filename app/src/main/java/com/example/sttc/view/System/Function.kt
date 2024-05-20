@@ -132,7 +132,7 @@ fun CustomPagerIndicator(
 
 @Composable
 fun SuggestTodayopen(
-    openDetailProducts: () -> Unit,
+    openDetailProducts: (id:Int) -> Unit,
     productViewModel: ProductViewModel,
     context: Context,
     selectedOption: String,
@@ -194,7 +194,7 @@ fun SuggestTodayopen(
                                 .padding(4.dp)
                                 .width(200.dp)
                                 .border(1.dp, color = Color(0xFFff4d4d))
-                                .clickable { openDetailProducts() },
+                                .clickable { openDetailProducts(item.maSP) },
                         ) {
                             LaunchedEffect(key1 = item.maSP) {
                                 delay(10000)
@@ -222,11 +222,11 @@ fun SuggestTodayopen(
                                     )
                                     val a = context.resources.getResourceName(resourceId)
                                     val b = a.substringAfter('/')
-                                    Log.d("test", "FileName: $fileName")
-                                    Log.d("test", "FileExtension: $fileExtension")
-                                    Log.d("test", "ResourceId: $resourceId")
-                                    Log.d("test", "ResourceName1: $a")
-                                    Log.d("test", "ResourceName2: $b")
+//                                    Log.d("test", "FileName: $fileName")
+//                                    Log.d("test", "FileExtension: $fileExtension")
+//                                    Log.d("test", "ResourceId: $resourceId")
+//                                    Log.d("test", "ResourceName1: $a")
+//                                    Log.d("test", "ResourceName2: $b")
                                     if (b == fileName) {
                                         Image(
                                             painter = painterResource(id = resourceId),
@@ -237,12 +237,6 @@ fun SuggestTodayopen(
                                     } else {
                                         Text(text = "Image not found")
                                     }
-//                                Image(
-//                                    painter = painterResource(id = productImages[0].image),
-//                                    contentDescription = null,
-//                                    contentScale = ContentScale.Crop,
-//                                    modifier = Modifier.fillMaxSize()
-//                                )
                                 }
                             }
 

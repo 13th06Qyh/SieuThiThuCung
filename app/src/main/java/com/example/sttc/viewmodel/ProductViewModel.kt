@@ -11,9 +11,11 @@ import com.example.sttc.model.ProductData
 import com.example.sttc.model.Sanpham
 import com.example.sttc.model.Tag
 import com.example.sttc.service.ApiService.apiService
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
+import retrofit2.HttpException
 import retrofit2.Response
 
 class ProductViewModel : ViewModel() {
@@ -30,65 +32,77 @@ class ProductViewModel : ViewModel() {
     private val _tag = MutableLiveData<List<Tag>>()
     val tag = _tag.asFlow()
 
+    private var lastFetchTime: Long = 0
     init {
         fetchProduct()
         fetchTag()
     }
+
     fun fetchProduct() {
         viewModelScope.launch {
-            val call: Call<ProductData> = apiService.getProduct()
-            call.enqueue(object : Callback<ProductData> {
-                override fun onResponse(
-                    call: Call<ProductData>,
-                    response: Response<ProductData>
-                ) {
-                    if (response.isSuccessful) {
+            if (System.currentTimeMillis() - lastFetchTime < 60000) {
+                // Nếu lần tải trước đó chưa quá 60 giây, không tải lại
+                return@launch
+            }
+            try {
+                // Gửi yêu cầu để lấy dữ liệu sản phẩm
+                val call: Call<ProductData> = apiService.getProduct()
+                call.enqueue(object : Callback<ProductData> {
+                    override fun onResponse(
+                        call: Call<ProductData>,
+                        response: Response<ProductData>
+                    ) {
+                        if (response.isSuccessful) {
 
-                        val productData = response.body()
-                        _products.value = productData?.sanphams
+                            val productData = response.body()
+                            _products.value = productData?.sanphams
 
-                        Log.e("Response Category",productData.toString())
+                            Log.e("Response Category",productData.toString())
+                            lastFetchTime = System.currentTimeMillis()
 
+                        } else {
+                            if (response.code() == 429) {
+                                Log.e("API Error", "Error: Too Many Requests (429), retrying in 60 seconds")
 
-                    } else {
-                        Log.e("API Error", "Error: ${response.code()}")
+//                                delay(60000)
+                                fetchProduct()
+                            } else {
+                                Log.e("API Error", "Error: ${response.code()}")
+                            }
+                        }
                     }
-                }
-                override fun onFailure(call: Call<ProductData>, t: Throwable) {
-                    Log.e("API Error", "Error: ${t.message}")
-                    t.printStackTrace()
-                }
-            })
-        }
-
-
-    }
-
-    fun fetchProductDogTA() {
-        viewModelScope.launch {
-            val call: Call<ProductData> = apiService.getProductDogTA()
-            call.enqueue(object : Callback<ProductData> {
-                override fun onResponse(
-                    call: Call<ProductData>,
-                    response: Response<ProductData>
-                ) {
-                    if (response.isSuccessful) {
-
-                        val productData = response.body()
-                        _productDogTA.value = productData?.sanphams
-
-                        Log.e("Response Category",productData.toString())
-
-
-                    } else {
-                        Log.e("API Error", "Error: ${response.code()}")
+                    override fun onFailure(call: Call<ProductData>, t: Throwable) {
+                        Log.e("API Error", "Error: ${t.message}")
+                        t.printStackTrace()
                     }
-                }
-                override fun onFailure(call: Call<ProductData>, t: Throwable) {
-                    Log.e("API Error", "Error: ${t.message}")
-                    t.printStackTrace()
-                }
-            })
+                })
+            } catch (e: Exception) {
+                Log.e("API Error", "Error: ${e.message}")
+                e.printStackTrace()
+            }
+//            val call: Call<ProductData> = apiService.getProduct()
+//            call.enqueue(object : Callback<ProductData> {
+//                override fun onResponse(
+//                    call: Call<ProductData>,
+//                    response: Response<ProductData>
+//                ) {
+//                    if (response.isSuccessful) {
+//
+//                        val productData = response.body()
+//                        _products.value = productData?.sanphams
+//
+//                        Log.e("Response Category",productData.toString())
+//
+//
+//                    } else {
+//                        Log.e("API Error", "Error: ${response.code()}")
+//                    }
+//                }
+//                override fun onFailure(call: Call<ProductData>, t: Throwable) {
+//                    Log.e("API Error", "Error: ${t.message}")
+//                    t.printStackTrace()
+//                }
+//            })
         }
 
 

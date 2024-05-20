@@ -64,7 +64,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     openListProducts : () -> Unit,
     openDetailBlogs : () -> Unit,
-    openDetailProducts : () -> Unit,
+    openDetailProducts : (id:Int) -> Unit,
     productViewModel: ProductViewModel,
     context: Context
 ) {
@@ -414,7 +414,7 @@ fun RecentBlogsSection(openDetailBlogs: () -> Unit) {
 }
 
 @Composable
-fun RecentSalesSection(openDetailProducts: () -> Unit) {
+fun RecentSalesSection(openDetailProducts: (id:Int) -> Unit) {
     val items = listOf(
         R.drawable.rs1,
         R.drawable.rs2,
@@ -471,7 +471,7 @@ fun RecentSalesSection(openDetailProducts: () -> Unit) {
                             .width(200.dp)
                             .height(155.dp)
                             .padding(8.dp)
-                            .clickable { openDetailProducts() }
+                            .clickable { openDetailProducts(item) }
                     )
 
                     HorizontalDivider(thickness = 2.dp, color = Color(0xFFffdab3))

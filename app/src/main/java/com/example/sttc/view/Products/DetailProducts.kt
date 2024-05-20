@@ -1,6 +1,7 @@
 package com.example.sttc.view.Products
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,6 +36,8 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -43,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,9 +69,9 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun DetailProductsScreen(
-    back : () -> Unit,
-    openCart : () -> Unit,
-    openDetailProducts: () -> Unit,
+    back: () -> Unit,
+    openCart: () -> Unit,
+    openDetailProducts: (id: Int) -> Unit,
     productViewModel: ProductViewModel,
     context: Context
 ) {
@@ -81,13 +85,14 @@ fun DetailProductsScreen(
             .verticalScroll(scrollState)
     ) {
         TitleInforProduct(back)
-        SlideImage()
+        SlideImage(Modifier, productViewModel, context, id = openDetailProducts.hashCode())
         NameAndPrice()
         InforProduct()
         BuyProduct(openCart)
         ContentProduct()
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(top = 15.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -115,14 +120,20 @@ fun DetailProductsScreen(
                 color = Color.Gray
             )
         }
-//        SuggestTodayopen(openDetailProducts, productViewModel, context, selectedOption.value, selectedAnimal)
+        SuggestTodayopen(
+            openDetailProducts,
+            productViewModel,
+            context,
+            selectedOption.value,
+            selectedAnimal
+        )
     }
 
 }
 
 @Composable
-fun TitleInforProduct(back : () -> Unit){
-    Row (
+fun TitleInforProduct(back: () -> Unit) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
 //            .height(50.dp)
@@ -137,13 +148,13 @@ fun TitleInforProduct(back : () -> Unit){
             )
             .padding(0.dp, 5.dp)
 //            .border(1.dp, color = Color(0xFFff6666))
-    ){
+    ) {
         Icon(
             Icons.Default.ArrowBack, contentDescription = "Back",
             modifier = Modifier
                 .size(50.dp)
                 .padding(10.dp, 0.dp)
-                .clickable { back()},
+                .clickable { back() },
             tint = Color(0xFFcc2900)
         )
         Text(
@@ -162,99 +173,140 @@ fun TitleInforProduct(back : () -> Unit){
 
 @Composable
 @OptIn(ExperimentalPagerApi::class)
-fun SlideImage(modifier: Modifier = Modifier) {
-
-    val images = listOf(
-        R.drawable.doancho1,
-        R.drawable.doancho2,
-    )
-    val pagerState = rememberPagerState(pageCount = images.size)
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(2000)
-            val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
-            pagerState.scrollToPage(nextPage)
-        }
+fun SlideImage(
+    modifier: Modifier = Modifier,
+    productViewModel: ProductViewModel,
+    context: Context,
+    id: Int
+) {
+    val products by productViewModel.products.collectAsState(initial = emptyList())
+    val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())
+    LaunchedEffect(key1 = Unit) {
+        delay(1000)
+        productViewModel.fetchProduct()
+//        productViewModel.fetchImages()
     }
-    val scope = rememberCoroutineScope()
-
-    Box(modifier = modifier
-        .wrapContentSize()
-        .background(Color(0xFFF6F2F2))
-        ) {
-        HorizontalPager(
-            state = pagerState,
-            modifier
+ Log.d("test", "SlideImage: $id")
+    val product = products.find { it.maSP == id }
+    val productImages = if (product != null) {
+        imagesMap[product.maSP].orEmpty()
+    } else {
+        emptyList() // Trả về danh sách hình ảnh rỗng nếu không tìm thấy sản phẩm hoặc không có hình ảnh
+    }
+    if (productImages.isNotEmpty()) {
+        val pagerState = rememberPagerState(pageCount = productImages.size)
+        LaunchedEffect(Unit) {
+            while (true) {
+                delay(2000)
+                val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
+                pagerState.scrollToPage(nextPage)
+            }
+        }
+        val scope = rememberCoroutineScope()
+        Box(
+            modifier = modifier
                 .wrapContentSize()
-
-        ) { currentPage ->
-            Card(
+                .background(Color(0xFFF6F2F2))
+        ) {
+            HorizontalPager(
+                state = pagerState,
                 modifier
-                    .wrapContentSize(),
-                elevation = CardDefaults.cardElevation(8.dp)
+                    .wrapContentSize()
+
+            ) { currentPage ->
+                Card(
+                    modifier
+                        .wrapContentSize(),
+                    elevation = CardDefaults.cardElevation(8.dp)
+                ) {
+                    val image = productImages[currentPage]
+                    val imageUrl = image.image
+                    val fileName =
+                        imageUrl.substringAfterLast("/").substringBeforeLast(".")
+                    val fileExtension = imageUrl.substringAfterLast(".")
+                    val resourceId = context.resources.getIdentifier(
+                        fileName,
+                        "drawable",
+                        context.packageName
+                    )
+                    val a = context.resources.getResourceName(resourceId)
+                    val b = a.substringAfter('/')
+                    Log.d("test", "FileName: $fileName")
+                    Log.d("test", "FileExtension: $fileExtension")
+                    Log.d("test", "ResourceId: $resourceId")
+                    Log.d("test", "ResourceName1: $a")
+                    Log.d("test", "ResourceName2: $b")
+                    if (b == fileName) {
+                        Image(
+                            painter = painterResource(id = resourceId),
+                            contentDescription = "Image",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Text(text = "Image not found")
+                    }
+                }
+            }
+            IconButton(
+                onClick = {
+                    val nextPage = pagerState.currentPage + 1
+                    if (nextPage < productImages.size) {
+                        scope.launch {
+                            pagerState.scrollToPage(nextPage)
+                        }
+                    }
+                },
+                modifier
+                    .size(48.dp)
+                    .align(Alignment.CenterEnd)
+                    .clip(CircleShape),
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = Color(0xFFf2f2f2)
+                )
             ) {
-                Image(
-                    painter = painterResource(id = images[currentPage]),
-                    contentDescription = ""
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "",
+                    modifier.fillMaxSize(),
+                    tint = Color.LightGray
+                )
+            }
+            IconButton(
+                onClick = {
+                    val prevPage = pagerState.currentPage - 1
+                    if (prevPage >= 0) {
+                        scope.launch {
+                            pagerState.scrollToPage(prevPage)
+                        }
+                    }
+                },
+                modifier
+                    .size(48.dp)
+                    .align(Alignment.CenterStart)
+                    .clip(CircleShape),
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = Color(0xFFf2f2f2)
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "",
+                    modifier.fillMaxSize(),
+                    tint = Color.LightGray
                 )
             }
         }
-        IconButton(
-            onClick = {
-                val nextPage = pagerState.currentPage + 1
-                if (nextPage < images.size) {
-                    scope.launch {
-                        pagerState.scrollToPage(nextPage)
-                    }
-                }
-            },
-            modifier
-                .size(48.dp)
-                .align(Alignment.CenterEnd)
-                .clip(CircleShape),
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = Color(0xFFf2f2f2)
-            )
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "",
-                modifier.fillMaxSize(),
-                tint = Color.LightGray
-            )
-        }
-        IconButton(
-            onClick = {
-                val prevPage = pagerState.currentPage - 1
-                if (prevPage >= 0) {
-                    scope.launch {
-                        pagerState.scrollToPage(prevPage)
-                    }
-                }
-            },
-            modifier
-                .size(48.dp)
-                .align(Alignment.CenterStart)
-                .clip(CircleShape),
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = Color(0xFFf2f2f2)
-            )
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = "",
-                modifier.fillMaxSize(),
-                tint = Color.LightGray
-            )
-        }
+    } else {
+        Text(text = "No image found")
     }
 }
 
 @Composable
-fun NameAndPrice(){
+fun NameAndPrice() {
     Column(
         modifier = Modifier.background(Color(0xFFF6F2F2))
-    ){
+    ) {
 
         Row(
             modifier = Modifier
@@ -269,7 +321,8 @@ fun NameAndPrice(){
                 style = TextStyle(
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White),
+                    color = Color.White
+                ),
                 modifier = Modifier.padding(end = 10.dp)
             )
         }
@@ -282,23 +335,26 @@ fun NameAndPrice(){
                 fontStyle = FontStyle.Italic,
                 color = Color.Black
             ),
-            modifier = Modifier.padding(10.dp)
+            modifier = Modifier
+                .padding(10.dp)
                 .background(Color(0xFFF6F2F2))
         )
     }
 }
+
 @Composable
-fun InforProduct(){
+fun InforProduct() {
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .background(Color(0xFFF6F2F2))
     ) {
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(10.dp, 0.dp, 10.dp, 5.dp),
             horizontalArrangement = Arrangement.SpaceBetween
-        ){
+        ) {
             Text(
                 text = "Chất liệu",
                 style = TextStyle(
@@ -318,12 +374,12 @@ fun InforProduct(){
             )
         }
 
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(10.dp, 0.dp, 10.dp, 5.dp),
             horizontalArrangement = Arrangement.SpaceBetween
-        ){
+        ) {
             Text(
                 text = "Kho hàng",
                 style = TextStyle(
@@ -343,12 +399,12 @@ fun InforProduct(){
             )
         }
 
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(10.dp, 0.dp, 10.dp, 5.dp),
             horizontalArrangement = Arrangement.SpaceBetween
-        ){
+        ) {
             Text(
                 text = "Nguồn hàng",
                 style = TextStyle(
@@ -371,14 +427,14 @@ fun InforProduct(){
 }
 
 @Composable
-fun BuyProduct( openCart : () -> Unit){
-    Row (
+fun BuyProduct(openCart: () -> Unit) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(0.dp, 1.dp, 0.dp, 2.dp)
             .background(Color(0xFFFFFFFF)),
         horizontalArrangement = Arrangement.SpaceEvenly
-    ){
+    ) {
         Button(
             onClick = { openCart() },
             shape = RoundedCornerShape(2.dp), // Định dạng góc bo tròn của nút
@@ -390,9 +446,9 @@ fun BuyProduct( openCart : () -> Unit){
                 .width(230.dp)
                 .padding(7.dp, 5.dp)
         ) {
-            Row (
+            Row(
                 verticalAlignment = Alignment.CenterVertically
-            ){
+            ) {
                 Icon(
                     Icons.Default.ShoppingCart, contentDescription = "Add to cart",
                     modifier = Modifier
@@ -401,7 +457,8 @@ fun BuyProduct( openCart : () -> Unit){
                     tint = Color.White
                 )
 
-                Text(text = "Thêm vào giỏ hàng",
+                Text(
+                    text = "Thêm vào giỏ hàng",
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
@@ -422,7 +479,8 @@ fun BuyProduct( openCart : () -> Unit){
                 .fillMaxWidth()
                 .padding(7.dp, 5.dp)
         ) {
-            Text(text = "Mua ngay",
+            Text(
+                text = "Mua ngay",
                 style = TextStyle(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -434,7 +492,7 @@ fun BuyProduct( openCart : () -> Unit){
 }
 
 @Composable
-fun ContentProduct(){
+fun ContentProduct() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -445,9 +503,9 @@ fun ContentProduct(){
             style = TextStyle(
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                fontStyle = FontStyle.Normal ,
+                fontStyle = FontStyle.Normal,
                 letterSpacing = 0.5.sp
-            ) ,
+            ),
             modifier = Modifier.padding(10.dp, 10.dp, 0.dp, 3.dp)
         )
 
@@ -470,6 +528,12 @@ fun ContentProduct(){
 @Composable
 fun DetailProductsPreview() {
     STTCTheme {
-        DetailProductsScreen(back = {} , openCart = {}, openDetailProducts = {}, ProductViewModel(), LocalContext.current)
+        DetailProductsScreen(
+            back = {},
+            openCart = {},
+            openDetailProducts = {},
+            ProductViewModel(),
+            LocalContext.current
+        )
     }
 }

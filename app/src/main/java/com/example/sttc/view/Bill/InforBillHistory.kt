@@ -43,7 +43,7 @@ import com.example.sttc.viewmodel.ProductViewModel
 @Composable
 fun InforBillHistoryShipScreen(
     back : () -> Unit,
-    openDetailProducts: () -> Unit,
+    openDetailProducts: (id:Int) -> Unit,
     productViewModel: ProductViewModel,
     context: Context
 ) {
@@ -97,7 +97,7 @@ fun InforBillHistoryShipScreen(
                     color = Color.Gray
                 )
             }
-//            SuggestTodayopen(openDetailProducts, productViewModel, context, selectedOption.value, selectedAnimal)
+            SuggestTodayopen(openDetailProducts, productViewModel, context, selectedOption.value, selectedAnimal)
         }
     }
 

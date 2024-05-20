@@ -47,7 +47,7 @@ import com.example.sttc.viewmodel.ProductViewModel
 @ExperimentalMaterial3Api
 @Composable
 fun ListProductScreen(
-    openDetailProducts: () -> Unit,
+    openDetailProducts: (id:Int) -> Unit,
     productType: String,
     productViewModel: ProductViewModel,
     context: Context
