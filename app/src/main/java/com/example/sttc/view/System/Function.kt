@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
 import com.example.sttc.viewmodel.ProductViewModel
+import kotlinx.coroutines.delay
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -129,122 +131,36 @@ fun CustomPagerIndicator(
 }
 
 @Composable
-fun SuggestToday() {
-    val items = listOf(
-        BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), Bill(1)),
-        BillProduct(Product(R.drawable.rs2, "Tag B", "Product Bgg haãy sống kho", 102000), Bill(2)),
-        BillProduct(Product(R.drawable.rs3, "Tag C", "Product C", 2345000), Bill(2)),
-        BillProduct(Product(R.drawable.rs1, "Tag D", "Product D", 30000), Bill(2)),
-        BillProduct(Product(R.drawable.rs2, "Tag E", "Product E", 8000), Bill(2)),
-
-        )
-
-    // Kết quả: "10,000"
-    // Chia danh sách thành các nhóm có 3 mặt hàng
-    val rows = items.chunked(2)
-
-    Column(
-//        modifier = Modifier.verticalScroll(rememberScrollState())
-    ) {
-        rows.forEach { rowItems ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(2.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xFFF6F2F2),
-                                    Color(0xFFFFC1B6),
-                                    Color(0xFFFF9999)
-                                ),
-                                startY = 720f,
-                                endY = 0f
-                            )
-                        ),
-//                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    for (item in rowItems) {
-                        Column(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .width(200.dp)
-                                .border(1.dp, color = Color(0xFFff4d4d))
-                                .clickable(onClick = {
-                                }),
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(200.dp, 210.dp)
-                                    .border(1.dp, color = Color(0xFFff4d4d)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                // Thay thế bằng hình ảnh thực tế của bạn
-                                Image(
-                                    painter = painterResource(id = item.product.imageResId),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                            Text(
-                                text = item.product.tagName, // Thay thế bằng tên thẻ thực tế của bạn
-                                modifier = Modifier.padding(8.dp),
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    fontStyle = FontStyle.Italic,
-                                    color = Color.Gray
-                                ),
-                            )
-                            Text(
-                                text = item.product.productName, // Thay thế bằng tên sản phẩm thực tế của bạn
-                                modifier = Modifier.padding(horizontal = 8.dp).height(50.dp),
-                                style = TextStyle(
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.Black
-                                ),
-                            )
-                            Text(
-                                text = formatNumber(item.product.productPrice) + "đ", // Thay thế bằng giá sản phẩm thực tế của bạn
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 9.dp),
-                                style = TextStyle(
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFff4d4d),
-                                    textAlign = TextAlign.End
-                                ),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun SuggestTodayopen(
     openDetailProducts: () -> Unit,
     productViewModel: ProductViewModel,
-    context: Context
+    context: Context,
+    selectedOption: String,
+    selectedAnimal: Int
 ) {
     val products by productViewModel.products.collectAsState(initial = emptyList())
+//    val productDogTA by productViewModel.productDogTA.collectAsState(initial = emptyList())
     val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())
+    val tag by productViewModel.tag.collectAsState(initial = emptyList())
+    val tagMap = remember(tag) { tag.associateBy { it.maTag } }
     LaunchedEffect(key1 = Unit) {
+        delay(10000)
         productViewModel.fetchProduct()
-//        productViewModel.fetchImages()
+        delay(15000)
+        productViewModel.fetchTag()
+//        productViewModel.fetchProductDogTA()
+    }
+
+    val filteredProducts = when (selectedOption) {
+        "Áo quần" -> products.filter { it.idtype == 1 && it.idanimal == selectedAnimal }
+        "Thức ăn" -> products.filter { it.idtype == 2 && it.idanimal == selectedAnimal }
+        "Vật dụng" -> products.filter { it.idtype == 3 && it.idanimal == selectedAnimal }
+        else -> products
     }
 
     // Kết quả: "10,000"
     // Chia danh sách thành các nhóm có 2 mặt hàng
-    val rows = products.chunked(2)
+    val rows = filteredProducts.chunked(2)
 
     Column(
 //        modifier = Modifier.verticalScroll(rememberScrollState())
@@ -278,9 +194,10 @@ fun SuggestTodayopen(
                                 .padding(4.dp)
                                 .width(200.dp)
                                 .border(1.dp, color = Color(0xFFff4d4d))
-//                                .clickable { openDetailProducts() },
+                                .clickable { openDetailProducts() },
                         ) {
                             LaunchedEffect(key1 = item.maSP) {
+                                delay(10000)
                                 productViewModel.fetchImages(item.maSP)
                             }
 
@@ -328,20 +245,30 @@ fun SuggestTodayopen(
 //                                )
                                 }
                             }
+
+                            val tags = tagMap[item.idtag]
+                            if (tags != null) {
+                                Text(
+                                    text = tags.tagname, // Thay thế bằng tên thẻ thực tế của bạn
+                                    modifier = Modifier.padding(8.dp),
+                                    style = TextStyle(
+                                        fontSize = 12.sp,
+                                        fontStyle = FontStyle.Italic,
+                                        color = Color.Gray
+                                    ),
+                                )
+                            }
+                            val productName = item.tensp
+                            val shortenedName = if (productName.length > 15) {
+                                "${productName.substring(0, 15)}..."
+                            } else {
+                                productName
+                            }
                             Text(
-                                text = item.idtag.toString(), // Thay thế bằng tên thẻ thực tế của bạn
-                                modifier = Modifier.padding(8.dp),
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    fontStyle = FontStyle.Italic,
-                                    color = Color.Gray
-                                ),
-                            )
-                            Text(
-                                text = item.tensp, // Thay thế bằng tên sản phẩm thực tế của bạn
+                                text = shortenedName, // Thay thế bằng tên sản phẩm thực tế của bạn
                                 modifier = Modifier
                                     .padding(horizontal = 8.dp)
-                                    .height(50.dp),
+                                    ,
                                 style = TextStyle(
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,

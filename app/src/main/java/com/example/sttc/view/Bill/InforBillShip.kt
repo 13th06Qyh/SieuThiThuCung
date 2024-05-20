@@ -1,5 +1,6 @@
 package com.example.sttc.view
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,10 +25,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -43,12 +47,21 @@ import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.BillProduct
 import com.example.sttc.view.System.ItemAccount
 import com.example.sttc.view.System.Product
-import com.example.sttc.view.System.SuggestToday
+import com.example.sttc.view.System.SuggestTodayopen
 import com.example.sttc.view.System.formatNumber
+import com.example.sttc.viewmodel.ProductViewModel
 
 @Composable
-fun InforBillShipScreen(navController: NavController) {
+fun InforBillShipScreen(
+    back: () -> Unit,
+    openDetailProducts: () -> Unit,
+    productViewModel: ProductViewModel,
+    context: Context
+
+) {
     val scrollState = rememberScrollState()
+    val selectedOption = remember { mutableStateOf("") }
+    val selectedAnimal = 0
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -56,13 +69,13 @@ fun InforBillShipScreen(navController: NavController) {
             .verticalScroll(scrollState)
 
     ) {
-        Column (
+        Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
 //            TopIconInforBill()
-            TitleInforBill()
+            TitleInforBill(back)
             Bill()
             ContentInforBill()
             PayBill()
@@ -72,7 +85,8 @@ fun InforBillShipScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 HorizontalDivider(
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
                         .padding(0.dp, 10.dp),  // Take up half the space
                     thickness = 1.2.dp,
                     color = Color.Gray
@@ -87,21 +101,22 @@ fun InforBillShipScreen(navController: NavController) {
                     modifier = Modifier.padding(10.dp, 0.dp, 10.dp, 10.dp)
                 )
                 HorizontalDivider(
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
                         .padding(0.dp, 10.dp),  // Take up half the space
                     thickness = 1.2.dp,
                     color = Color.Gray
                 )
             }
-            SuggestToday()
+            SuggestTodayopen(openDetailProducts, productViewModel, context, selectedOption.value, selectedAnimal)
         }
     }
 
 }
 
 @Composable
-fun TitleInforBill() {
-    Row (
+fun TitleInforBill(back : () -> Unit) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
 //            .height(50.dp)
@@ -117,13 +132,13 @@ fun TitleInforBill() {
             )
             .padding(0.dp, 10.dp)
             .border(1.dp, color = Color(0xFFff6666))
-    ){
+    ) {
         Icon(
             Icons.Default.ArrowBack, contentDescription = "Back",
             modifier = Modifier
                 .size(50.dp)
                 .padding(10.dp, 0.dp)
-                .clickable { /*TODO*/ },
+                .clickable { back()},
             tint = Color(0xFFcc2900)
         )
         Text(
@@ -141,8 +156,8 @@ fun TitleInforBill() {
 }
 
 @Composable
-fun Bill(){
-    Column (
+fun Bill() {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(0.dp, 0.dp, 0.dp, 0.dp)
@@ -150,16 +165,15 @@ fun Bill(){
                 Color(0xFF0a2929)
             )
     ) {
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
                     Color(0xFFccffff)
                 )
-                .padding(5.dp, 20.dp)
-            ,
+                .padding(5.dp, 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween
-        ){
+        ) {
             Column {
                 Text(
                     text = "Đơn hàng đang được giao",
@@ -295,7 +309,7 @@ fun ContentInforBill() {
             ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.End
@@ -317,11 +331,10 @@ fun ContentInforBill() {
         Row(
             modifier = Modifier
                 .padding(5.dp, 0.dp)
-                .clickable { /* Do something! */ }
-            ,
+                .clickable { /* Do something! */ },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
-        ){
+        ) {
             Image(
                 painter = painterResource(id = items[0].product.imageResId),
                 contentDescription = "Image",
@@ -337,7 +350,8 @@ fun ContentInforBill() {
                     .height(100.dp)
                     .padding(5.dp, 10.dp),
             ) {
-                Text(text = items[0].product.productName,
+                Text(
+                    text = items[0].product.productName,
                     style = TextStyle(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
@@ -345,14 +359,16 @@ fun ContentInforBill() {
                     )
                 )
                 Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
-                Text(text = items[0].product.tagName,
+                Text(
+                    text = items[0].product.tagName,
                     style = TextStyle(
                         fontSize = 13.sp,
                         fontStyle = FontStyle.Italic,
                         color = Color.Black,
                     )
                 )
-                Text("x" + items[0].bill.soluongmua.toString(),
+                Text(
+                    "x" + items[0].bill.soluongmua.toString(),
                     style = TextStyle(
                         fontSize = 14.sp,
                         color = Color.Black,
@@ -375,13 +391,13 @@ fun ContentInforBill() {
 
         HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
 
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
 //                        .border(1.dp, color = Color(0xFF006600))
             ,
             horizontalArrangement = Arrangement.SpaceBetween
-        ){
+        ) {
             Text(
                 text = "Thành tiền",
                 style = TextStyle(
@@ -409,11 +425,11 @@ fun ContentInforBill() {
 
         HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
 
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
-        ){
+        ) {
             Icon(
                 painter = painterResource(id = R.drawable.ship),
                 contentDescription = "Money",
@@ -423,7 +439,8 @@ fun ContentInforBill() {
                     .padding(10.dp, 5.dp)
             )
 
-            Text(text = "Thanh toán " + formatNumber(items[0].product.productPrice * items[0].bill.soluongmua) + "đ khi nhận hàng.",
+            Text(
+                text = "Thanh toán " + formatNumber(items[0].product.productPrice * items[0].bill.soluongmua) + "đ khi nhận hàng.",
                 style = TextStyle(
                     fontSize = 14.sp,
                     fontStyle = FontStyle.Italic,
@@ -439,8 +456,8 @@ fun ContentInforBill() {
 
 
 @Composable
-fun PayBill(){
-    Column (
+fun PayBill() {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
 //            .border(1.dp, color = Color(0xFFFFFFFF))
@@ -448,12 +465,12 @@ fun PayBill(){
             .background(
                 Color.White
             )
-    ){
-        Row (
+    ) {
+        Row(
             modifier = Modifier
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
-        ){
+        ) {
             Icon(
                 painter = painterResource(id = R.drawable.money),
                 contentDescription = "Money",
@@ -471,16 +488,17 @@ fun PayBill(){
                 ),
                 modifier = Modifier
                     .padding(10.dp, 10.dp)
-                )
+            )
         }
 
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(40.dp, 0.dp),
             horizontalArrangement = Arrangement.Start
-        ){
-            Text(text = "Thanh toán khi nhận hàng",
+        ) {
+            Text(
+                text = "Thanh toán khi nhận hàng",
                 style = TextStyle(
                     fontSize = 17.sp,
                     fontStyle = FontStyle.Italic,
@@ -495,7 +513,7 @@ fun PayBill(){
 }
 
 @Composable
-fun LocationReceive(){
+fun LocationReceive() {
     val itemAccount = listOf(
         ItemAccount(
             "QuyhPham",
@@ -505,7 +523,7 @@ fun LocationReceive(){
             "154 Trần Đại Nghĩa, Ngũ Hành Sơn, Đà Nẵng"
         )
     )
-    Column (
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(0.dp, 10.dp, 0.dp, 10.dp)
@@ -515,11 +533,11 @@ fun LocationReceive(){
             )
 
     ) {
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
-        ){
+        ) {
             Icon(
                 Icons.Filled.LocationOn,
                 contentDescription = "Location",
@@ -540,43 +558,43 @@ fun LocationReceive(){
             )
         }
 
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(40.dp, 0.dp),
             horizontalArrangement = Arrangement.Start
-        ){
+        ) {
             Column {
-                    Text(
-                        text = itemAccount[0].name,
-                        style = TextStyle(
-                            fontSize = 17.sp,
-                            color = Color.Black,
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp, 10.dp)
-                    )
-                    Text(
-                        text = "(+84)" + itemAccount[0].phone.toString(),
-                        style = TextStyle(
-                            fontSize = 17.sp,
-                            color = Color.Black,
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp, 0.dp)
-                    )
-                    Text(
-                        text = itemAccount[0].address,
-                        style = TextStyle(
-                            fontSize = 17.sp,
-                            color = Color.Black,
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp, 10.dp)
-                    )
+                Text(
+                    text = itemAccount[0].name,
+                    style = TextStyle(
+                        fontSize = 17.sp,
+                        color = Color.Black,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp, 10.dp)
+                )
+                Text(
+                    text = "(+84)" + itemAccount[0].phone.toString(),
+                    style = TextStyle(
+                        fontSize = 17.sp,
+                        color = Color.Black,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp, 0.dp)
+                )
+                Text(
+                    text = itemAccount[0].address,
+                    style = TextStyle(
+                        fontSize = 17.sp,
+                        color = Color.Black,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp, 10.dp)
+                )
 
             }
         }
@@ -584,12 +602,11 @@ fun LocationReceive(){
 }
 
 
-
 @Preview(showBackground = true)
 @Composable
 fun InforBillShipScreenPreview() {
     STTCTheme {
-        InforBillShipScreen(rememberNavController())
+        InforBillShipScreen(back = {}, openDetailProducts = {}, ProductViewModel(), LocalContext.current)
 //        MyApp()
 //        SignUpForm(navController = rememberNavController(), authController = AuthController())
     }

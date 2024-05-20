@@ -1,4 +1,5 @@
 package com.example.sttc.view
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,9 +19,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -32,12 +36,20 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
-import com.example.sttc.view.System.SuggestToday
+import com.example.sttc.view.System.SuggestTodayopen
+import com.example.sttc.viewmodel.ProductViewModel
 
 
 @Composable
-fun InforBillHistoryShipScreen(navController: NavController) {
+fun InforBillHistoryShipScreen(
+    back : () -> Unit,
+    openDetailProducts: () -> Unit,
+    productViewModel: ProductViewModel,
+    context: Context
+) {
     val scrollState = rememberScrollState()
+    val selectedOption = remember { mutableStateOf("") }
+    val selectedAnimal = 0
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -51,7 +63,7 @@ fun InforBillHistoryShipScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ){
 //            TopIconInforBill()
-            TitleInforBill()
+            TitleInforBill(back)
             BillSuccess()
             ContentInforBill()
             SuccessPay()
@@ -85,7 +97,7 @@ fun InforBillHistoryShipScreen(navController: NavController) {
                     color = Color.Gray
                 )
             }
-            SuggestToday()
+//            SuggestTodayopen(openDetailProducts, productViewModel, context, selectedOption.value, selectedAnimal)
         }
     }
 
@@ -312,7 +324,7 @@ fun SuccessPay(){
 @Composable
 fun InforBillHistoryScreenPreview() {
     STTCTheme {
-        InforBillHistoryShipScreen(rememberNavController())
+        InforBillHistoryShipScreen(back = {}, openDetailProducts = {}, ProductViewModel(), LocalContext.current)
 //        MyApp()
 //        SignUpForm(navController = rememberNavController(), authController = AuthController())
     }

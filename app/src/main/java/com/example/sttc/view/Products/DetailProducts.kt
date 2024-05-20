@@ -1,5 +1,6 @@
 package com.example.sttc.view.Products
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,12 +35,15 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -51,7 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
-import com.example.sttc.view.System.SuggestToday
+import com.example.sttc.view.System.SuggestTodayopen
+import com.example.sttc.viewmodel.ProductViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
@@ -60,10 +65,15 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun DetailProductsScreen(
-    back : () -> Unit ,
-    openCart : () -> Unit
+    back : () -> Unit,
+    openCart : () -> Unit,
+    openDetailProducts: () -> Unit,
+    productViewModel: ProductViewModel,
+    context: Context
 ) {
     val scrollState = rememberScrollState()
+    val selectedOption = remember { mutableStateOf("") }
+    val selectedAnimal = 0
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -105,7 +115,7 @@ fun DetailProductsScreen(
                 color = Color.Gray
             )
         }
-        SuggestToday()
+//        SuggestTodayopen(openDetailProducts, productViewModel, context, selectedOption.value, selectedAnimal)
     }
 
 }
@@ -460,6 +470,6 @@ fun ContentProduct(){
 @Composable
 fun DetailProductsPreview() {
     STTCTheme {
-        DetailProductsScreen(back = {} , openCart = {})
+        DetailProductsScreen(back = {} , openCart = {}, openDetailProducts = {}, ProductViewModel(), LocalContext.current)
     }
 }

@@ -60,6 +60,8 @@ import com.example.sttc.view.Blogs.ListBlogScreen
 import com.example.sttc.view.Cart.CartScreen
 import com.example.sttc.view.DetailBlogsScreen
 import com.example.sttc.view.HomeScreen
+import com.example.sttc.view.InforBillHistoryShipScreen
+import com.example.sttc.view.InforBillShipScreen
 import com.example.sttc.view.Products.DetailProductsScreen
 import com.example.sttc.view.Products.ListProductScreen
 import com.example.sttc.view.Products.ProductScreens
@@ -70,6 +72,7 @@ import com.example.sttc.viewmodel.ProductViewModel
 @Composable
 fun HomeMenuScreen() { //
     val navController = rememberNavController()
+    var selectedProductType by remember { mutableStateOf("") }
     Column(
         modifier = Modifier.fillMaxSize(),
     )
@@ -122,7 +125,7 @@ fun HomeMenuScreen() { //
                     )
                 }
             }
-            IconButton(onClick = { navController.navigate("cart")}) {
+            IconButton(onClick = { navController.navigate("cart") }) {
                 Icon(
                     Icons.Filled.ShoppingCart,
                     contentDescription = "Cart",
@@ -160,7 +163,12 @@ fun HomeMenuScreen() { //
                         )
                     }
                     composable("product") {
-                        ProductScreens(openListProducts = { navController.navigate("listProducts") })
+                        ProductScreens(
+                            openListProducts = { productType ->
+                                selectedProductType = productType
+                                navController.navigate("listProducts")
+                            }
+                        )
                     }
                     composable("blogs") {
                         BlogsScreens(openListBlogs = { navController.navigate("listBlogs") })
@@ -176,6 +184,7 @@ fun HomeMenuScreen() { //
                     composable("listProducts") {
                         ListProductScreen(
                             openDetailProducts = { navController.navigate("detailProducts") },
+                            productType = selectedProductType,
                             productViewModel = ProductViewModel(),
                             context = LocalContext.current
                         )
@@ -183,7 +192,10 @@ fun HomeMenuScreen() { //
                     composable("detailProducts") {
                         DetailProductsScreen(
                             back = { navController.popBackStack() },
-                            openCart =  { navController.navigate("cart") }
+                            openCart = { navController.navigate("cart") },
+                            openDetailProducts = { navController.navigate("detailProducts") },
+                            productViewModel = ProductViewModel(),//cai nay la hien cai khuc suggesttoday phia duoi, chu khong phai la noi dung chi tiet cua sanpham
+                            context = LocalContext.current
                         )
                     }
                     //---------------blogs------------
@@ -203,22 +215,46 @@ fun HomeMenuScreen() { //
                             back = { navController.popBackStack() },
                         )
                     }
-                    // ------------account---------------
+                    // ------------bill---------------
                     composable("billShip") {
-                        BillShipScreen()
+                        BillShipScreen(
+                            openDetailBillShip = { navController.navigate("detailBillShip") },
+                            productViewModel = ProductViewModel(), //sau này thay bằng billviewmodel
+                            context = LocalContext.current
+                        )
+                    }
+                    composable("detailBillShip") {
+                        InforBillShipScreen(
+                            back = { navController.popBackStack() },
+                            openDetailProducts = { navController.navigate("detailProducts") },
+                            productViewModel = ProductViewModel(),//cai nay la moi hien suggesttoday thoi, sau nay them cai billviewmodel nua de hien thi contentbill
+                            context = LocalContext.current
+                        )
                     }
                     composable("billHistory") {
-                        BillHistoryScreen()
+                        BillHistoryScreen(
+                            openDetailBillHistory = { navController.navigate("detailBillHistory") },
+                            productViewModel = ProductViewModel(),
+                            context = LocalContext.current
+                        )
+                    }
+                    composable("detailBillHistory") {
+                        InforBillHistoryShipScreen(
+                            back = { navController.popBackStack() },
+                            openDetailProducts = { navController.navigate("detailProducts") },
+                            productViewModel = ProductViewModel(),//cai nay la moi hien suggesttoday thoi, sau nay them cai billviewmodel nua de hien thi contentbill
+                            context = LocalContext.current
+                        )
                     }
                     composable("billCancel") {
                         BillCancelScreen()
                     }
                     // ------------cart---------------
-                    composable("cart"){
+                    composable("cart") {
                         CartScreen(back = { navController.popBackStack() })
                     }
                     // ------------notification---------------
-                    composable("notification"){
+                    composable("notification") {
                         NotificationScreen(back = { navController.popBackStack() })
                     }
 

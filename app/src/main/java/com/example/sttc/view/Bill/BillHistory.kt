@@ -1,5 +1,6 @@
 package com.example.sttc.view
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,9 +43,14 @@ import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.BillProduct
 import com.example.sttc.view.System.Product
 import com.example.sttc.view.System.formatNumber
+import com.example.sttc.viewmodel.ProductViewModel
 
 @Composable
-fun BillHistoryScreen() {
+fun BillHistoryScreen(
+    openDetailBillHistory: () -> Unit,
+    productViewModel: ProductViewModel,
+    context: Context
+) {
     val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
@@ -59,7 +65,7 @@ fun BillHistoryScreen() {
         ){
             TopIconBillHistory()
             TitleBillHistory()
-            ContentBillHistory()
+            ContentBillHistory(openDetailBillHistory = openDetailBillHistory)
         }
     }
 
@@ -120,7 +126,7 @@ fun TitleBillHistory() {
 }
 
 @Composable
-fun ContentBillHistory() {
+fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
     val items = listOf(
         BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.System.Bill(1)),
         BillProduct(Product(R.drawable.rs2, "Tag B", "Product B", 102000), com.example.sttc.view.System.Bill(2)),
@@ -179,7 +185,7 @@ fun ContentBillHistory() {
 
                 HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
                 Row(
-                    modifier = Modifier.clickable { /* Do something! */}
+                    modifier = Modifier.clickable { openDetailBillHistory() }
                         ,
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -336,6 +342,6 @@ fun ContentBillHistory() {
 @Composable
 fun BillHistoryScreenPreview() {
     STTCTheme {
-        BillHistoryScreen()
+        BillHistoryScreen(openDetailBillHistory = {}, ProductViewModel(), LocalContext.current)
     }
 }

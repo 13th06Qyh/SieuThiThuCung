@@ -13,4 +13,31 @@ interface ApiInterface {
     fun getProduct():  Call<ProductData>
     @GET("admin/sanpham/{id}/images")
     fun getImagesByProductId(@Path("id") productId: Int): Call<List<ImageSP>>
+
+    @GET("admin/sanpham/shopchota")
+    fun getProductDogTA():  Call<ProductData>
+
+    @GET("admin/sanpham/shopchoqa")
+    fun getProductDogQA():  Call<ProductData>
+
+    @GET("admin/sanpham/shopchodc")
+    fun getProductDogDC():  Call<ProductData>
+
+    @GET("admin/sanpham/shopmeota")
+    fun getProductCatTA():  Call<ProductData>
+
+    @GET("admin/sanpham/shopmeoqa")
+    fun getProductCatQA():  Call<ProductData>
+
+    @GET("admin/sanpham/shopmeodc")
+    fun getProductCatDC():  Call<ProductData>
+
+    @GET("admin/sanpham/shopchim")
+    fun getProductBird():  Call<ProductData>
+
+    @GET("admin/sanpham/shopchuot")
+    fun getProductHamster():  Call<ProductData>
+
+    @GET("admin/sanpham/shopca")
+    fun getProductFish():  Call<ProductData>
 }

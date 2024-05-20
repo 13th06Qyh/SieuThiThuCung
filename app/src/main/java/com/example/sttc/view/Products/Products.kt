@@ -32,7 +32,7 @@ import com.example.sttc.ui.theme.STTCTheme
 
 @Composable
 fun ProductScreens(
-    openListProducts : () -> Unit ,
+    openListProducts : (String) -> Unit ,
 ) {
     Box(
         modifier = Modifier
@@ -61,17 +61,33 @@ fun ProductScreens(
             RowItems(
                 R.drawable.icon_dog, R.drawable.icon_cat,
                 colors = listOf(Color(0xFFffff99), Color(0xFFccffcc)),
-                onItemClick = {openListProducts() }
+                onItemClick = { imageRes ->
+                    val productType = when (imageRes) {
+                        R.drawable.icon_dog -> "dog"
+                        R.drawable.icon_cat -> "cat"
+                        else -> ""
+                    }
+                    openListProducts(productType)
+                }
             )
             RowItems(
                 R.drawable.icon_chim,
                 colors = listOf(Color(0xFFffcccc)),
-                onItemClick = { openListProducts()}
+                onItemClick = {
+                    openListProducts("bird")
+                }
             )
             RowItems(
                 R.drawable.icon_ca, R.drawable.icon_hamster,
                 colors = listOf(Color(0xFFb3f0ff), Color(0xFFffd699)),
-                onItemClick = {openListProducts()}
+                onItemClick = { imageRes ->
+                    val productType = when (imageRes) {
+                        R.drawable.icon_ca -> "fish"
+                        R.drawable.icon_hamster -> "hamster"
+                        else -> ""
+                    }
+                    openListProducts(productType)
+                }
             )
         }
     }
