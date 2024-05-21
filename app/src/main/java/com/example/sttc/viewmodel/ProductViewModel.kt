@@ -8,6 +8,7 @@ import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.example.sttc.model.ImageSP
 import com.example.sttc.model.ProductData
+import com.example.sttc.model.Provide
 import com.example.sttc.model.Sanpham
 import com.example.sttc.model.Tag
 import com.example.sttc.service.ApiService.apiService
@@ -23,8 +24,8 @@ class ProductViewModel : ViewModel() {
     private val _products = MutableLiveData<List<Sanpham>>()
     val products = _products.asFlow()
 
-    private val _productDogTA = MutableLiveData<List<Sanpham>>()
-    val productDogTA = _productDogTA.asFlow()
+//    private val _productDT = MutableLiveData<List<Sanpham>>()
+//    val productDT = _productDT.asFlow()
 
     private val _images = MutableLiveData<Map<Int, List<ImageSP>>>()
     val images = _images.asFlow()
@@ -32,10 +33,15 @@ class ProductViewModel : ViewModel() {
     private val _tag = MutableLiveData<List<Tag>>()
     val tag = _tag.asFlow()
 
+    private val _provide = MutableLiveData<List<Provide>>()
+    val provide = _provide.asFlow()
+
     private var lastFetchTime: Long = 0
+
     init {
         fetchProduct()
         fetchTag()
+        fetchProvide()
     }
 
     fun fetchProduct() {
@@ -57,12 +63,15 @@ class ProductViewModel : ViewModel() {
                             val productData = response.body()
                             _products.value = productData?.sanphams
 
-                            Log.e("Response Category",productData.toString())
+                            Log.e("Response Category", productData.toString())
                             lastFetchTime = System.currentTimeMillis()
 
                         } else {
                             if (response.code() == 429) {
-                                Log.e("API Error", "Error: Too Many Requests (429), retrying in 60 seconds")
+                                Log.e(
+                                    "API Error",
+                                    "Error: Too Many Requests (429), retrying in 60 seconds"
+                                )
 
 //                                delay(60000)
                                 fetchProduct()
@@ -71,6 +80,7 @@ class ProductViewModel : ViewModel() {
                             }
                         }
                     }
+
                     override fun onFailure(call: Call<ProductData>, t: Throwable) {
                         Log.e("API Error", "Error: ${t.message}")
                         t.printStackTrace()
@@ -108,6 +118,48 @@ class ProductViewModel : ViewModel() {
 
     }
 
+    fun fetchProductById(productId: Int) {
+        viewModelScope.launch {
+            try {
+                val call: Call<ProductData> = apiService.getProductById(productId)
+                call.enqueue(object : Callback<ProductData> {
+                    override fun onResponse(
+                        call: Call<ProductData>,
+                        response: Response<ProductData>
+                    ) {
+                        if (response.isSuccessful) {
+
+                            val productData = response.body()
+                            _products.value = productData?.sanphams
+
+                            Log.e("Response Category", productData.toString())
+                            lastFetchTime = System.currentTimeMillis()
+
+                        } else {
+                            if (response.code() == 429) {
+                                Log.e(
+                                    "API Error",
+                                    "Error: Too Many Requests (429), retrying in 60 seconds"
+                                )
+                                fetchProduct()
+                            } else {
+                                Log.e("API Error", "Error: ${response.code()}")
+                            }
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ProductData>, t: Throwable) {
+                        Log.e("API Error", "Error: ${t.message}")
+                        t.printStackTrace()
+                    }
+                })
+            } catch (e: Exception) {
+                Log.e("API Error", "Error: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun fetchImages(productId: Int) {
         viewModelScope.launch {
             val call: Call<List<ImageSP>> = apiService.getImagesByProductId(productId)
@@ -118,7 +170,8 @@ class ProductViewModel : ViewModel() {
                 ) {
                     if (response.isSuccessful) {
                         val images = response.body()
-                        _images.value = _images.value.orEmpty() + (productId to (images ?: emptyList()))
+                        _images.value =
+                            _images.value.orEmpty() + (productId to (images ?: emptyList()))
                         Log.e("Response Images", images.toString())
                     } else {
                         Log.e("API Error", "Error: ${response.code()}")
@@ -135,31 +188,102 @@ class ProductViewModel : ViewModel() {
 
     fun fetchTag() {
         viewModelScope.launch {
-            val call: Call<ProductData> = apiService.getProduct()
-            call.enqueue(object : Callback<ProductData> {
-                override fun onResponse(
-                    call: Call<ProductData>,
-                    response: Response<ProductData>
-                ) {
-                    if (response.isSuccessful) {
+            if (System.currentTimeMillis() - lastFetchTime < 60000) {
+                // Nếu lần tải trước đó chưa quá 60 giây, không tải lại
+                return@launch
+            }
+            try {
+                val call: Call<ProductData> = apiService.getProduct()
+                call.enqueue(object : Callback<ProductData> {
+                    override fun onResponse(
+                        call: Call<ProductData>,
+                        response: Response<ProductData>
+                    ) {
+                        if (response.isSuccessful) {
 
-                        val tagData = response.body()
-                        _tag.value = tagData?.tags
+                            val tagData = response.body()
+                            _tag.value = tagData?.tags
 
-                        Log.e("Response Category",tagData.toString())
+                            Log.e("Response Category", tagData.toString())
+                            lastFetchTime = System.currentTimeMillis()
 
+                        } else {
+                            if (response.code() == 429) {
+                                Log.e(
+                                    "API Error",
+                                    "Error: Too Many Requests (429), retrying in 60 seconds"
+                                )
 
-                    } else {
-                        Log.e("API Error", "Error: ${response.code()}")
+//                                delay(60000)
+                                fetchTag()
+                            } else {
+                                Log.e("API Error", "Error: ${response.code()}")
+                            }
+                        }
                     }
-                }
-                override fun onFailure(call: Call<ProductData>, t: Throwable) {
-                    Log.e("API Error", "Error: ${t.message}")
-                    t.printStackTrace()
-                }
-            })
+
+                    override fun onFailure(call: Call<ProductData>, t: Throwable) {
+                        Log.e("API Error", "Error: ${t.message}")
+                        t.printStackTrace()
+                    }
+                })
+            } catch (e: Exception) {
+                Log.e("API Error", "Error: ${e.message}")
+                e.printStackTrace()
+            }
         }
 
 
     }
+
+    fun fetchProvide() {
+        viewModelScope.launch {
+            if (System.currentTimeMillis() - lastFetchTime < 60000) {
+                // Nếu lần tải trước đó chưa quá 60 giây, không tải lại
+                return@launch
+            }
+            try {
+                val call: Call<ProductData> = apiService.getProduct()
+                call.enqueue(object : Callback<ProductData> {
+                    override fun onResponse(
+                        call: Call<ProductData>,
+                        response: Response<ProductData>
+                    ) {
+                        if (response.isSuccessful) {
+
+                            val provideData = response.body()
+                            _provide.value = provideData?.provides
+
+                            Log.e("Response Category", provideData.toString())
+                            lastFetchTime = System.currentTimeMillis()
+
+                        } else {
+                            if (response.code() == 429) {
+                                Log.e(
+                                    "API Error",
+                                    "Error: Too Many Requests (429), retrying in 60 seconds"
+                                )
+
+//                                delay(60000)
+                                fetchProvide()
+                            } else {
+                                Log.e("API Error", "Error: ${response.code()}")
+                            }
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ProductData>, t: Throwable) {
+                        Log.e("API Error", "Error: ${t.message}")
+                        t.printStackTrace()
+                    }
+                })
+            } catch (e: Exception) {
+                Log.e("API Error", "Error: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
+
 }
+

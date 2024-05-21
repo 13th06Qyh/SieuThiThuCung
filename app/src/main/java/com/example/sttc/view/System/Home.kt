@@ -36,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -57,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
+import com.example.sttc.view.System.formatNumber
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -161,7 +164,7 @@ fun HomeScreen(
                     ),
                 )
             }
-            RecentSalesSection(openDetailProducts)
+            RecentSalesSection(openDetailProducts, productViewModel, context)
 
             Row (
                 modifier = Modifier.fillMaxWidth()
@@ -414,24 +417,25 @@ fun RecentBlogsSection(openDetailBlogs: () -> Unit) {
 }
 
 @Composable
-fun RecentSalesSection(openDetailProducts: (id:Int) -> Unit) {
-    val items = listOf(
-        R.drawable.rs1,
-        R.drawable.rs2,
-        R.drawable.rs1,
-        R.drawable.rs2,
-        R.drawable.rs3,
-    )
+fun RecentSalesSection(
+    openDetailProducts: (id:Int) -> Unit,
+    productViewModel: ProductViewModel,
+    context: Context
+) {
+    val products by productViewModel.products.collectAsState(initial = emptyList())
+    val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())
     val coroutineScope = rememberCoroutineScope()
     val state = rememberLazyListState()
     val currentPage = remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
+        delay(10000)
+        productViewModel.fetchProduct()
         while (true) {
             delay(3000L)
             coroutineScope.launch {
-                val nextPage = if (currentPage.value < items.size - 1) {
-                    currentPage.value + 1
+                val nextPage = if (currentPage.value < 4) {
+                    (currentPage.value + 1) % 5
                 } else {
                     0
                 }
@@ -442,7 +446,7 @@ fun RecentSalesSection(openDetailProducts: (id:Int) -> Unit) {
     }
 
     LazyRow(state = state) {
-        items(items) { item ->
+        items(products.take(6)) { product ->
             Box (
                 modifier = Modifier
                     .size(170.dp, 200.dp)
@@ -462,17 +466,45 @@ fun RecentSalesSection(openDetailProducts: (id:Int) -> Unit) {
                 contentAlignment = Alignment.Center
             ){
                 Column (
+                    modifier = Modifier.clickable { openDetailProducts(product.maSP) },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ){
-                    Image(
-                        painter = painterResource(id = item),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .width(200.dp)
-                            .height(155.dp)
-                            .padding(8.dp)
-                            .clickable { openDetailProducts(item) }
-                    )
+                    LaunchedEffect(key1 = product.maSP) {
+                        delay(10000)
+                        productViewModel.fetchImages(product.maSP)
+                    }
+                    val productImages = imagesMap[product.maSP].orEmpty()
+                    if (productImages.isNotEmpty()) {
+                        val image = productImages.first()
+                        val imageUrl = image.image
+                        val fileName =
+                            imageUrl.substringAfterLast("/").substringBeforeLast(".")
+                        val resourceId = context.resources.getIdentifier(
+                            fileName,
+                            "drawable",
+                            context.packageName
+                        )
+                        val a = context.resources.getResourceName(resourceId)
+                        val b = a.substringAfter('/')
+//                                    Log.d("test", "FileName: $fileName")
+//                                    Log.d("test", "ResourceId: $resourceId")
+//                                    Log.d("test", "ResourceName1: $a")
+//                                    Log.d("test", "ResourceName2: $b")
+                        if (b == fileName) {
+                            Image(
+                                painter = painterResource(id = resourceId),
+                                contentDescription = "Image",
+                                modifier = Modifier
+                                    .width(200.dp)
+                                    .height(155.dp)
+                                    .padding(8.dp)
+                            )
+                        } else {
+                            Text(text = "Image not found")
+                        }
+                    }else{
+                        Text(text = "Image not found")
+                    }
 
                     HorizontalDivider(thickness = 2.dp, color = Color(0xFFffdab3))
 
@@ -487,8 +519,9 @@ fun RecentSalesSection(openDetailProducts: (id:Int) -> Unit) {
                         }
                     }
 
+                    val price = product.buyprice.toInt()
                     Text(
-                        text = "100K", // Thay đổi thành tiêu đề thực tế của bạn
+                        text = product.buyprice + "Đ",
                         style = TextStyle(
                             fontSize = 19.sp,
                             fontFamily = FontFamily.Monospace,
@@ -505,7 +538,7 @@ fun RecentSalesSection(openDetailProducts: (id:Int) -> Unit) {
     }
 
     CustomPagerIndicator(
-        pageCount = items.size,
+        pageCount = 5,
         currentPage = currentPage.value,
     )
 

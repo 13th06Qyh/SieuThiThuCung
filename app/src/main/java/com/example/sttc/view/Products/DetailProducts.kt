@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -41,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,9 +59,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.example.sttc.R
+import com.example.sttc.model.ImageSP
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.SuggestTodayopen
+import com.example.sttc.view.System.capitalizeWords
+import com.example.sttc.view.System.formatNumber
 import com.example.sttc.viewmodel.ProductViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -73,7 +79,8 @@ fun DetailProductsScreen(
     openCart: () -> Unit,
     openDetailProducts: (id: Int) -> Unit,
     productViewModel: ProductViewModel,
-    context: Context
+    context: Context,
+    productId: Int
 ) {
     val scrollState = rememberScrollState()
     val selectedOption = remember { mutableStateOf("") }
@@ -85,11 +92,11 @@ fun DetailProductsScreen(
             .verticalScroll(scrollState)
     ) {
         TitleInforProduct(back)
-        SlideImage(Modifier, productViewModel, context, id = openDetailProducts.hashCode())
-        NameAndPrice()
-        InforProduct()
+        SlideImage(Modifier, productViewModel, context, productId)
+        NameAndPrice(productViewModel, productId)
+        InforProduct(productViewModel, productId)
         BuyProduct(openCart)
-        ContentProduct()
+        ContentProduct(productViewModel, productId)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -181,12 +188,11 @@ fun SlideImage(
 ) {
     val products by productViewModel.products.collectAsState(initial = emptyList())
     val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())
-    LaunchedEffect(key1 = Unit) {
+    LaunchedEffect(key1 = id) {
         delay(1000)
-        productViewModel.fetchProduct()
-//        productViewModel.fetchImages()
+        productViewModel.fetchProductById(id)
     }
- Log.d("test", "SlideImage: $id")
+    Log.d("test", "SlideImage: $id")
     val product = products.find { it.maSP == id }
     val productImages = if (product != null) {
         imagesMap[product.maSP].orEmpty()
@@ -203,6 +209,7 @@ fun SlideImage(
             }
         }
         val scope = rememberCoroutineScope()
+        var showZoomDialog by remember { mutableStateOf(false) }
         Box(
             modifier = modifier
                 .wrapContentSize()
@@ -216,7 +223,12 @@ fun SlideImage(
             ) { currentPage ->
                 Card(
                     modifier
-                        .wrapContentSize(),
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .wrapContentSize()
+                        .clickable {
+                            showZoomDialog = true
+                        },
                     elevation = CardDefaults.cardElevation(8.dp)
                 ) {
                     val image = productImages[currentPage]
@@ -231,17 +243,20 @@ fun SlideImage(
                     )
                     val a = context.resources.getResourceName(resourceId)
                     val b = a.substringAfter('/')
-                    Log.d("test", "FileName: $fileName")
-                    Log.d("test", "FileExtension: $fileExtension")
-                    Log.d("test", "ResourceId: $resourceId")
-                    Log.d("test", "ResourceName1: $a")
-                    Log.d("test", "ResourceName2: $b")
+//                    Log.d("test", "FileName: $fileName")
+//                    Log.d("test", "FileExtension: $fileExtension")
+//                    Log.d("test", "ResourceId: $resourceId")
+//                    Log.d("test", "ResourceName1: $a")
+//                    Log.d("test", "ResourceName2: $b")
                     if (b == fileName) {
                         Image(
                             painter = painterResource(id = resourceId),
                             contentDescription = "Image",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+//                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.White)
+
                         )
                     } else {
                         Text(text = "Image not found")
@@ -262,7 +277,7 @@ fun SlideImage(
                     .align(Alignment.CenterEnd)
                     .clip(CircleShape),
                 colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = Color(0xFFf2f2f2)
+                    containerColor = Color.Transparent
                 )
             ) {
                 Icon(
@@ -286,7 +301,7 @@ fun SlideImage(
                     .align(Alignment.CenterStart)
                     .clip(CircleShape),
                 colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = Color(0xFFf2f2f2)
+                    containerColor = Color.Transparent
                 )
             ) {
                 Icon(
@@ -297,131 +312,235 @@ fun SlideImage(
                 )
             }
         }
+        if (showZoomDialog) {
+            ZoomableImageDialog(images = productImages, productImages.size) {
+                showZoomDialog = false
+            }
+        }
     } else {
         Text(text = "No image found")
     }
 }
 
+@OptIn(ExperimentalPagerApi::class)
 @Composable
-fun NameAndPrice() {
-    Column(
-        modifier = Modifier.background(Color(0xFFF6F2F2))
-    ) {
-
-        Row(
+fun ZoomableImageDialog(images: List<ImageSP>, initialPage: Int, onDismiss: () -> Unit) {
+    val zoomPagerState = rememberPagerState(initialPage)
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(35.dp)
-                .background(Color.Red),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
+                .height(600.dp)
+                .background(Color.Black.copy(alpha = 0.5f))
         ) {
-            Text(
-                text = "41.000đ",
-                style = TextStyle(
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                ),
-                modifier = Modifier.padding(end = 10.dp)
-            )
+            HorizontalPager(
+                state = zoomPagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                val image = images[page]
+                val imageUrl = image.image
+                val fileName =
+                    imageUrl.substringAfterLast("/").substringBeforeLast(".")
+                val fileExtension = imageUrl.substringAfterLast(".")
+                val resourceId = LocalContext.current.resources.getIdentifier(
+                    fileName,
+                    "drawable",
+                    LocalContext.current.packageName
+                )
+                val a = LocalContext.current.resources.getResourceName(resourceId)
+                val b = a.substringAfter('/')
+                if (b == fileName) {
+                    Image(
+                        painter = painterResource(id = resourceId),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable(onClick = onDismiss),
+                        contentScale = ContentScale.Fit
+                    )
+                } else {
+                    Text(text = "Image not found")
+                }
+            }
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .background(Color.Gray, CircleShape)
+                    .size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Color.White
+                )
+            }
         }
-
-        Text(
-            text = "Tên Sản Phẩm",
-            style = TextStyle(
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold,
-                fontStyle = FontStyle.Italic,
-                color = Color.Black
-            ),
-            modifier = Modifier
-                .padding(10.dp)
-                .background(Color(0xFFF6F2F2))
-        )
     }
 }
 
 @Composable
-fun InforProduct() {
+fun NameAndPrice(
+    productViewModel: ProductViewModel,
+    id: Int
+) {
+    Column(
+        modifier = Modifier.background(Color(0xFFF6F2F2))
+    ) {
+        val products by productViewModel.products.collectAsState(initial = emptyList())
+        val product = products.find { it.maSP == id }
+        LaunchedEffect(key1 = id) {
+            delay(5000)
+            productViewModel.fetchProductById(id)
+        }
+
+        if (product != null) {
+            val price = product.buyprice.toInt()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(35.dp)
+                    .background(Color.Red),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+
+                Text(
+                    text = formatNumber(price) + "đ",
+                    style = TextStyle(
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    ),
+                    modifier = Modifier.padding(end = 10.dp)
+                )
+            }
+
+            Text(
+                text = capitalizeWords(product.tensp),
+                style = TextStyle(
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.Black
+                ),
+                modifier = Modifier
+                    .padding(10.dp)
+                    .background(Color(0xFFF6F2F2))
+            )
+        }
+    }
+}
+
+@Composable
+fun InforProduct(
+    productViewModel: ProductViewModel,
+    id: Int
+) {
+    val products by productViewModel.products.collectAsState(initial = emptyList())
+    val tag by productViewModel.tag.collectAsState(initial = emptyList())
+    val tagMap = remember(tag) { tag.associateBy { it.maTag } }
+    val provide by productViewModel.provide.collectAsState(initial = emptyList())
+    val provideMap = remember(provide) { provide.associateBy { it.maNCC } }
+    val product = products.find { it.maSP == id }
+    LaunchedEffect(key1 = id) {
+        delay(10000)
+        productViewModel.fetchProductById(id)
+        delay(7000)
+        productViewModel.fetchTag()
+        delay(5000)
+        productViewModel.fetchProvide()
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFFF6F2F2))
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp, 0.dp, 10.dp, 5.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Chất liệu",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    color = Color.Black
+        if (product != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp, 0.dp, 10.dp, 5.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Chất liệu",
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        color = Color.Black
+                    )
                 )
-            )
 
-            Text(
-                text = "Dạng khô",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontStyle = FontStyle.Italic,
-                    color = Color.Black
-                )
-            )
-        }
+                Log.d("test", "InforTag: ${product.idtag}")
+                val tags = tagMap[product.idtag]
+                if (tags != null) {
+                    Text(
+                        text = tags.tagname,
+                        style = TextStyle(
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = FontStyle.Italic,
+                            color = Color.Black
+                        )
+                    )
+                }
+            }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp, 0.dp, 10.dp, 5.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Kho hàng",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    color = Color.Black
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp, 0.dp, 10.dp, 5.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Kho hàng",
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        color = Color.Black
+                    )
                 )
-            )
 
-            Text(
-                text = "1278",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontStyle = FontStyle.Italic,
-                    color = Color.Black
+                Text(
+                    text = product.soluongkho.toString(),
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = FontStyle.Italic,
+                        color = Color.Black
+                    )
                 )
-            )
-        }
+            }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp, 0.dp, 10.dp, 5.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Nguồn hàng",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    color = Color.Black
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp, 0.dp, 10.dp, 5.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Nguồn hàng",
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        color = Color.Black
+                    )
                 )
-            )
 
-            Text(
-                text = "Công ty TNHH QuacQuac",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontStyle = FontStyle.Italic,
-                    color = Color.Black
-                )
-            )
+                Log.d("test", "InforProvide: ${product.idNCC}")
+                val provide = provideMap[product.idNCC]
+                if (provide != null){
+                    Text(
+                        text = provide.proname,
+                        style = TextStyle(
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = FontStyle.Italic,
+                            color = Color.Black
+                        )
+                    )
+                }
+            }
         }
     }
 }
@@ -492,7 +611,16 @@ fun BuyProduct(openCart: () -> Unit) {
 }
 
 @Composable
-fun ContentProduct() {
+fun ContentProduct(
+    productViewModel: ProductViewModel,
+    id: Int
+) {
+    val products by productViewModel.products.collectAsState(initial = emptyList())
+    val product = products.find { it.maSP == id }
+    LaunchedEffect(key1 = id) {
+        delay(5000)
+        productViewModel.fetchProductById(id)
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -511,14 +639,16 @@ fun ContentProduct() {
 
         HorizontalDivider(thickness = 1.dp, color = Color(0xFF999999))
 
-        Text(
-            text = stringResource(id = R.string.motasanpham),
-            style = TextStyle(
-                fontSize = 18.sp,
-                color = Color(0xFF595959)
-            ),
-            modifier = Modifier.padding(15.dp, 10.dp, 10.dp, 30.dp)
-        )
+        if(product != null) {
+            Text(
+                text = product.mota,
+                style = TextStyle(
+                    fontSize = 18.sp,
+                    color = Color(0xFF595959)
+                ),
+                modifier = Modifier.padding(15.dp, 10.dp, 10.dp, 30.dp)
+            )
+        }
 
     }
 
@@ -533,7 +663,8 @@ fun DetailProductsPreview() {
             openCart = {},
             openDetailProducts = {},
             ProductViewModel(),
-            LocalContext.current
+            LocalContext.current,
+            0
         )
     }
 }

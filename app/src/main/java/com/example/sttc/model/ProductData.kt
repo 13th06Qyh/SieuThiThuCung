@@ -11,11 +11,5 @@ data class ProductData(
     val types: List<Type>
 )
 
-data class ProductDogTA(
-    val animals: Animal,
-    val provides: Provide,
-    val sanphams: Sanpham,
-    val tags: Tag,
-    val types: Type
-)
+
 
