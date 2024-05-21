@@ -1,6 +1,5 @@
 package com.example.sttc.view.System
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable

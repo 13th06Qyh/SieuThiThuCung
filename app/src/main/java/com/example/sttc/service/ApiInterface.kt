@@ -1,5 +1,8 @@
 package com.example.sttc.service
 
+import androidx.lifecycle.LiveData
+import com.example.sttc.model.ApiBlogs
+import com.example.sttc.model.Blogs
 import com.example.sttc.model.ImageSP
 import com.example.sttc.model.ProductData
 import retrofit2.Call
@@ -40,4 +43,11 @@ interface ApiInterface {
 
     @GET("admin/sanpham/shopca")
     fun getProductFish():  Call<ProductData>
+
+
+    // blog
+    @GET("admin/blogs/")
+    fun getListBlogs(): Call<ApiBlogs>
+
+
 }
