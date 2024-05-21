@@ -14,4 +14,7 @@ interface ApiInterface {
     @GET("admin/sanpham/{id}/images")
     fun getImagesByProductId(@Path("id") productId: Int): Call<List<ImageSP>>
 
+    @GET("admin/sanpham/infosp/{id}")
+    fun getProductById(@Path("id") productId: Int): Call<ProductData>
+
 }

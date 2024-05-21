@@ -102,6 +102,13 @@ fun formatNumber(number: Int): String {
     return format.format(number)
 }
 
+@Composable
+fun capitalizeWords(text: String): String {
+    return text.split(" ").joinToString(" ") { word ->
+        word.lowercase().replaceFirstChar { it.uppercase() }
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CustomPagerIndicator(
@@ -139,14 +146,13 @@ fun SuggestTodayopen(
     selectedAnimal: Int
 ) {
     val products by productViewModel.products.collectAsState(initial = emptyList())
-//    val productDogTA by productViewModel.productDogTA.collectAsState(initial = emptyList())
     val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())
     val tag by productViewModel.tag.collectAsState(initial = emptyList())
     val tagMap = remember(tag) { tag.associateBy { it.maTag } }
     LaunchedEffect(key1 = Unit) {
         delay(10000)
         productViewModel.fetchProduct()
-        delay(15000)
+        delay(9000)
         productViewModel.fetchTag()
     }
 
