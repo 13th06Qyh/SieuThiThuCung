@@ -65,6 +65,7 @@ import com.example.sttc.view.Products.DetailProductsScreen
 import com.example.sttc.view.Products.ListProductScreen
 import com.example.sttc.view.Products.ProductScreens
 import com.example.sttc.view.Users.AccountScreen
+import com.example.sttc.viewmodel.BlogsViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,6 +73,7 @@ import com.example.sttc.viewmodel.ProductViewModel
 fun HomeMenuScreen() { //
     val navController = rememberNavController()
     var selectedProductType by remember { mutableStateOf("") }
+    var selectBlogType by remember { mutableStateOf("") }
     Column(
         modifier = Modifier.fillMaxSize(),
     )
@@ -170,7 +172,11 @@ fun HomeMenuScreen() { //
                         )
                     }
                     composable("blogs") {
-                        BlogsScreens(openListBlogs = { navController.navigate("listBlogs") })
+                        BlogsScreens(
+                            openListBlogs = { blogType->
+                                selectBlogType = blogType
+                            navController.navigate("listBlogs") }
+                        )
                     }
                     composable("account") {
                         AccountScreen(
@@ -214,8 +220,10 @@ fun HomeMenuScreen() { //
                     //---------------blogs------------
                     composable("listBlogs") {
                         ListBlogScreen(
-                            openDetailBlogs = { navController.navigate("DetailBlogs") },
-                            openDetailCmt = { navController.navigate("DetailComments") },
+                            blogsViewModel = BlogsViewModel() ,
+                            blogType = selectBlogType,
+                            openDetailBlogs = { id->navController.navigate("DetailBlogs/{$id}") },
+                            openDetailCmt = { id-> navController.navigate("DetailComments/{$id}") },
                         )
                     }
                     composable("DetailBlogs") {
