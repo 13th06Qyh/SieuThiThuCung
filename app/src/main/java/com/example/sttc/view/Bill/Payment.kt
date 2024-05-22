@@ -50,7 +50,9 @@ import com.example.sttc.view.Product
 import com.example.sttc.view.formatNumber
 
 @Composable
-fun PaymentScreen(navController: NavController) {
+fun PaymentScreen(
+    back : () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -67,7 +69,7 @@ fun PaymentScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TitlePayment()
+            TitlePayment(back)
             LocationPayment()
             val items = listOf(
                 BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.Bill(1)),
@@ -164,7 +166,7 @@ fun PaymentScreen(navController: NavController) {
 }
 
 @Composable
-fun TitlePayment() {
+fun TitlePayment(back : () -> Unit){
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -186,7 +188,7 @@ fun TitlePayment() {
             modifier = Modifier
                 .size(50.dp)
                 .padding(10.dp, 0.dp)
-                .clickable { /*TODO*/ },
+                .clickable { back() },
             tint = Color.Black
         )
 
@@ -311,6 +313,6 @@ fun SuccessPayment() {
 @Composable
 fun PaymentPreview() {
     STTCTheme {
-        PaymentScreen(rememberNavController())
+        PaymentScreen(back = {})
     }
 }

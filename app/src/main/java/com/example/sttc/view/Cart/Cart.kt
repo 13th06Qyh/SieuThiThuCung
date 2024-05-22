@@ -60,7 +60,8 @@ import com.example.sttc.view.formatNumber
 
 @Composable
 fun CartScreen(
-    back : () -> Unit
+    back : () -> Unit ,
+    openPayment : () -> Unit
 ) {
     var openDialogDeleteCart by remember { mutableStateOf(false) }
     Column(
@@ -427,7 +428,7 @@ fun CartScreen(
                 }
                 Button(
                     shape = RectangleShape,
-                    onClick = { /*TODO: Add your action here*/ },
+                    onClick = { openPayment() },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Red,
                     ),
@@ -453,7 +454,7 @@ fun CartScreen(
 @Composable
 fun CartPreview() {
     STTCTheme {
-        CartScreen(back = {})
+        CartScreen(back = {} , openPayment = {})
     }
 }
 

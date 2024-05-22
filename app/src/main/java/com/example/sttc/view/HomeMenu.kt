@@ -215,7 +215,15 @@ fun HomeMenuScreen() { //
                     }
                     // ------------cart---------------
                     composable("cart"){
-                        CartScreen(back = { navController.popBackStack() })
+                        CartScreen(
+                            back = { navController.popBackStack() }  ,
+                            openPayment = { navController.navigate("payment") }
+                        )
+                    }
+                    composable("payment"){
+                        PaymentScreen(
+                            back = { navController.popBackStack() }
+                        )
                     }
                     // ------------notification---------------
                     composable("notification"){
