@@ -36,7 +36,9 @@ import com.example.sttc.view.SuggestToday
 
 
 @Composable
-fun InforBillHistoryShipScreen(navController: NavController) {
+fun InforBillHistoryShipScreen(
+    back :  () -> Unit
+) {
     val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
@@ -51,7 +53,7 @@ fun InforBillHistoryShipScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ){
 //            TopIconInforBill()
-            TitleInforBill()
+            TitleInforBill(back)
             BillSuccess()
             ContentInforBill()
             SuccessPay()
@@ -312,8 +314,6 @@ fun SuccessPay(){
 @Composable
 fun InforBillHistoryScreenPreview() {
     STTCTheme {
-        InforBillHistoryShipScreen(rememberNavController())
-//        MyApp()
-//        SignUpForm(navController = rememberNavController(), authController = AuthController())
+        InforBillHistoryShipScreen(back = {})
     }
 }

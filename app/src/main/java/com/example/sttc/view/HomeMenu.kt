@@ -191,13 +191,27 @@ fun HomeMenuScreen() { //
                     }
                     // ------------account---------------
                     composable("billShip") {
-                        BillShipScreen()
+                        BillShipScreen(
+                            openInforBillShip = { navController.navigate("infoBillShip") }
+                        )
                     }
                     composable("billHistory") {
-                        BillHistoryScreen()
+                        BillHistoryScreen(
+                            openInforBillHistory = { navController.navigate("infoBillHistory") }
+                        )
                     }
                     composable("billCancel") {
                         BillCancelScreen()
+                    }
+                    composable("infoBillHistory") {
+                        InforBillHistoryShipScreen(
+                            back = { navController.popBackStack() }
+                        )
+                    }
+                    composable("infoBillShip") {
+                        InforBillShipScreen(
+                            back = { navController.popBackStack() }
+                        )
                     }
                     // ------------cart---------------
                     composable("cart"){

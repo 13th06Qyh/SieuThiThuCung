@@ -47,7 +47,9 @@ import com.example.sttc.view.Product
 import com.example.sttc.view.formatNumber
 
 @Composable
-fun BillShipScreen() {
+fun BillShipScreen(
+    openInforBillShip : () -> Unit
+) {
     val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
@@ -62,7 +64,7 @@ fun BillShipScreen() {
         ){
             TopIconBillShip()
             TitleBillShip()
-            ContentBillShip()
+            ContentBillShip(openInforBillShip)
         }
     }
 
@@ -152,7 +154,7 @@ fun TitleBillShip() {
 }
 
 @Composable
-fun ContentBillShip() {
+fun ContentBillShip(openInforBillShip: () -> Unit) {
     val items = listOf(
         BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.Bill(1)),
         BillProduct(Product(R.drawable.rs2, "Tag B", "Product B", 102000), com.example.sttc.view.Bill(2)),
@@ -211,9 +213,6 @@ fun ContentBillShip() {
                 HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
                 Row(
-                    modifier = Modifier
-//                        .border(2.dp, color = Color(0xFFff6666))
-                        .clickable { /*TODO*/ },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ){
@@ -224,6 +223,7 @@ fun ContentBillShip() {
                             .size(120.dp)
                             .padding(5.dp, 5.dp)
                             .border(0.1.dp, color = Color.Black)
+                            .clickable { openInforBillShip() }
                     )
 
                     Column(
@@ -337,6 +337,6 @@ fun ContentBillShip() {
 @Composable
 fun BillShipScreenPreview() {
     STTCTheme {
-        BillShipScreen()
+        BillShipScreen(openInforBillShip = {})
     }
 }

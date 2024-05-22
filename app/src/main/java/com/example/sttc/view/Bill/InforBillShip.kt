@@ -47,7 +47,9 @@ import com.example.sttc.view.SuggestToday
 import com.example.sttc.view.formatNumber
 
 @Composable
-fun InforBillShipScreen(navController: NavController) {
+fun InforBillShipScreen(
+    back : () -> Unit
+) {
     val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
@@ -62,7 +64,7 @@ fun InforBillShipScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ){
 //            TopIconInforBill()
-            TitleInforBill()
+            TitleInforBill(back)
             Bill()
             ContentInforBill()
             PayBill()
@@ -100,7 +102,7 @@ fun InforBillShipScreen(navController: NavController) {
 }
 
 @Composable
-fun TitleInforBill() {
+fun TitleInforBill(back: () -> Unit) {
     Row (
         modifier = Modifier
             .fillMaxWidth()
@@ -123,7 +125,7 @@ fun TitleInforBill() {
             modifier = Modifier
                 .size(50.dp)
                 .padding(10.dp, 0.dp)
-                .clickable { /*TODO*/ },
+                .clickable { back },
             tint = Color(0xFFcc2900)
         )
         Text(
@@ -589,8 +591,6 @@ fun LocationReceive(){
 @Composable
 fun InforBillShipScreenPreview() {
     STTCTheme {
-        InforBillShipScreen(rememberNavController())
-//        MyApp()
-//        SignUpForm(navController = rememberNavController(), authController = AuthController())
+        InforBillShipScreen(back = {})
     }
 }

@@ -46,7 +46,9 @@ import com.example.sttc.view.Product
 import com.example.sttc.view.formatNumber
 
 @Composable
-fun BillHistoryScreen() {
+fun BillHistoryScreen(
+    openInforBillHistory : () -> Unit
+) {
     val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
@@ -61,7 +63,7 @@ fun BillHistoryScreen() {
         ){
             TopIconBillHistory()
             TitleBillHistory()
-            ContentBillHistory()
+            ContentBillHistory(openInforBillHistory)
         }
     }
 
@@ -122,7 +124,7 @@ fun TitleBillHistory() {
 }
 
 @Composable
-fun ContentBillHistory() {
+fun ContentBillHistory(openInforBillHistory: () -> Unit) {
     val items = listOf(
         BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.Bill(1)),
         BillProduct(Product(R.drawable.rs2, "Tag B", "Product B", 102000), com.example.sttc.view.Bill(2)),
@@ -181,8 +183,6 @@ fun ContentBillHistory() {
 
                 HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
                 Row(
-                    modifier = Modifier.clickable { /* Do something! */}
-                        ,
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ){
@@ -193,6 +193,7 @@ fun ContentBillHistory() {
                             .size(100.dp)
                             .padding(5.dp, 5.dp)
                             .border(0.1.dp, color = Color.Black)
+                            .clickable { openInforBillHistory()}
                     )
 
                     Column(
@@ -338,6 +339,6 @@ fun ContentBillHistory() {
 @Composable
 fun BillHistoryScreenPreview() {
     STTCTheme {
-        BillHistoryScreen()
+        BillHistoryScreen(openInforBillHistory = {})
     }
 }
