@@ -26,6 +26,7 @@ interface ApiInterface {
     fun getListBlogs(): Call<BlogsData>
     @GET("admin/blogs/{id}")
     fun getBlogById(@Path("id") blogId: Int): Call<BlogsData>
-
+//    @GET("admin/blogs/detail/{id}")
+//    fun getBlogDetailById(@Path("id") blogId: Int): Call<BlogsData>
 
 }

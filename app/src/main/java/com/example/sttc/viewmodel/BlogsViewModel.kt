@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.sttc.model.Blogs
 import com.example.sttc.model.BlogsData
 import com.example.sttc.model.ImageBlogs
+import com.example.sttc.model.ImageSP
 import com.example.sttc.model.ProductData
 import com.example.sttc.service.ApiService.apiService
 import kotlinx.coroutines.launch
@@ -68,30 +69,16 @@ class BlogsViewModel : ViewModel(){
             try {
                 val call: Call<BlogsData> = apiService.getBlogById(blogId)
                 call.enqueue(object : Callback<BlogsData> {
-                    override fun onResponse(
-                        call: Call<BlogsData>,
-                        response: Response<BlogsData>
-                    ) {
+                    override fun onResponse(call: Call<BlogsData>, response: Response<BlogsData>) {
                         if (response.isSuccessful) {
-
                             val blogData = response.body()
-                            _blog.value = blogData?.blogs
-
-                            Log.e("Response Category", blogData.toString())
-                            lastFetchTime = System.currentTimeMillis()
-
+                            _blog.value = blogData?.blog // Assuming your response structure has a blog field
+                            Log.e("Response", blogData.toString())
                         } else {
-                            if (response.code() == 429) {
-                                Log.e(
-                                    "API Error",
-                                    "Error: Too Many Requests (429), retrying in 60 seconds"
-                                )
-                                fetchBlogs()
-                            } else {
-                                Log.e("API Error", "Error: ${response.code()}")
-                            }
+                            Log.e("API Error", "Error: ${response.code()}")
                         }
                     }
+
                     override fun onFailure(call: Call<BlogsData>, t: Throwable) {
                         Log.e("API Error", "Error: ${t.message}")
                         t.printStackTrace()
@@ -103,5 +90,30 @@ class BlogsViewModel : ViewModel(){
             }
         }
     }
+
+//    fun fetchImages(blogId: Int) {
+//        viewModelScope.launch {
+//            val call: Call<List<ImageBlogs>> = apiService.getBlogDetailById(blogId)
+//            call.enqueue(object : Callback<List<ImageBlogs>> {
+//                override fun onResponse(
+//                    call: Call<List<ImageBlogs>>,
+//                    response: Response<List<ImageBlogs>>
+//                ) {
+//                    if (response.isSuccessful) {
+//                        val images = response.body()
+//                        _images.value =
+//                            _images.value.orEmpty() + (productId to (images ?: emptyList()))
+//                        Log.e("Response Images", images.toString())
+//                    } else {
+//                        Log.e("API Error", "Error: ${response.code()}")
+//                    }
+//                }
+//                override fun onFailure(call: Call<List<ImageBlogs>>, t: Throwable) {
+//                    Log.e("API Error fetchImages ", "Error: ${t.message}")
+//                    t.printStackTrace()
+//                }
+//            })
+//        }
+//    }
 
 }

@@ -123,6 +123,7 @@ fun ListBlogScreen(
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
 
+                                val dbUrl = blog.imageBlogs
 
                                     Image(
                                         painter = painterResource(id = blog.imageBlogs),
