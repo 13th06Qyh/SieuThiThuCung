@@ -57,6 +57,14 @@ fun ListBlogScreen(
     openDetailCmt: (id: Int) -> Unit,
     openDetailBlogs: (id: Int) -> Unit
 ) {
+    val selectedAnimal = when (blogType) {
+        "dog" -> 1
+        "cat" -> 2
+        "bird" -> 3
+        "fish" -> 5
+        "hamster" -> 4
+        else -> 1
+    }
     val blogs by blogsViewModel.blogs.collectAsState(initial = emptyList())
     val selectedBlogs = blogs.filter { blog ->
         blog.idAnimal.any { animal -> animal.animalname == blogType }

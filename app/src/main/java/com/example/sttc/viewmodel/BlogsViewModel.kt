@@ -72,7 +72,7 @@ class BlogsViewModel : ViewModel(){
                     override fun onResponse(call: Call<BlogsData>, response: Response<BlogsData>) {
                         if (response.isSuccessful) {
                             val blogData = response.body()
-                            _blog.value = blogData?.blog // Assuming your response structure has a blog field
+                            _blog.value = blogData?.blogs
                             Log.e("Response", blogData.toString())
                         } else {
                             Log.e("API Error", "Error: ${response.code()}")
