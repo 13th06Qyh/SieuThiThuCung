@@ -1,5 +1,8 @@
 package com.example.sttc.view.Users
 
+//import com.example.sttc.navagation.Screens
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,11 +26,15 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -42,21 +49,29 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
-//import com.example.sttc.navagation.Screens
 import com.example.sttc.ui.theme.STTCTheme
+import com.example.sttc.viewmodel.AccountViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginForm(navController: NavController) {
+fun LoginForm(
+    navController: NavController,
+    accountViewModel: AccountViewModel,
+) {
     val username = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
-
-    Box(modifier =  Modifier.padding(0.dp, 0.dp, 0.dp, 1.dp)){
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+    val loginResult by accountViewModel.loginResult.collectAsState(null)
+    var showError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    Box(modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 1.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally) {
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
             Image(
                 painter = painterResource(id = R.drawable.logo),
@@ -83,7 +98,8 @@ fun LoginForm(navController: NavController) {
 
                 )
 
-            Text(text = "Bạn đã có tài khoản?",
+            Text(
+                text = "Bạn đã có tài khoản?",
                 style = TextStyle(
                     fontFamily = FontFamily.Serif,
                     fontSize = 33.sp,
@@ -91,7 +107,8 @@ fun LoginForm(navController: NavController) {
                     fontWeight = FontWeight.Bold
                 ),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.paddingFromBaseline(5.dp, 23.dp))
+                modifier = Modifier.paddingFromBaseline(5.dp, 23.dp)
+            )
 
             TextField(
                 colors = TextFieldDefaults.textFieldColors(
@@ -108,7 +125,8 @@ fun LoginForm(navController: NavController) {
                 placeholder = { Text("Tên đăng nhập") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 leadingIcon = {
-                    Icon(imageVector = Icons.Filled.Person, contentDescription = "AcountIcon" )}
+                    Icon(imageVector = Icons.Filled.Person, contentDescription = "AcountIcon")
+                }
             )
 
             TextField(
@@ -128,20 +146,34 @@ fun LoginForm(navController: NavController) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 visualTransformation = PasswordVisualTransformation(),
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Lock, contentDescription = "PassIcon" )}
+                    Icon(imageVector = Icons.Default.Lock, contentDescription = "PassIcon")
+                }
             )
 
-            Button(onClick = {
-                navController.navigate("homemenu")
-                val name = username.value
-                val pass = password.value
-//                if (userViewModel.login(name, pass)) {
-//                    println("Đăng nhập thành công")
-//                    navController.navigate("home")
-//                } else {
-//                    println("Đăng nhập thất bại")
-//                }
-            },
+            if (showError) {
+                Text(
+                    text = errorMessage,
+                    color = Color.Red,
+                    modifier = Modifier.padding(16.dp),
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                )
+            }
+
+            Button(
+                onClick = {
+                    val name = username.value
+                    val pass = password.value
+                    if (name.isNotEmpty() && pass.isNotEmpty()) {
+                        accountViewModel.login(name, pass)
+                    }else{
+                        showError = true
+                        errorMessage = "Vui lòng nhập đầy đủ thông tin!"
+                    }
+
+                },
                 modifier = Modifier
 
                     .padding(9.dp),
@@ -161,7 +193,8 @@ fun LoginForm(navController: NavController) {
                 )
             }
 
-            Text(text = "Chưa có tài khoản? Nhanh tay đăng kí ngay!",
+            Text(
+                text = "Chưa có tài khoản? Nhanh tay đăng kí ngay!",
                 style = TextStyle(
                     color = Color.Blue,
                     fontSize = 15.sp,
@@ -196,18 +229,35 @@ fun LoginForm(navController: NavController) {
                     password.value = ""
                 }
             }
+
+            loginResult?.let { result ->
+                result.fold(
+                    onSuccess = { token ->
+                        println("Đăng nhập thành công")
+                        navController.navigate("homemenu")
+//                        println("heelooooo")
+                    },
+                    onFailure = { exception ->
+                        showError = true
+                        errorMessage = exception.message ?: "Đăng nhập thất bại"
+                        Log.e("LoginForm", "Đăng nhập thất bại: ${exception.message}")
+                    }
+                )
+            }
+
+
         }
 
     }
 }
 
 
-
 @Preview(showBackground = true)
 @Composable
 fun LoginPreview() {
+    val context = LocalContext.current
     STTCTheme {
         val navController = rememberNavController()
-        LoginForm(navController)
+        LoginForm(navController, AccountViewModel(context))
     }
 }

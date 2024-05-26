@@ -1,16 +1,12 @@
 package com.example.sttc.view.Users
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.sttc.ui.theme.STTCTheme
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
@@ -25,13 +21,20 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -40,28 +43,46 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
+import com.example.sttc.ui.theme.STTCTheme
+import com.example.sttc.viewmodel.AccountViewModel
+import retrofit2.HttpException
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpForm(navController: NavController) {
+fun SignUpForm(
+    navController: NavController,
+    accountViewModel: AccountViewModel,
+) {
     val username = remember { mutableStateOf("") }
+    val email = remember { mutableStateOf("") }
+    val phone = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
 
-    Box(modifier =  Modifier.padding(0.dp, 0.dp, 0.dp, 1.dp)){
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+    val signupResult by accountViewModel.signupResult.collectAsState(null)
+    var showError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    Box(modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 1.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally) {
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "Logo",
-                modifier = Modifier.size(100.dp).clickable { navController.navigate("home") },
+                modifier = Modifier
+                    .size(100.dp)
+                    .clickable { navController.navigate("home") },
 
                 )
 
@@ -77,7 +98,8 @@ fun SignUpForm(navController: NavController) {
                 modifier = Modifier.paddingFromBaseline(0.dp, 20.dp)
             )
 
-            Text(text = "Bạn chưa có tài khoản?",
+            Text(
+                text = "Bạn chưa có tài khoản?",
                 style = TextStyle(
                     fontFamily = FontFamily.Serif,
                     fontSize = 27.sp,
@@ -85,7 +107,8 @@ fun SignUpForm(navController: NavController) {
                     fontWeight = FontWeight.Bold
                 ),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.paddingFromBaseline(5.dp, 23.dp))
+                modifier = Modifier.paddingFromBaseline(5.dp, 23.dp)
+            )
 
             TextField(
                 colors = TextFieldDefaults.textFieldColors(
@@ -102,7 +125,8 @@ fun SignUpForm(navController: NavController) {
                 placeholder = { Text("Họ và tên") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 leadingIcon = {
-                    Icon(imageVector = Icons.Filled.Person, contentDescription = "AcountIcon" )}
+                    Icon(imageVector = Icons.Filled.Person, contentDescription = "AcountIcon")
+                }
             )
 
             TextField(
@@ -116,13 +140,12 @@ fun SignUpForm(navController: NavController) {
                     cursorColor = Color.Blue,
                     errorCursorColor = Color.Red
                 ),
-                value = password.value,
-                onValueChange = { password.value = it },
+                value = email.value,
+                onValueChange = { email.value = it },
                 placeholder = { Text("Email") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                visualTransformation = PasswordVisualTransformation(),
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.MailOutline, contentDescription = "PassIcon" )}
+                    Icon(imageVector = Icons.Default.MailOutline, contentDescription = "EmailIcon")
+                }
             )
 
             TextField(
@@ -136,13 +159,12 @@ fun SignUpForm(navController: NavController) {
                     cursorColor = Color.Blue,
                     errorCursorColor = Color.Red
                 ),
-                value = password.value,
-                onValueChange = { password.value = it },
+                value = phone.value,
+                onValueChange = { phone.value = it },
                 placeholder = { Text("Số điện thoại") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                visualTransformation = PasswordVisualTransformation(),
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Call, contentDescription = "PassIcon" )}
+                    Icon(imageVector = Icons.Default.Call, contentDescription = "PhoneIcon")
+                }
             )
 
             TextField(
@@ -162,19 +184,54 @@ fun SignUpForm(navController: NavController) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 visualTransformation = PasswordVisualTransformation(),
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Lock, contentDescription = "PassIcon" )}
+                    Icon(imageVector = Icons.Default.Lock, contentDescription = "PassIcon")
+                }
             )
 
-            Button(onClick = {
+            if (showError) {
+                Text(
+                    text = errorMessage,
+                    color = Color.Red,
+                    modifier = Modifier.padding(16.dp),
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                )
+            }
 
-                val name = username.value
-                val pass = password.value
-                if (name == "admin" && pass == "123") {
-                    println("Đăng nhập thành công")
-                } else {
-                    println("Đăng nhập thất bại")
-                }
-            },
+            Button(
+                onClick = {
+                    val name = username.value
+                    val mail = email.value
+                    val sdt = phone.value.toIntOrNull()
+                    val pass = password.value
+
+                    val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
+
+                    when {
+                        name.isEmpty() || mail.isEmpty() || sdt == null || pass.isEmpty() -> {
+                            showError = true
+                            errorMessage = "Vui lòng nhập đầy đủ thông tin!"
+                        }
+
+                        !mail.matches(emailPattern.toRegex()) -> {
+                            showError = true
+                            errorMessage = "Email không hợp lệ!"
+                        }
+
+                        pass.length < 8 -> {
+                            showError = true
+                            errorMessage = "Mật khẩu phải dài hơn 7 kí tự!"
+                        }
+
+                        else -> {
+                            accountViewModel.signup(name, mail, sdt, pass)
+                            showError = false
+                        }
+                    }
+
+                },
                 modifier = Modifier
 
                     .padding(9.dp),
@@ -194,7 +251,8 @@ fun SignUpForm(navController: NavController) {
                 )
             }
 
-            Text(text = "Bạn đã có tài khoản? Đi đến đăng nhập!",
+            Text(
+                text = "Bạn đã có tài khoản? Đi đến đăng nhập!",
                 style = TextStyle(
                     color = Color.Blue,
                     fontSize = 15.sp,
@@ -226,7 +284,24 @@ fun SignUpForm(navController: NavController) {
                 onDispose {
                     username.value = ""
                     password.value = ""
+                    email.value = ""
+                    phone.value = ""
+
                 }
+            }
+            signupResult?.let { result ->
+                result.fold(
+                    onSuccess = { token ->
+                        println("Đăng kí thành công")
+                        navController.navigate("login")
+                    },
+                    onFailure = { exception ->
+                        showError = true
+                        errorMessage = exception.message ?: "Đăng kí thất bại"
+                        Log.e("SignupForm", "Đăng kí thất bại: ${exception.message}")
+                    }
+                )
+
             }
         }
 
@@ -234,11 +309,11 @@ fun SignUpForm(navController: NavController) {
 }
 
 
-
 @Preview(showBackground = true)
 @Composable
 fun SignUpPreview() {
+    val context = LocalContext.current
     STTCTheme {
-        SignUpForm(navController = rememberNavController())
+        SignUpForm(navController = rememberNavController(), AccountViewModel(context))
     }
 }

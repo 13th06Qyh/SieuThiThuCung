@@ -1,16 +1,16 @@
 package com.example.sttc.model
 
 data class Sanpham(
-    val buyprice: String,
-    val created_at: String,
-    val idNCC: Int,
+    val maSP: Int,
     val idanimal: Int,
     val idtag: Int,
     val idtype: Int,
-    val maSP: Int,
-    val mota: String,
-    val oldprice: String,
-    val soluongkho: Int,
+    val idNCC: Int,
     val tensp: String,
+    val mota: String,
+    val soluongkho: Int,
+    val buyprice: String,
+    val oldprice: String,
+    val created_at: String,
     val updated_at: String
 )

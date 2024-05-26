@@ -1,5 +1,6 @@
 package com.example.sttc.view.Users
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -38,6 +39,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,12 +64,16 @@ import coil.request.ImageRequest
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.ItemAccount
+import com.example.sttc.view.System.getAddress
+import com.example.sttc.viewmodel.AccountViewModel
 
 @Composable
 fun AccountScreen(
-    openBillShip : () -> Unit ,
-    openBillHistory : () -> Unit ,
-    openBillCancel : () -> Unit ,
+    openBillShip: () -> Unit,
+    openBillHistory: () -> Unit,
+    openBillCancel: () -> Unit,
+    openLogout: () -> Unit,
+    accountViewModel: AccountViewModel
 ) {
     val scrollState = rememberScrollState()
     Box(
@@ -81,16 +87,16 @@ fun AccountScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TopIcon()
-            StatusBill( openBillShip  , openBillHistory  , openBillCancel )
-            InfoAccount()
+            TopIcon(openLogout)
+            StatusBill(openBillShip, openBillHistory, openBillCancel)
+            InfoAccount(accountViewModel)
         }
     }
 
 }
 
 @Composable
-fun TopIcon() {
+fun TopIcon(openLogout: () -> Unit) {
     var openDialogLogout by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -146,18 +152,22 @@ fun TopIcon() {
                 onDismissRequest = { expanded = false },
             ) {
                 DropdownMenuItem(
-                    text = { Text("Đăng xuất",
-                        style = TextStyle(
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFcc2900),
+                    text = {
+                        Text(
+                            "Đăng xuất",
+                            style = TextStyle(
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFcc2900),
+                            )
                         )
-                    ) },
+                    },
                     onClick = {
                         expanded = false
                         openDialogLogout = true
                     },
-                    modifier = Modifier.background(Color(0xFFffffff))                )
+                    modifier = Modifier.background(Color(0xFFffffff))
+                )
 
             }
         }
@@ -184,7 +194,7 @@ fun TopIcon() {
                 TextButton(
                     onClick = {
                         openDialogLogout = false
-//                        navController.navigate("login")
+                        openLogout()
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFFFA483), // Màu nền của nút
@@ -248,9 +258,9 @@ fun TopIcon() {
 
 @Composable
 fun StatusBill(
-    openBillShip: () -> Unit ,
-    openBillHistory: () -> Unit ,
-    openBillCancel: () -> Unit ,
+    openBillShip: () -> Unit,
+    openBillHistory: () -> Unit,
+    openBillCancel: () -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -277,7 +287,7 @@ fun StatusBill(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             IconButton(
-                onClick ={openBillShip()},
+                onClick = { openBillShip() },
                 modifier = Modifier
                     .size(135.dp, 130.dp)
             ) {
@@ -302,7 +312,7 @@ fun StatusBill(
             }
 
             IconButton(
-                onClick = {openBillHistory()},
+                onClick = { openBillHistory() },
                 modifier = Modifier
                     .size(135.dp, 160.dp)
             ) {
@@ -326,7 +336,7 @@ fun StatusBill(
             }
 
             IconButton(
-                onClick ={openBillCancel()  },
+                onClick = { openBillCancel() },
                 modifier = Modifier
                     .size(135.dp, 160.dp)
             ) {
@@ -355,21 +365,29 @@ fun StatusBill(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InfoAccount() {
+fun InfoAccount(accountViewModel: AccountViewModel) {
+    val loginResult by accountViewModel.loginResult.collectAsState(null)
+    var showErrorName by remember { mutableStateOf(false) }
+    var errorMessageName by remember { mutableStateOf("") }
+
+    var showErrorEmail by remember { mutableStateOf(false) }
+    var errorMessageEmail by remember { mutableStateOf("") }
+
+    var showErrorPhone by remember { mutableStateOf(false) }
+    var errorMessagePhone by remember { mutableStateOf("") }
+
     var showDialogName by remember { mutableStateOf(false) }
     var showDialogPass by remember { mutableStateOf(false) }
     var showDialogEmail by remember { mutableStateOf(false) }
     var showDialogPhone by remember { mutableStateOf(false) }
-    var showDialogAddress by remember { mutableStateOf(false) }
 
     var currentPassword by remember { mutableStateOf("") }
     var repeatedNewPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
-
     var newName by remember { mutableStateOf("") }
     var newEmail by remember { mutableStateOf("") }
     var newPhone by remember { mutableStateOf("") }
-    var newAddress by remember { mutableStateOf("") }
+    val userState by accountViewModel.userInfoFlow.collectAsState(initial = null)
 
     val itemAccount = listOf(
         ItemAccount(
@@ -381,744 +399,759 @@ fun InfoAccount() {
         )
     )
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, color = Color.Red)
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFFB2B0B0),
-                            Color(0xFFCFCFCF),
-                            Color(0xFFFFFFFF),
-                            Color(0xFFCFCFCF),
-                            Color(0xFFB2B0B0),
-                        ),
-                        startX = 860.0f,
-                        endX = 860.0f
-                    )
-                ),
-            horizontalArrangement = Arrangement.Center
+    userState?.let { user ->
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.infor),
-                contentDescription = "Info",
-                modifier = Modifier.padding(8.dp, 11.dp)
-            )
-            Text(
-                text = "Thông Tin Tài Khoản",
-                modifier = Modifier.padding(0.dp, 10.dp),
-                style = TextStyle(
-                    fontSize = 22.sp,
-                    color = Color(0xFF000000),
-                    fontWeight = FontWeight.Bold
-                )
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(0.1.dp, color = Color(0xFF000000))
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFFB2B0B0),
-                            Color(0xFFCFCFCF),
-                            Color(0xFFFFFFFF),
-                            Color(0xFFFFFFFF),
-                            Color(0xFFFFEDFB),
-                        ),
-                        startX = 0.0f,
-                        endX = 860.0f
-                    )
-                ),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.Default.Person,
-                contentDescription = "Person",
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                text = "Tên tài khoản:",
-                modifier = Modifier.padding(5.dp, 0.dp, 9.dp, 0.dp),
-                style = TextStyle(
-                    fontSize = 17.sp,
-                    color = Color(0xFF000000),
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start
-                ),
-            )
-//            VerticalDivider(thickness = 1.dp, color = Color(0xFF000000))
-            Text(
-                text = itemAccount[0].name,
+            Row(
                 modifier = Modifier
-                    .padding(0.dp, 0.dp, 10.dp, 0.dp)
-                    .width(200.dp),
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    color = Color(0xFF000000),
-                    fontStyle = FontStyle.Italic,
-                    textAlign = TextAlign.Start
-                ),
-            )
-
-            IconButton(onClick = { showDialogName = true }) {
+                    .fillMaxWidth()
+                    .border(1.dp, color = Color.Red)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFFB2B0B0),
+                                Color(0xFFCFCFCF),
+                                Color(0xFFFFFFFF),
+                                Color(0xFFCFCFCF),
+                                Color(0xFFB2B0B0),
+                            ),
+                            startX = 860.0f,
+                            endX = 860.0f
+                        )
+                    ),
+                horizontalArrangement = Arrangement.Center
+            ) {
                 Icon(
-                    Icons.Default.Create,
-                    contentDescription = "EditNameAccount",
-                    tint = Color.Gray,
-                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp),
-
+                    painter = painterResource(id = R.drawable.infor),
+                    contentDescription = "Info",
+                    modifier = Modifier.padding(8.dp, 11.dp)
+                )
+                Text(
+                    text = "Thông Tin Tài Khoản",
+                    modifier = Modifier.padding(0.dp, 10.dp),
+                    style = TextStyle(
+                        fontSize = 22.sp,
+                        color = Color(0xFF000000),
+                        fontWeight = FontWeight.Bold
                     )
-            }
-
-            if (showDialogName) {
-                AlertDialog(
-                    containerColor = Color(0xFFFFD5BE),
-                    onDismissRequest = { showDialogName = false },
-                    title = {
-                        Text(
-                            "Sửa Tên Tài Khoản",
-                            style = TextStyle(
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 23.sp,
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    },
-                    text = {
-                        TextField(
-                            value = newName,
-                            onValueChange = { newName = it },
-                            placeholder = { Text("Nhập tên mới vào đây") },
-                            colors = TextFieldDefaults.textFieldColors(
-                                containerColor = Color(0xffffebe6),
-                                unfocusedIndicatorColor = Color(0xffe62e00),
-                            ),
-                        )
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                itemAccount[0].name = newName
-                                showDialogName = false
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFA2FFAB), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
-
-                            border = BorderStroke(1.dp, Color(0xFF018B0F)),
-                        ) {
-                            Text(
-                                "Sửa",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                        }
-                    },
-                    dismissButton = {
-                        Button(
-                            onClick = { showDialogName = false },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFFFA483), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
-
-                            border = BorderStroke(1.dp, Color(0xFF8B2701)),
-                        ) {
-                            Text(
-                                "Hủy",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                        }
-                    }
                 )
             }
-        }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(0.1.dp, color = Color(0xFF000000))
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFFB2B0B0),
-                            Color(0xFFCFCFCF),
-                            Color(0xFFFFFFFF),
-                            Color(0xFFFFFFFF),
-                            Color(0xFFFFEDFB),
-                        ),
-                        startX = 0.0f,
-                        endX = 860.0f
-                    )
-                ),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.Default.Lock,
-                contentDescription = "Lock",
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                text = "Mật khẩu:",
+            Row(
                 modifier = Modifier
-                    .padding(5.dp, 0.dp, 15.dp, 1.dp)
-                    .width(100.dp),
-                style = TextStyle(
-                    fontSize = 17.sp,
-                    color = Color(0xFF000000),
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start
-                ),
-            )
-//            VerticalDivider(thickness = 1.dp, color = Color(0xFF000000))
-            Text(
-                text = "********",
-                modifier = Modifier
-                    .padding(0.dp, 0.dp, 10.dp, 0.dp)
-                    .width(200.dp),
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    color = Color(0xFF000000),
-                    fontStyle = FontStyle.Italic,
-                    textAlign = TextAlign.Start
-                ),
-            )
-
-            IconButton(onClick = { showDialogPass = true }) {
-                Icon(
-                    Icons.Default.Create,
-                    contentDescription = "EditPassAccount",
-                    tint = Color.Gray,
-                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp),
-
-                    )
-            }
-
-            if (showDialogPass) {
-                AlertDialog(
-                    containerColor = Color(0xFF99D9FF),
-                    onDismissRequest = { showDialogPass = false },
-                    title = {
-                        Text(
-                            "Đổi Mật Khẩu",
-                            style = TextStyle(
-                                fontSize = 23.sp,
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Bold,
+                    .fillMaxWidth()
+                    .border(0.1.dp, color = Color(0xFF000000))
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFFB2B0B0),
+                                Color(0xFFCFCFCF),
+                                Color(0xFFFFFFFF),
+                                Color(0xFFFFFFFF),
+                                Color(0xFFFFEDFB),
                             ),
-                            modifier = Modifier.fillMaxWidth()
+                            startX = 0.0f,
+                            endX = 860.0f
                         )
-                    },
-                    text = {
-                        Column {
-                            TextField(
-                                value = currentPassword,
-                                onValueChange = { currentPassword = it },
-                                label = {
-                                    Text(
-                                        "*Mật khẩu hiện tại:",
-                                        style = TextStyle(
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                        ),
-                                        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
-                                    )
-                                },
-                                placeholder = { Text("-- Nhập mật khẩu hiện tại --") },
-                                colors = TextFieldDefaults.textFieldColors(
-                                    containerColor = Color(0xffD7F0FF),
-                                    unfocusedIndicatorColor = Color(0xff0002D4),
-                                ),
-                                modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
-                            )
+                    ),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = "Person",
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    text = "Tên tài khoản:",
+                    modifier = Modifier.padding(5.dp, 0.dp, 9.dp, 0.dp),
+                    style = TextStyle(
+                        fontSize = 17.sp,
+                        color = Color(0xFF000000),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Start
+                    ),
+                )
+//            VerticalDivider(thickness = 1.dp, color = Color(0xFF000000))
+                Text(
+                    text = user.username,
+                    modifier = Modifier
+                        .padding(0.dp, 0.dp, 10.dp, 0.dp)
+                        .width(200.dp),
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        color = Color(0xFF000000),
+                        fontStyle = FontStyle.Italic,
+                        textAlign = TextAlign.Start
+                    ),
+                )
 
-                            TextField(
-                                value = newPassword,
-                                onValueChange = { newPassword = it },
-                                label = {
-                                    Text(
-                                        "*Mật khẩu mới:",
-                                        style = TextStyle(
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                        ),
-                                        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
-                                    )
-                                },
-                                placeholder = { Text("-- Nhập mật khẩu mới --") },
-                                colors = TextFieldDefaults.textFieldColors(
-                                    containerColor = Color(0xffD7F0FF),
-                                    unfocusedIndicatorColor = Color(0xff0002D4),
-                                ),
-                                modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
-                            )
+                IconButton(onClick = { showDialogName = true }) {
+                    Icon(
+                        Icons.Default.Create,
+                        contentDescription = "EditNameAccount",
+                        tint = Color.Gray,
+                        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp),
 
-                            TextField(
-                                value = repeatedNewPassword,
-                                onValueChange = { repeatedNewPassword = it },
-                                label = {
-                                    Text(
-                                        "*Nhập lại:",
-                                        style = TextStyle(
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                        ),
-                                        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
+                        )
+                }
+
+                if (showDialogName) {
+                    AlertDialog(
+                        containerColor = Color(0xFFFFD5BE),
+                        onDismissRequest = { showDialogName = false },
+                        title = {
+                            if (!showErrorName) {
+                                Text(
+                                    "Sửa Tên Tài Khoản",
+                                    style = TextStyle(
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 23.sp,
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            } else {
+                                Text(
+                                    text = errorMessageName,
+                                    color = Color.Red,
+                                    modifier = Modifier.padding(16.dp),
+                                    style = TextStyle(
+                                        fontSize = 19.sp,
+                                        textAlign = TextAlign.Center
                                     )
-                                },
-                                placeholder = { Text("-- Nhập lại mật khẩu mới --") },
+                                )
+
+                            }
+                        },
+                        text = {
+                            TextField(
+                                value = newName,
+                                onValueChange = { newName = it },
+                                placeholder = { Text("Nhập tên mới vào đây") },
                                 colors = TextFieldDefaults.textFieldColors(
-                                    containerColor = Color(0xffD7F0FF),
-                                    unfocusedIndicatorColor = Color(0xff0002D4),
+                                    containerColor = Color(0xffffebe6),
+                                    unfocusedIndicatorColor = Color(0xffe62e00),
                                 ),
                             )
-                        }
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                itemAccount[0].pass = newPassword
-                                showDialogPass = false
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFA2FFAB), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
 
-                            border = BorderStroke(1.dp, Color(0xFF018B0F)),
-                        ) {
-                            Text(
-                                "Đổi mật khẩu",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold
+                        },
+
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    val id = user.id
+                                    if (newName.isNotEmpty()) {
+                                        accountViewModel.updateName(newName, id)
+                                        user.username = newName
+                                        showDialogName = false
+                                        showErrorName = false
+
+
+                                    } else {
+                                        showErrorName = true
+                                        showDialogName = true
+                                        errorMessageName = "Vui lòng nhập tên mới!"
+
+                                    }
+
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFA2FFAB), // Màu nền của nút
+                                    contentColor = Color.Black, // Màu chữ của nút
+                                ),
+
+                                border = BorderStroke(1.dp, Color(0xFF018B0F)),
+                            ) {
+                                Text(
+                                    "Sửa",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 )
-                            )
-                        }
-                    },
-                    dismissButton = {
-                        Button(
-                            onClick = { showDialogPass = false },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFFFA483), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
+                            }
+                        },
+                        dismissButton = {
+                            Button(
+                                onClick = { showDialogName = false },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFFFA483), // Màu nền của nút
+                                    contentColor = Color.Black, // Màu chữ của nút
+                                ),
 
-                            border = BorderStroke(1.dp, Color(0xFF8B2701)),
-                        ) {
-                            Text(
-                                "Hủy",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold
+                                border = BorderStroke(1.dp, Color(0xFF8B2701)),
+                            ) {
+                                Text(
+                                    "Hủy",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 )
-                            )
+                            }
                         }
-                    }
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(67.dp)
-                .border(0.2.dp, color = Color(0xFF000000))
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFFB2B0B0),
-                            Color(0xFFCFCFCF),
-                            Color(0xFFFFFFFF),
-                            Color(0xFFFFFFFF),
-                            Color(0xFFFFEDFB),
-                        ),
-                        startX = 0.0f,
-                        endX = 860.0f
                     )
-                ),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.Default.Email,
-                contentDescription = "Email",
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                text = "Email:",
-                modifier = Modifier
-                    .padding(5.dp, 0.dp, 15.dp, 1.dp)
-                    .width(100.dp),
-                style = TextStyle(
-                    fontSize = 17.sp,
-                    color = Color(0xFF000000),
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start
-                ),
-            )
-//            VerticalDivider(thickness = 1.dp, color = Color(0xFF000000))
-            Text(
-                text = itemAccount[0].email,
-                modifier = Modifier
-                    .padding(0.dp, 0.dp, 10.dp, 0.dp)
-                    .width(200.dp),
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    color = Color(0xFF000000),
-                    fontStyle = FontStyle.Italic,
-                    textAlign = TextAlign.Center
-                ),
-            )
+                }
+            }
 
-            IconButton(onClick = { showDialogEmail = true }) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(0.1.dp, color = Color(0xFF000000))
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFFB2B0B0),
+                                Color(0xFFCFCFCF),
+                                Color(0xFFFFFFFF),
+                                Color(0xFFFFFFFF),
+                                Color(0xFFFFEDFB),
+                            ),
+                            startX = 0.0f,
+                            endX = 860.0f
+                        )
+                    ),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Icon(
-                    Icons.Default.Create,
-                    contentDescription = "EditEmailAccount",
-                    tint = Color.Gray,
-                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp),
-
-                    )
-
-            }
-
-            if (showDialogEmail) {
-                AlertDialog(
-                    containerColor = Color(0xFFBBFFB0),
-                    onDismissRequest = { showDialogEmail = false },
-                    title = {
-                        Text(
-                            "Sửa Email",
-                            style = TextStyle(
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 23.sp,
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    },
-                    text = {
-                        TextField(
-                            value = newEmail,
-                            onValueChange = { newEmail = it },
-                            placeholder = { Text("Nhập email mới vào đây") },
-                            colors = TextFieldDefaults.textFieldColors(
-                                containerColor = Color(0xffD2FFCB),
-                                unfocusedIndicatorColor = Color(0xff17A400),
-                            ),
-                        )
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                itemAccount[0].email = newEmail
-                                showDialogEmail = false
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF8DD5FF), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
-
-                            border = BorderStroke(1.dp, Color(0xFF018B0F)),
-                        ) {
-                            Text(
-                                "Sửa",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                        }
-                    },
-                    dismissButton = {
-                        Button(
-                            onClick = { showDialogEmail = false },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFFFA483), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
-
-                            border = BorderStroke(1.dp, Color(0xFF8B2701)),
-                        ) {
-                            Text(
-                                "Hủy",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                        }
-                    }
+                    Icons.Default.Lock,
+                    contentDescription = "Lock",
+                    modifier = Modifier.size(18.dp),
                 )
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(0.1.dp, color = Color(0xFF000000))
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFFB2B0B0),
-                            Color(0xFFCFCFCF),
-                            Color(0xFFFFFFFF),
-                            Color(0xFFFFFFFF),
-                            Color(0xFFFFEDFB),
-                        ),
-                        startX = 0.0f,
-                        endX = 860.0f
-                    )
-                ),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.Default.Phone,
-                contentDescription = "Phone",
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                text = "Số điện thoại:",
-                modifier = Modifier
-                    .padding(5.dp, 0.dp, 8.dp, 1.dp)
-                    .width(110.dp),
-                style = TextStyle(
-                    fontSize = 17.sp,
-                    color = Color(0xFF000000),
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start
-                ),
-            )
+                Text(
+                    text = "Mật khẩu:",
+                    modifier = Modifier
+                        .padding(5.dp, 0.dp, 15.dp, 1.dp)
+                        .width(100.dp),
+                    style = TextStyle(
+                        fontSize = 17.sp,
+                        color = Color(0xFF000000),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Start
+                    ),
+                )
 //            VerticalDivider(thickness = 1.dp, color = Color(0xFF000000))
-            Text(
-                text = "0" + itemAccount[0].phone.toString(),
-                modifier = Modifier
-                    .padding(0.dp, 0.dp, 10.dp, 0.dp)
-                    .width(200.dp),
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    color = Color(0xFF000000),
-                    fontStyle = FontStyle.Italic,
-                    textAlign = TextAlign.Start
-                ),
-            )
-
-            IconButton(onClick = { showDialogPhone = true }) {
-                Icon(
-                    Icons.Default.Create,
-                    contentDescription = "EditPhoneAccount",
-                    tint = Color.Gray,
-                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp),
-
-                    )
-            }
-
-            if (showDialogPhone) {
-                AlertDialog(
-                    containerColor = Color(0xFFFFF9AF),
-                    onDismissRequest = { showDialogPhone = false },
-                    title = {
-                        Text(
-                            "Đổi Số Điện Thoại",
-                            style = TextStyle(
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 23.sp,
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    },
-                    text = {
-                        TextField(
-                            value = newPhone,
-                            onValueChange = { newPhone = it },
-                            placeholder = { Text("Nhập sđt mới vào đây") },
-                            colors = TextFieldDefaults.textFieldColors(
-                                containerColor = Color(0xffFFFDDB),
-                                unfocusedIndicatorColor = Color(0xffe62e00),
-                            ),
-                        )
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                itemAccount[0].phone = newPhone.toInt()
-                                showDialogPhone = false
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFA2FFAB), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
-
-                            border = BorderStroke(1.dp, Color(0xFF018B0F)),
-                        ) {
-                            Text(
-                                "Sửa",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                        }
-                    },
-                    dismissButton = {
-                        Button(
-                            onClick = { showDialogPhone = false },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFFFA483), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
-
-                            border = BorderStroke(1.dp, Color(0xFF8B2701)),
-                        ) {
-                            Text(
-                                "Hủy",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                        }
-                    }
+                Text(
+                    text = "********",
+                    modifier = Modifier
+                        .padding(0.dp, 0.dp, 10.dp, 0.dp)
+                        .width(200.dp),
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        color = Color(0xFF000000),
+                        fontStyle = FontStyle.Italic,
+                        textAlign = TextAlign.Start
+                    ),
                 )
-            }
-        }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(110.dp)
-                .border(0.1.dp, color = Color(0xFF000000))
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFFB2B0B0),
-                            Color(0xFFCFCFCF),
-                            Color(0xFFFFFFFF),
-                            Color(0xFFFFFFFF),
-                            Color(0xFFFFEDFB),
-                        ),
-                        startX = 0.0f,
-                        endX = 860.0f
+                IconButton(onClick = { showDialogPass = true }) {
+                    Icon(
+                        Icons.Default.Create,
+                        contentDescription = "EditPassAccount",
+                        tint = Color.Gray,
+                        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp),
+
+                        )
+                }
+
+                if (showDialogPass) {
+                    AlertDialog(
+                        containerColor = Color(0xFF99D9FF),
+                        onDismissRequest = { showDialogPass = false },
+                        title = {
+                            Text(
+                                "Đổi Mật Khẩu",
+                                style = TextStyle(
+                                    fontSize = 23.sp,
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        },
+                        text = {
+                            Column {
+                                TextField(
+                                    value = currentPassword,
+                                    onValueChange = { currentPassword = it },
+                                    label = {
+                                        Text(
+                                            "*Mật khẩu hiện tại:",
+                                            style = TextStyle(
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold,
+                                            ),
+                                            modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
+                                        )
+                                    },
+                                    placeholder = { Text("-- Nhập mật khẩu hiện tại --") },
+                                    colors = TextFieldDefaults.textFieldColors(
+                                        containerColor = Color(0xffD7F0FF),
+                                        unfocusedIndicatorColor = Color(0xff0002D4),
+                                    ),
+                                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
+                                )
+
+                                TextField(
+                                    value = newPassword,
+                                    onValueChange = { newPassword = it },
+                                    label = {
+                                        Text(
+                                            "*Mật khẩu mới:",
+                                            style = TextStyle(
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold,
+                                            ),
+                                            modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
+                                        )
+                                    },
+                                    placeholder = { Text("-- Nhập mật khẩu mới --") },
+                                    colors = TextFieldDefaults.textFieldColors(
+                                        containerColor = Color(0xffD7F0FF),
+                                        unfocusedIndicatorColor = Color(0xff0002D4),
+                                    ),
+                                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
+                                )
+
+                                TextField(
+                                    value = repeatedNewPassword,
+                                    onValueChange = { repeatedNewPassword = it },
+                                    label = {
+                                        Text(
+                                            "*Nhập lại:",
+                                            style = TextStyle(
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold,
+                                            ),
+                                            modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
+                                        )
+                                    },
+                                    placeholder = { Text("-- Nhập lại mật khẩu mới --") },
+                                    colors = TextFieldDefaults.textFieldColors(
+                                        containerColor = Color(0xffD7F0FF),
+                                        unfocusedIndicatorColor = Color(0xff0002D4),
+                                    ),
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    itemAccount[0].pass = newPassword
+                                    showDialogPass = false
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFA2FFAB), // Màu nền của nút
+                                    contentColor = Color.Black, // Màu chữ của nút
+                                ),
+
+                                border = BorderStroke(1.dp, Color(0xFF018B0F)),
+                            ) {
+                                Text(
+                                    "Đổi mật khẩu",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        },
+                        dismissButton = {
+                            Button(
+                                onClick = { showDialogPass = false },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFFFA483), // Màu nền của nút
+                                    contentColor = Color.Black, // Màu chữ của nút
+                                ),
+
+                                border = BorderStroke(1.dp, Color(0xFF8B2701)),
+                            ) {
+                                Text(
+                                    "Hủy",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        }
                     )
-                ),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.Default.LocationOn,
-                contentDescription = "LocationOn",
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                text = "Địa chỉ:",
+                }
+            }
+
+            Row(
                 modifier = Modifier
-                    .padding(5.dp, 0.dp, 14.dp, 1.dp)
-                    .width(100.dp),
-                style = TextStyle(
-                    fontSize = 17.sp,
-                    color = Color(0xFF000000),
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start
-                ),
-            )
+                    .fillMaxWidth()
+                    .height(67.dp)
+                    .border(0.2.dp, color = Color(0xFF000000))
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFFB2B0B0),
+                                Color(0xFFCFCFCF),
+                                Color(0xFFFFFFFF),
+                                Color(0xFFFFFFFF),
+                                Color(0xFFFFEDFB),
+                            ),
+                            startX = 0.0f,
+                            endX = 860.0f
+                        )
+                    ),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Email,
+                    contentDescription = "Email",
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    text = "Email:",
+                    modifier = Modifier
+                        .padding(5.dp, 0.dp, 15.dp, 1.dp)
+                        .width(100.dp),
+                    style = TextStyle(
+                        fontSize = 17.sp,
+                        color = Color(0xFF000000),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Start
+                    ),
+                )
 //            VerticalDivider(thickness = 1.dp, color = Color(0xFF000000))
-            Text(
-                text = itemAccount[0].address,
-                modifier = Modifier
-                    .padding(0.dp, 0.dp, 10.dp, 0.dp)
-                    .width(200.dp),
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    color = Color(0xFF000000),
-                    fontStyle = FontStyle.Italic,
-                    textAlign = TextAlign.Start
-                ),
-            )
-
-            IconButton(onClick = { showDialogAddress = true }) {
-                Icon(
-                    Icons.Default.Create,
-                    contentDescription = "EditAddressAccount",
-                    tint = Color.Gray,
-                    modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp),
+                Text(
+                    text = user.email,
+                    modifier = Modifier
+                        .padding(0.dp, 0.dp, 10.dp, 0.dp)
+                        .width(200.dp),
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        color = Color(0xFF000000),
+                        fontStyle = FontStyle.Italic,
+                        textAlign = TextAlign.Start
+                    ),
                 )
+
+                IconButton(onClick = { showDialogEmail = true }) {
+                    Icon(
+                        Icons.Default.Create,
+                        contentDescription = "EditEmailAccount",
+                        tint = Color.Gray,
+                        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp),
+
+                        )
+
+                }
+
+                if (showDialogEmail) {
+                    AlertDialog(
+                        containerColor = Color(0xFFBBFFB0),
+                        onDismissRequest = { showDialogEmail = false },
+                        title = {
+                            if (!showErrorEmail) {
+                                Text(
+                                    "Sửa Email",
+                                    style = TextStyle(
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 23.sp,
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            } else {
+                                Text(
+                                    text = errorMessageEmail,
+                                    color = Color.Red,
+                                    modifier = Modifier.padding(16.dp),
+                                    style = TextStyle(
+                                        fontSize = 19.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                )
+
+                            }
+                        },
+                        text = {
+                            TextField(
+                                value = newEmail,
+                                onValueChange = { newEmail = it },
+                                placeholder = { Text("Nhập email mới vào đây") },
+                                colors = TextFieldDefaults.textFieldColors(
+                                    containerColor = Color(0xffD2FFCB),
+                                    unfocusedIndicatorColor = Color(0xff17A400),
+                                ),
+                            )
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    val id = user.id
+                                    if (newEmail.isNotEmpty()) {
+                                        accountViewModel.updateMail(newEmail, id)
+                                        user.email = newEmail
+                                        showDialogEmail = false
+                                        showErrorEmail = false
+
+
+                                    } else {
+                                        showErrorEmail = true
+                                        showDialogEmail = true
+                                        errorMessageEmail = "Vui lòng nhập email mới!"
+
+                                    }
+
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF8DD5FF), // Màu nền của nút
+                                    contentColor = Color.Black, // Màu chữ của nút
+                                ),
+
+                                border = BorderStroke(1.dp, Color(0xFF018B0F)),
+                            ) {
+                                Text(
+                                    "Sửa",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        },
+                        dismissButton = {
+                            Button(
+                                onClick = { showDialogEmail = false },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFFFA483), // Màu nền của nút
+                                    contentColor = Color.Black, // Màu chữ của nút
+                                ),
+
+                                border = BorderStroke(1.dp, Color(0xFF8B2701)),
+                            ) {
+                                Text(
+                                    "Hủy",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        }
+                    )
+                }
             }
 
-            if (showDialogAddress) {
-                AlertDialog(
-                    containerColor = Color(0xFFFFBEBE),
-                    onDismissRequest = { showDialogAddress = false },
-                    title = {
-                        Text(
-                            "Cập Nhật Địa Chỉ",
-                            style = TextStyle(
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 23.sp,
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(0.2.dp, color = Color(0xFF000000))
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFFB2B0B0),
+                                Color(0xFFCFCFCF),
+                                Color(0xFFFFFFFF),
+                                Color(0xFFFFFFFF),
+                                Color(0xFFFFEDFB),
                             ),
-                            modifier = Modifier.fillMaxWidth()
+                            startX = 0.0f,
+                            endX = 860.0f
                         )
-                    },
-                    text = {
-                        TextField(
-                            value = newAddress,
-                            onValueChange = { newAddress = it },
-                            placeholder = { Text("Nhập địa chỉ mới vào đây") },
-                            colors = TextFieldDefaults.textFieldColors(
-                                containerColor = Color(0xffffebe6),
-                                unfocusedIndicatorColor = Color(0xffe62e00),
-                            ),
-                            modifier = Modifier.height(100.dp)
+                    ),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Phone,
+                    contentDescription = "Phone",
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    text = "Số điện thoại:",
+                    modifier = Modifier
+                        .padding(5.dp, 0.dp, 8.dp, 1.dp)
+                        .width(110.dp),
+                    style = TextStyle(
+                        fontSize = 17.sp,
+                        color = Color(0xFF000000),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Start
+                    ),
+                )
+//            VerticalDivider(thickness = 1.dp, color = Color(0xFF000000))
+                Text(
+                    text = "0" + user.sdt.toString(),
+                    modifier = Modifier
+                        .padding(0.dp, 0.dp, 10.dp, 0.dp)
+                        .width(200.dp),
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        color = Color(0xFF000000),
+                        fontStyle = FontStyle.Italic,
+                        textAlign = TextAlign.Start
+                    ),
+                )
+
+                IconButton(onClick = { showDialogPhone = true }) {
+                    Icon(
+                        Icons.Default.Create,
+                        contentDescription = "EditPhoneAccount",
+                        tint = Color.Gray,
+                        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 0.dp),
+
                         )
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                itemAccount[0].address = newAddress
-                                showDialogAddress = false
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFA2FFAB), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
+                }
 
-                            border = BorderStroke(1.dp, Color(0xFF018B0F)),
-                        ) {
-                            Text(
-                                "Xác nhận",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold
+                if (showDialogPhone) {
+                    AlertDialog(
+                        containerColor = Color(0xFFFFF9AF),
+                        onDismissRequest = { showDialogPhone = false },
+                        title = {
+                            if (!showErrorPhone) {
+                                Text(
+                                    "Đổi Số Điện Thoại",
+                                    style = TextStyle(
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 23.sp,
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
                                 )
-                            )
-                        }
-                    },
-                    dismissButton = {
-                        Button(
-                            onClick = { showDialogAddress = false },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFFFA483), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
+                            } else {
+                                Text(
+                                    text = errorMessagePhone,
+                                    color = Color.Red,
+                                    modifier = Modifier.padding(16.dp),
+                                    style = TextStyle(
+                                        fontSize = 19.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                )
 
-                            border = BorderStroke(1.dp, Color(0xFF8B2701)),
-                        ) {
-                            Text(
-                                "Hủy",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold
-                                )
+                            }
+                        },
+                        text = {
+                            TextField(
+                                value = newPhone,
+                                onValueChange = { newPhone = it },
+                                placeholder = { Text("Nhập sđt mới vào đây") },
+                                colors = TextFieldDefaults.textFieldColors(
+                                    containerColor = Color(0xffFFFDDB),
+                                    unfocusedIndicatorColor = Color(0xffe62e00),
+                                ),
                             )
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    val id = user.id
+                                    if (newPhone.isNotEmpty()) {
+                                        accountViewModel.updatePhone(newPhone.toInt(), id)
+                                        user.sdt = newPhone.toInt()
+                                        showDialogPhone = false
+                                        showErrorPhone = false
+
+
+                                    } else {
+                                        showErrorPhone = true
+                                        showDialogPhone = true
+                                        errorMessagePhone = "Vui lòng nhập sdt mới!"
+
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFA2FFAB), // Màu nền của nút
+                                    contentColor = Color.Black, // Màu chữ của nút
+                                ),
+
+                                border = BorderStroke(1.dp, Color(0xFF018B0F)),
+                            ) {
+                                Text(
+                                    "Sửa",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        },
+                        dismissButton = {
+                            Button(
+                                onClick = { showDialogPhone = false },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFFFA483), // Màu nền của nút
+                                    contentColor = Color.Black, // Màu chữ của nút
+                                ),
+
+                                border = BorderStroke(1.dp, Color(0xFF8B2701)),
+                            ) {
+                                Text(
+                                    "Hủy",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
                         }
+                    )
+                }
+            }
+
+            getAddress(user, accountViewModel)
+
+
+            loginResult?.let { result ->
+                result.fold(
+                    onSuccess = { token ->
+                        println("Cập nhật thành công")
+                        showErrorName = false
+
+                        showErrorEmail = false
+
+                        showErrorPhone = false
+//                        println("heelooooo")
+                    },
+                    onFailure = { exception ->
+                        val requestType by accountViewModel.request.collectAsState(initial = "")
+                        when (requestType) {
+                            "updateName" -> {
+                                showErrorName = true
+                                showDialogName = true
+                                errorMessageName = exception.message ?: "Cập nhật tên thất bại"
+                                Log.e(
+                                    "UpdateName",
+                                    "Cập nhật tên thất bại: ${exception.message}"
+                                )
+                            }
+
+                            "updateMail" -> {
+                                // Xử lý lỗi từ yêu cầu cập nhật email
+
+                                showErrorEmail = true
+                                showDialogEmail = true
+                                errorMessageEmail =
+                                    exception.message ?: "Cập nhật email thất bại"
+                                Log.e(
+                                    "UpdateEmail",
+                                    "Cập nhật email thất bại: ${exception.message}"
+                                )
+
+                            }
+
+                            "updatePhone" -> {
+                                // Xử lý lỗi từ yêu cầu cập nhật số điện thoại
+
+                                showErrorPhone = true
+                                showDialogPhone = true
+                                errorMessagePhone = exception.message ?: "Cập nhật sdt thất bại"
+                                Log.e(
+                                    "UpdatePhone",
+                                    "Cập nhật sdt thất bại: ${exception.message}"
+                                )
+
+                            }
+
+                            "" -> {
+                                // Xử lý lỗi từ yêu cầu khác
+                                Log.e("AccountScreen", "Lỗi không xác định: ${exception.message}")
+                            }
+                        }
+
+
                     }
                 )
             }
@@ -1129,7 +1162,14 @@ fun InfoAccount() {
 @Preview(showBackground = true)
 @Composable
 fun AccountScreenPreview() {
+    val context = LocalContext.current
     STTCTheme {
-        AccountScreen(openBillShip = {}, openBillHistory = {}, openBillCancel = {})
+        AccountScreen(
+            openBillShip = {},
+            openBillHistory = {},
+            openBillCancel = {},
+            openLogout = {},
+            AccountViewModel(context)
+        )
     }
 }

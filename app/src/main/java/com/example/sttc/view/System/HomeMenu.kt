@@ -1,6 +1,7 @@
 package com.example.sttc.view.System
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +45,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -51,6 +54,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
+import com.example.sttc.model.User
 import com.example.sttc.view.BillCancelScreen
 import com.example.sttc.view.BillHistoryScreen
 import com.example.sttc.view.BillShipScreen
@@ -66,11 +70,17 @@ import com.example.sttc.view.Products.DetailProductsScreen
 import com.example.sttc.view.Products.ListProductScreen
 import com.example.sttc.view.Products.ProductScreens
 import com.example.sttc.view.Users.AccountScreen
+import com.example.sttc.view.Users.LoginForm
+import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeMenuScreen() { //
+fun HomeMenuScreen(
+    accountViewModel: AccountViewModel,
+    openLogin : () -> Unit,
+    openLogout: () -> Unit
+) { //
     val navController = rememberNavController()
     var selectedProductType by remember { mutableStateOf("") }
     Column(
@@ -174,11 +184,25 @@ fun HomeMenuScreen() { //
                         BlogsScreens(openListBlogs = { navController.navigate("listBlogs") })
                     }
                     composable("account") {
-                        AccountScreen(
-                            openBillShip = { navController.navigate("billShip") },
-                            openBillHistory = { navController.navigate("billHistory") },
-                            openBillCancel = { navController.navigate("billCancel") },
-                        )
+                        val context = LocalContext.current
+                        val token = accountViewModel.getTokenFromSharedPreferences()
+                        Log.d("token", token.toString())
+                        if (token == null) {
+                            // Nếu không, điều hướng người dùng đến màn hình đăng nhập
+                            LaunchedEffect(Unit) {
+                                openLogin()
+                            }
+                        } else {
+                            // Nếu có token, hiển thị màn hình tài khoản
+                            AccountScreen(
+                                openBillShip = { navController.navigate("billShip") },
+                                openBillHistory = { navController.navigate("billHistory") },
+                                openBillCancel = { navController.navigate("billCancel") },
+                                openLogout = {openLogout()},
+                                accountViewModel = AccountViewModel(context)
+                            )
+                        }
+
                     }
                     // ------------sanPham---------------
                     composable("listProducts") {
@@ -189,19 +213,10 @@ fun HomeMenuScreen() { //
                             context = LocalContext.current
                         )
                     }
-//                    composable("detailProducts") {
-//                        DetailProductsScreen(
-//                            back = { navController.popBackStack() },
-//                            openCart = { navController.navigate("cart") },
-//                            openDetailProducts = { navController.navigate("detailProducts") },
-//                            productViewModel = ProductViewModel(),//cai nay la hien cai khuc suggesttoday phia duoi, chu khong phai la noi dung chi tiet cua sanpham
-//                            context = LocalContext.current,
-//                            productId = 0
-//                        )
-//                    }
 
                     composable("detailProducts/{productId}") { backStackEntry ->
-                        val productId = backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
+                        val productId =
+                            backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
                         DetailProductsScreen(
                             back = { navController.popBackStack() },
                             openCart = { navController.navigate("cart") },
@@ -428,5 +443,5 @@ enum class BottomBarScreen(
 @Preview(showBackground = true)
 @Composable
 fun MenuScreenPreview() {
-    HomeMenuScreen()
+    HomeMenuScreen(accountViewModel = AccountViewModel(LocalContext.current), openLogin = {}, openLogout = {})
 }
