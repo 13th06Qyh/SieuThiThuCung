@@ -66,6 +66,7 @@ import com.example.sttc.view.DetailBlogsScreen
 import com.example.sttc.view.HomeScreen
 import com.example.sttc.view.InforBillHistoryShipScreen
 import com.example.sttc.view.InforBillShipScreen
+import com.example.sttc.view.PaymentScreen
 import com.example.sttc.view.Products.DetailProductsScreen
 import com.example.sttc.view.Products.ListProductScreen
 import com.example.sttc.view.Products.ProductScreens
@@ -162,6 +163,7 @@ fun HomeMenuScreen(
                 modifier = Modifier
                     .padding(innerPadding),
             ) {
+                val context = LocalContext.current
                 NavHost(navController = navController, startDestination = "home") {
                     composable("home") {
                         HomeScreen(
@@ -280,7 +282,31 @@ fun HomeMenuScreen(
                     }
                     // ------------cart---------------
                     composable("cart") {
-                        CartScreen(back = { navController.popBackStack() })
+                        CartScreen(
+                            back = { navController.popBackStack() }
+                        )
+                    }
+                    composable("payments") {
+                        PaymentScreen(
+                            back = { navController.popBackStack() },
+                            openOTP = { navController.navigate("otp") },
+                            openCard = { navController.navigate("card") },
+                            accountViewModel = AccountViewModel(context)
+                        )
+                    }
+                    // ------------otp---------------
+                    composable("otp") {
+                        Secret(
+                            back = { navController.popBackStack() },
+                            accountViewModel = AccountViewModel(context)
+                        )
+                    }
+                    // ------------card---------------
+                    composable("card") {
+                        Card(
+                            back = { navController.popBackStack() },
+                            accountViewModel = AccountViewModel(context)
+                        )
                     }
                     // ------------notification---------------
                     composable("notification") {

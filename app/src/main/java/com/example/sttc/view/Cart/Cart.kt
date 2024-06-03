@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -49,17 +50,29 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
+import com.example.sttc.view.PaymentScreen
 import com.example.sttc.view.System.Bill
 import com.example.sttc.view.System.BillProduct
+import com.example.sttc.view.System.Card
+import com.example.sttc.view.System.HomeMenuScreen
 import com.example.sttc.view.System.Product
+import com.example.sttc.view.System.Secret
 import com.example.sttc.view.System.formatNumber
+import com.example.sttc.view.Users.LoginForm
+import com.example.sttc.view.Users.SignUpForm
+import com.example.sttc.viewmodel.AccountViewModel
 
 @Composable
 fun CartScreen(
     back : () -> Unit
 ) {
+    val navController = rememberNavController()
+
     var openDialogDeleteCart by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -84,7 +97,7 @@ fun CartScreen(
                 .padding(top = 0.dp)
 //                .border(1.dp, color = Color(0xFFff6666))
             ,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Start
         ) {
             Icon(
                 Icons.Default.ArrowBack, contentDescription = "Back",
@@ -95,6 +108,8 @@ fun CartScreen(
                 tint = Color.Black
             )
             Row(
+                modifier = Modifier
+                    .padding(70.dp, 0.dp, 0.dp, 0.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ){
@@ -117,74 +132,9 @@ fun CartScreen(
                         .padding(5.dp, 10.dp)
                 )
             }
-
-            IconButton(onClick = { openDialogDeleteCart = true }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.trash3),
-                    contentDescription = "Delete",
-                    tint = Color.Red,
-                    modifier = Modifier.size(25.dp)
-                )
-            }
         }
 
-        if (openDialogDeleteCart) {
-            AlertDialog(
-                containerColor = Color(0xFFfffff5),
-                onDismissRequest = { openDialogDeleteCart = false },
-                title = {
-                    Text(
-                        "Bạn chắc chắn muốn xóa khỏi giỏ hàng?",
-                        style = TextStyle(
-                            textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            openDialogDeleteCart = false
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFFA483), // Màu nền của nút
-                            contentColor = Color.Black, // Màu chữ của nút
-                        ),
 
-                        border = BorderStroke(1.dp, Color(0xFF8B2701)),
-                    ) {
-                        Text(
-                            "Xác nhận",
-                            style = TextStyle(
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = {
-                            openDialogDeleteCart = false
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFA2FFAB), // Màu nền của nút
-                            contentColor = Color.Black, // Màu chữ của nút
-                        ),
-
-                        border = BorderStroke(1.dp, Color(0xFF018B0F)),
-                    ) {
-                        Text(
-                            "Hủy",
-                            style = TextStyle(
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
-                }
-            )
-        }
 
 
         val items = listOf(
@@ -306,12 +256,22 @@ fun CartScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(40.dp)
-                            .padding(end = 10.dp),
-                        horizontalArrangement = Arrangement.End,
+                            .padding(end = 5.dp),
+                        horizontalArrangement = Arrangement.SpaceAround,
                     ) {
+
+                        IconButton(onClick = { openDialogDeleteCart = true }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.trash3),
+                                contentDescription = "Delete",
+                                tint = Color.Red,
+                                modifier = Modifier.size(25.dp)
+                            )
+                        }
+
                         Row(
                             modifier = Modifier
-                                .padding()
+                                .padding(start = 145.dp)
                                 .height(40.dp)
                                 .border(1.dp, color = Color(0xFFd9d9d9)),
                             horizontalArrangement = Arrangement.End,
@@ -329,6 +289,65 @@ fun CartScreen(
                                     tint = Color(0xFF4d4d4d),
                                 )
                             }
+
+                            if (openDialogDeleteCart) {
+                                AlertDialog(
+                                    containerColor = Color(0xFFfffff5),
+                                    onDismissRequest = { openDialogDeleteCart = false },
+                                    title = {
+                                        Text(
+                                            "Bạn chắc chắn muốn xóa khỏi giỏ hàng?",
+                                            style = TextStyle(
+                                                textAlign = TextAlign.Center,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 16.sp,
+                                            ),
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    },
+                                    confirmButton = {
+                                        TextButton(
+                                            onClick = {
+                                                openDialogDeleteCart = false
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = Color(0xFFFFA483), // Màu nền của nút
+                                                contentColor = Color.Black, // Màu chữ của nút
+                                            ),
+
+                                            border = BorderStroke(1.dp, Color(0xFF8B2701)),
+                                        ) {
+                                            Text(
+                                                "Xác nhận",
+                                                style = TextStyle(
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            )
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(
+                                            onClick = {
+                                                openDialogDeleteCart = false
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = Color(0xFFA2FFAB), // Màu nền của nút
+                                                contentColor = Color.Black, // Màu chữ của nút
+                                            ),
+
+                                            border = BorderStroke(1.dp, Color(0xFF018B0F)),
+                                        ) {
+                                            Text(
+                                                "Hủy",
+                                                style = TextStyle(
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+
                             Row(
                                 modifier = Modifier
                                     .width(60.dp)

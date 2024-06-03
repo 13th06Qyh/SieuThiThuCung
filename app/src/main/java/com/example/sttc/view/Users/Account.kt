@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
@@ -39,6 +40,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +66,7 @@ import coil.request.ImageRequest
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.ItemAccount
+import com.example.sttc.view.System.allow
 import com.example.sttc.view.System.getAddress
 import com.example.sttc.viewmodel.AccountViewModel
 
@@ -366,7 +369,9 @@ fun StatusBill(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InfoAccount(accountViewModel: AccountViewModel) {
-    val loginResult by accountViewModel.loginResult.collectAsState(null)
+    val loginResult by accountViewModel.update.collectAsState(null)
+    val requestType by accountViewModel.request.collectAsState(initial = "")
+
     var showErrorName by remember { mutableStateOf(false) }
     var errorMessageName by remember { mutableStateOf("") }
 
@@ -376,28 +381,22 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
     var showErrorPhone by remember { mutableStateOf(false) }
     var errorMessagePhone by remember { mutableStateOf("") }
 
+    var showErrorPass by remember { mutableStateOf(false) }
+    var errorMessagePass by remember { mutableStateOf("") }
+    var showSuccessPass by remember { mutableStateOf(false) }
+
     var showDialogName by remember { mutableStateOf(false) }
     var showDialogPass by remember { mutableStateOf(false) }
     var showDialogEmail by remember { mutableStateOf(false) }
     var showDialogPhone by remember { mutableStateOf(false) }
 
     var currentPassword by remember { mutableStateOf("") }
-    var repeatedNewPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var newName by remember { mutableStateOf("") }
     var newEmail by remember { mutableStateOf("") }
     var newPhone by remember { mutableStateOf("") }
     val userState by accountViewModel.userInfoFlow.collectAsState(initial = null)
-
-    val itemAccount = listOf(
-        ItemAccount(
-            "QuyhPham",
-            "quynhpn.22it@vku.udn.vn",
-            1234567890,
-            "123456",
-            "154 Trần Đại Nghĩa, Ngũ Hành Sơn, Đà Nẵng"
-        )
-    )
 
     userState?.let { user ->
         Column(
@@ -500,41 +499,49 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                 if (showDialogName) {
                     AlertDialog(
                         containerColor = Color(0xFFFFD5BE),
-                        onDismissRequest = { showDialogName = false },
+                        onDismissRequest = {
+                            showErrorName = false
+                            showDialogName = false
+                        },
                         title = {
-                            if (!showErrorName) {
-                                Text(
-                                    "Sửa Tên Tài Khoản",
-                                    style = TextStyle(
-                                        textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 23.sp,
-                                    ),
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            } else {
-                                Text(
-                                    text = errorMessageName,
-                                    color = Color.Red,
-                                    modifier = Modifier.padding(16.dp),
-                                    style = TextStyle(
-                                        fontSize = 19.sp,
-                                        textAlign = TextAlign.Center
-                                    )
-                                )
-
-                            }
+                            Text(
+                                "Sửa Tên Tài Khoản",
+                                style = TextStyle(
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 23.sp,
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         },
                         text = {
-                            TextField(
-                                value = newName,
-                                onValueChange = { newName = it },
-                                placeholder = { Text("Nhập tên mới vào đây") },
-                                colors = TextFieldDefaults.textFieldColors(
-                                    containerColor = Color(0xffffebe6),
-                                    unfocusedIndicatorColor = Color(0xffe62e00),
-                                ),
-                            )
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                TextField(
+                                    value = newName,
+                                    onValueChange = { newName = it },
+                                    placeholder = { Text("Nhập tên mới vào đây") },
+                                    colors = TextFieldDefaults.textFieldColors(
+                                        containerColor = Color(0xffffebe6),
+                                        unfocusedIndicatorColor = Color(0xffe62e00),
+                                    ),
+                                )
+
+                                if (showErrorName) {
+                                    Text(
+                                        text = errorMessageName,
+                                        color = Color.Red,
+                                        modifier = Modifier.padding(16.dp),
+                                        style = TextStyle(
+                                            fontSize = 16.sp,
+                                            textAlign = TextAlign.Center,
+                                            fontStyle = FontStyle.Italic
+                                        )
+                                    )
+                                }
+                            }
 
                         },
 
@@ -544,14 +551,14 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                                     val id = user.id
                                     if (newName.isNotEmpty()) {
                                         accountViewModel.updateName(newName, id)
-                                        user.username = newName
-                                        showDialogName = false
-                                        showErrorName = false
+
+//                                        showDialogName = false
+//                                        showErrorName = false
 
 
                                     } else {
                                         showErrorName = true
-                                        showDialogName = true
+//                                        showDialogName = true
                                         errorMessageName = "Vui lòng nhập tên mới!"
 
                                     }
@@ -574,7 +581,10 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                         },
                         dismissButton = {
                             Button(
-                                onClick = { showDialogName = false },
+                                onClick = {
+                                    showErrorName = false
+                                    showDialogName = false
+                                },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFFFFA483), // Màu nền của nút
                                     contentColor = Color.Black, // Màu chữ của nút
@@ -645,7 +655,11 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                     ),
                 )
 
-                IconButton(onClick = { showDialogPass = true }) {
+                IconButton(onClick = {
+                    showDialogPass = true
+                    showSuccessPass = false
+                    showErrorPass = false
+                }) {
                     Icon(
                         Icons.Default.Create,
                         contentDescription = "EditPassAccount",
@@ -658,7 +672,11 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                 if (showDialogPass) {
                     AlertDialog(
                         containerColor = Color(0xFF99D9FF),
-                        onDismissRequest = { showDialogPass = false },
+                        onDismissRequest = {
+                            showDialogPass = false
+                            showErrorPass = false
+                            showSuccessPass = false
+                        },
                         title = {
                             Text(
                                 "Đổi Mật Khẩu",
@@ -671,7 +689,10 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                             )
                         },
                         text = {
-                            Column {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 TextField(
                                     value = currentPassword,
                                     onValueChange = { currentPassword = it },
@@ -715,8 +736,8 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                                 )
 
                                 TextField(
-                                    value = repeatedNewPassword,
-                                    onValueChange = { repeatedNewPassword = it },
+                                    value = confirmPassword,
+                                    onValueChange = { confirmPassword = it },
                                     label = {
                                         Text(
                                             "*Nhập lại:",
@@ -733,13 +754,79 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                                         unfocusedIndicatorColor = Color(0xff0002D4),
                                     ),
                                 )
+
+                                if (showErrorPass) {
+                                    Text(
+                                        text = errorMessagePass,
+                                        color = Color.Red,
+                                        modifier = Modifier.padding(16.dp),
+                                        style = TextStyle(
+                                            fontSize = 16.sp,
+                                            textAlign = TextAlign.Center,
+                                            fontStyle = FontStyle.Italic
+                                        )
+                                    )
+                                }
+
+                                if (showSuccessPass) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = "Đổi mật khẩu thành công ",
+                                            color = Color(0xFF009900),
+                                            modifier = Modifier.padding(0.dp, 5.dp, 0.dp, 0.dp),
+                                            style = TextStyle(
+                                                fontSize = 18.sp,
+                                                textAlign = TextAlign.Center,
+                                                fontStyle = FontStyle.Italic,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.passok),
+                                            tint = Color(0xFF009900),
+                                            contentDescription = "PassOk"
+                                        )
+                                    }
+                                }
                             }
                         },
                         confirmButton = {
                             Button(
                                 onClick = {
-                                    itemAccount[0].pass = newPassword
-                                    showDialogPass = false
+                                    val id = user.id
+                                    when {
+                                        currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty() -> {
+                                            showErrorPass = true
+                                            errorMessagePass = "Vui lòng nhập đầy đủ các mục!"
+                                        }
+
+                                        newPassword.length < 8 -> {
+                                            showErrorPass = true
+                                            errorMessagePass =
+                                                "Mật khẩu mới phải có ít nhất 8 ký tự!"
+                                        }
+
+                                        confirmPassword.length < 8 -> {
+                                            showErrorPass = true
+                                            errorMessagePass = "Xác nhận mật khẩu không khớp!"
+                                        }
+
+                                        else -> {
+                                            accountViewModel.changePass(
+                                                currentPassword,
+                                                newPassword,
+                                                confirmPassword,
+                                                id
+                                            )
+                                        }
+                                    }
+
                                 },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFFA2FFAB), // Màu nền của nút
@@ -755,24 +842,53 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                                     )
                                 )
                             }
+
                         },
                         dismissButton = {
-                            Button(
-                                onClick = { showDialogPass = false },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFFFA483), // Màu nền của nút
-                                    contentColor = Color.Black, // Màu chữ của nút
-                                ),
-
-                                border = BorderStroke(1.dp, Color(0xFF8B2701)),
-                            ) {
-                                Text(
-                                    "Hủy",
-                                    style = TextStyle(
-                                        fontWeight = FontWeight.Bold
+                            if (showSuccessPass) {
+                                Button(
+                                    onClick = {
+                                        showSuccessPass = false
+                                        showDialogPass = false
+                                        showErrorPass = false
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFccffdd), // Màu nền của nút
+                                        contentColor = Color.Black, // Màu chữ của nút
+                                    ),
+                                    border = BorderStroke(1.dp, Color(0xFF00e64d)),
+                                ) {
+                                    Text(
+                                        "OK",
+                                        style = TextStyle(
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFcc3300)
+                                        )
                                     )
-                                )
+                                }
+                            } else {
+                                Button(
+                                    onClick = {
+                                        showDialogPass = false
+                                        showErrorPass = false
+                                        showSuccessPass = false
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFFFA483), // Màu nền của nút
+                                        contentColor = Color.Black, // Màu chữ của nút
+                                    ),
+
+                                    border = BorderStroke(1.dp, Color(0xFF8B2701)),
+                                ) {
+                                    Text(
+                                        "Hủy",
+                                        style = TextStyle(
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    )
+                                }
                             }
+
                         }
                     )
                 }
@@ -844,41 +960,49 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                 if (showDialogEmail) {
                     AlertDialog(
                         containerColor = Color(0xFFBBFFB0),
-                        onDismissRequest = { showDialogEmail = false },
+                        onDismissRequest = {
+                            showDialogEmail = false
+                            showErrorEmail = false
+                        },
                         title = {
-                            if (!showErrorEmail) {
-                                Text(
-                                    "Sửa Email",
-                                    style = TextStyle(
-                                        textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 23.sp,
-                                    ),
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            } else {
-                                Text(
-                                    text = errorMessageEmail,
-                                    color = Color.Red,
-                                    modifier = Modifier.padding(16.dp),
-                                    style = TextStyle(
-                                        fontSize = 19.sp,
-                                        textAlign = TextAlign.Center
-                                    )
-                                )
-
-                            }
+                            Text(
+                                "Sửa Email",
+                                style = TextStyle(
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 23.sp,
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         },
                         text = {
-                            TextField(
-                                value = newEmail,
-                                onValueChange = { newEmail = it },
-                                placeholder = { Text("Nhập email mới vào đây") },
-                                colors = TextFieldDefaults.textFieldColors(
-                                    containerColor = Color(0xffD2FFCB),
-                                    unfocusedIndicatorColor = Color(0xff17A400),
-                                ),
-                            )
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                TextField(
+                                    value = newEmail,
+                                    onValueChange = { newEmail = it },
+                                    placeholder = { Text("Nhập email mới vào đây") },
+                                    colors = TextFieldDefaults.textFieldColors(
+                                        containerColor = Color(0xffD2FFCB),
+                                        unfocusedIndicatorColor = Color(0xff17A400),
+                                    ),
+                                )
+
+                                if (showErrorEmail) {
+                                    Text(
+                                        text = errorMessageEmail,
+                                        color = Color.Red,
+                                        modifier = Modifier.padding(16.dp),
+                                        style = TextStyle(
+                                            fontSize = 16.sp,
+                                            textAlign = TextAlign.Center,
+                                            fontStyle = FontStyle.Italic
+                                        )
+                                    )
+                                }
+                            }
                         },
                         confirmButton = {
                             Button(
@@ -886,14 +1010,14 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                                     val id = user.id
                                     if (newEmail.isNotEmpty()) {
                                         accountViewModel.updateMail(newEmail, id)
-                                        user.email = newEmail
-                                        showDialogEmail = false
-                                        showErrorEmail = false
+
+//                                        showDialogEmail = false
+//                                        showErrorEmail = false
 
 
                                     } else {
                                         showErrorEmail = true
-                                        showDialogEmail = true
+//                                        showDialogEmail = true
                                         errorMessageEmail = "Vui lòng nhập email mới!"
 
                                     }
@@ -916,7 +1040,10 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                         },
                         dismissButton = {
                             Button(
-                                onClick = { showDialogEmail = false },
+                                onClick = {
+                                    showDialogEmail = false
+                                    showErrorEmail = false
+                                },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFFFFA483), // Màu nền của nút
                                     contentColor = Color.Black, // Màu chữ của nút
@@ -939,7 +1066,7 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(0.2.dp, color = Color(0xFF000000))
+                    .border(0.1.dp, color = Color(0xFF000000))
                     .background(
                         Brush.horizontalGradient(
                             colors = listOf(
@@ -1000,41 +1127,50 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                 if (showDialogPhone) {
                     AlertDialog(
                         containerColor = Color(0xFFFFF9AF),
-                        onDismissRequest = { showDialogPhone = false },
+                        onDismissRequest = {
+                            showDialogPhone = false
+                            showErrorPhone = false
+                        },
                         title = {
-                            if (!showErrorPhone) {
-                                Text(
-                                    "Đổi Số Điện Thoại",
-                                    style = TextStyle(
-                                        textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 23.sp,
-                                    ),
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            } else {
-                                Text(
-                                    text = errorMessagePhone,
-                                    color = Color.Red,
-                                    modifier = Modifier.padding(16.dp),
-                                    style = TextStyle(
-                                        fontSize = 19.sp,
-                                        textAlign = TextAlign.Center
-                                    )
-                                )
+                            Text(
+                                "Đổi Số Điện Thoại",
+                                style = TextStyle(
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 23.sp,
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
 
-                            }
                         },
                         text = {
-                            TextField(
-                                value = newPhone,
-                                onValueChange = { newPhone = it },
-                                placeholder = { Text("Nhập sđt mới vào đây") },
-                                colors = TextFieldDefaults.textFieldColors(
-                                    containerColor = Color(0xffFFFDDB),
-                                    unfocusedIndicatorColor = Color(0xffe62e00),
-                                ),
-                            )
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                TextField(
+                                    value = newPhone,
+                                    onValueChange = { newPhone = it },
+                                    placeholder = { Text("Nhập sđt mới vào đây") },
+                                    colors = TextFieldDefaults.textFieldColors(
+                                        containerColor = Color(0xffFFFDDB),
+                                        unfocusedIndicatorColor = Color(0xffe62e00),
+                                    ),
+                                )
+
+                                if (showErrorPhone) {
+                                    Text(
+                                        text = errorMessagePhone,
+                                        color = Color.Red,
+                                        modifier = Modifier.padding(16.dp),
+                                        style = TextStyle(
+                                            fontSize = 16.sp,
+                                            textAlign = TextAlign.Center,
+                                            fontStyle = FontStyle.Italic
+                                        )
+                                    )
+                                }
+                            }
                         },
                         confirmButton = {
                             Button(
@@ -1042,14 +1178,14 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                                     val id = user.id
                                     if (newPhone.isNotEmpty()) {
                                         accountViewModel.updatePhone(newPhone.toInt(), id)
-                                        user.sdt = newPhone.toInt()
-                                        showDialogPhone = false
-                                        showErrorPhone = false
+
+//                                        showDialogPhone = false
+//                                        showErrorPhone = false
 
 
                                     } else {
                                         showErrorPhone = true
-                                        showDialogPhone = true
+//                                        showDialogPhone = true
                                         errorMessagePhone = "Vui lòng nhập sdt mới!"
 
                                     }
@@ -1071,7 +1207,10 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                         },
                         dismissButton = {
                             Button(
-                                onClick = { showDialogPhone = false },
+                                onClick = {
+                                    showDialogPhone = false
+                                    showErrorPhone = false
+                                },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFFFFA483), // Màu nền của nút
                                     contentColor = Color.Black, // Màu chữ của nút
@@ -1094,24 +1233,19 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
             getAddress(user, accountViewModel)
 
 
+
+
+
             loginResult?.let { result ->
                 result.fold(
-                    onSuccess = { token ->
-                        println("Cập nhật thành công")
-                        showErrorName = false
-
-                        showErrorEmail = false
-
-                        showErrorPhone = false
-//                        println("heelooooo")
-                    },
                     onFailure = { exception ->
-                        val requestType by accountViewModel.request.collectAsState(initial = "")
                         when (requestType) {
                             "updateName" -> {
+                                user.username = user.username
                                 showErrorName = true
                                 showDialogName = true
-                                errorMessageName = exception.message ?: "Cập nhật tên thất bại"
+                                errorMessageName =
+                                    exception.message ?: "Cập nhật tên thất bại"
                                 Log.e(
                                     "UpdateName",
                                     "Cập nhật tên thất bại: ${exception.message}"
@@ -1120,7 +1254,7 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
 
                             "updateMail" -> {
                                 // Xử lý lỗi từ yêu cầu cập nhật email
-
+                                user.email = user.email
                                 showErrorEmail = true
                                 showDialogEmail = true
                                 errorMessageEmail =
@@ -1129,30 +1263,82 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                                     "UpdateEmail",
                                     "Cập nhật email thất bại: ${exception.message}"
                                 )
-
                             }
 
                             "updatePhone" -> {
                                 // Xử lý lỗi từ yêu cầu cập nhật số điện thoại
-
+                                user.sdt = user.sdt
                                 showErrorPhone = true
                                 showDialogPhone = true
-                                errorMessagePhone = exception.message ?: "Cập nhật sdt thất bại"
+                                errorMessagePhone =
+                                    exception.message ?: "Cập nhật sdt thất bại"
                                 Log.e(
                                     "UpdatePhone",
                                     "Cập nhật sdt thất bại: ${exception.message}"
                                 )
-
                             }
 
-                            "" -> {
-                                // Xử lý lỗi từ yêu cầu khác
-                                Log.e("AccountScreen", "Lỗi không xác định: ${exception.message}")
+                            "updateAddress" -> {
+                                // Xử lý lỗi từ yêu cầu cập nhật địa chỉ
+                                Log.e(
+                                    "UpdateAddress",
+                                    "Cập nhật địa chỉ thất bại: ${exception.message}"
+                                )
+                            }
+
+                            else -> {
+                                // Xử lý lỗi từ yêu cầu đổi mật khẩu
+                                showErrorPass = true
+                                showSuccessPass = false
+                                showDialogPass = true
+                                errorMessagePass =
+                                    exception.message ?: "Đổi mật khẩu thất bại"
+                                Log.e(
+                                    "ChangePass",
+                                    "Đổi mật khẩu thất bại: ${exception.message}"
+                                )
                             }
                         }
+                    },
+                    onSuccess = { type ->
+                        val request = type.second
+                        when (request) {
+                            "updateName" -> {
+                                println("Cập nhật tên thành công")
+                                showErrorName = false
+                                showDialogName = false
+                                user.username = newName
+                            }
 
+                            "updateMail" -> {
+                                println("Cập nhật mail thành công")
+                                showErrorEmail = false
+                                showDialogEmail = false
+                                user.email = newEmail
+                            }
 
-                    }
+                            "updatePhone" -> {
+                                println("Cập nhật sdt thành công")
+                                showErrorPhone = false
+                                showDialogPhone = false
+                                user.sdt = newPhone.toInt()
+                            }
+
+                            "updateAddress" -> {
+                                println("Cập nhật địa chỉ thành công")
+                            }
+
+                            "changePass" -> {
+                                println("Cập nhật pass thành công")
+                                showErrorPass = false
+                                showSuccessPass = true
+                            }
+
+                            else -> {
+                                println("Không có yêu cầu nào")
+                            }
+                        }
+                    },
                 )
             }
         }

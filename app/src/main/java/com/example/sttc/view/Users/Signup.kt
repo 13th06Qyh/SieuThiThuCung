@@ -162,6 +162,7 @@ fun SignUpForm(
                 value = phone.value,
                 onValueChange = { phone.value = it },
                 placeholder = { Text("Số điện thoại") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Call, contentDescription = "PhoneIcon")
                 }

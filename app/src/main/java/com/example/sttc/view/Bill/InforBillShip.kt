@@ -138,7 +138,7 @@ fun TitleInforBill(back : () -> Unit) {
             modifier = Modifier
                 .size(50.dp)
                 .padding(10.dp, 0.dp)
-                .clickable { back()},
+                .clickable { back() },
             tint = Color(0xFFcc2900)
         )
         Text(
@@ -328,68 +328,73 @@ fun ContentInforBill() {
             )
         }
         HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
-        Row(
-            modifier = Modifier
-                .padding(5.dp, 0.dp)
-                .clickable { /* Do something! */ },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Image(
-                painter = painterResource(id = items[0].product.imageResId),
-                contentDescription = "Image",
+        Column(){
+            Row(
                 modifier = Modifier
-                    .size(100.dp)
-                    .padding(5.dp, 5.dp)
-                    .border(0.1.dp, color = Color.Black)
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .padding(5.dp, 10.dp),
+                    .padding(5.dp, 0.dp)
+                    .clickable { /* Do something! */ },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text(
-                    text = items[0].product.productName,
-                    style = TextStyle(
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                Image(
+                    painter = painterResource(id = items[0].product.imageResId),
+                    contentDescription = "Image",
+                    modifier = Modifier
+                        .size(100.dp)
+                        .padding(5.dp, 5.dp)
+                        .border(0.1.dp, color = Color.Black)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .padding(5.dp, 10.dp),
+                ) {
+                    Text(
+                        text = items[0].product.productName,
+                        style = TextStyle(
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
                     )
-                )
-                Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
-                Text(
-                    text = items[0].product.tagName,
-                    style = TextStyle(
-                        fontSize = 13.sp,
-                        fontStyle = FontStyle.Italic,
-                        color = Color.Black,
+                    Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
+                    Text(
+                        text = items[0].product.tagName,
+                        style = TextStyle(
+                            fontSize = 13.sp,
+                            fontStyle = FontStyle.Italic,
+                            color = Color.Black,
+                        )
                     )
-                )
-                Text(
-                    "x" + items[0].bill.soluongmua.toString(),
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        color = Color.Black,
-                        textAlign = TextAlign.End
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Text(
-                    formatNumber(items[0].product.productPrice) + "đ",
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFcc2900),
-                        textAlign = TextAlign.End
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    Text(
+                        "x" + items[0].bill.soluongmua.toString(),
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            color = Color.Black,
+                            textAlign = TextAlign.End
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        formatNumber(items[0].product.productPrice) + "đ",
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFcc2900),
+                            textAlign = TextAlign.End
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
+
+            SuccessPay()
         }
 
         HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
+
 
         Row(
             modifier = Modifier
@@ -407,7 +412,7 @@ fun ContentInforBill() {
                     color = Color.Black,
                 ),
                 modifier = Modifier
-                    .padding(5.dp, 10.dp)
+                    .padding(10.dp, 10.dp)
             )
             Text(
                 text = formatNumber(items[0].product.productPrice * items[0].bill.soluongmua) + "đ",
@@ -418,7 +423,7 @@ fun ContentInforBill() {
                     color = Color.Black,
                 ),
                 modifier = Modifier
-                    .padding(5.dp, 10.dp)
+                    .padding(10.dp, 10.dp)
             )
 
         }

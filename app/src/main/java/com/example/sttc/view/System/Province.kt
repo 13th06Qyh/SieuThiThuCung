@@ -17,12 +17,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -634,7 +636,7 @@ fun getAddress(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .border(0.1.dp, color = Color(0xFF000000))
+            .border(0.2.dp, color = Color(0xFF000000))
             .background(
                 Brush.horizontalGradient(
                     colors = listOf(
@@ -672,7 +674,7 @@ fun getAddress(
         Text(
             text = user.diachi,
             modifier = Modifier
-                .padding(0.dp, 0.dp, 10.dp, 0.dp)
+                .padding(0.dp, 20.dp, 10.dp, 20.dp)
                 .width(200.dp),
             style = TextStyle(
                 fontSize = 18.sp,
@@ -693,7 +695,10 @@ fun getAddress(
         if (showDialogAddress) {
             AlertDialog(
                 containerColor = Color(0xFFFFBEBE),
-                onDismissRequest = { showDialogAddress = false },
+                onDismissRequest = {
+                    showErrorAddress = false
+                    showDialogAddress = false
+                },
                 title = {
                     Text(
                         "Cập Nhật Địa Chỉ",
@@ -982,7 +987,10 @@ fun getAddress(
                 },
                 dismissButton = {
                     Button(
-                        onClick = { showDialogAddress = false },
+                        onClick = {
+                            showErrorAddress = false
+                            showDialogAddress = false
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFFFA483), // Màu nền của nút
                             contentColor = Color.Black, // Màu chữ của nút
@@ -1003,14 +1011,296 @@ fun getAddress(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun getLocation() {
+    var newAddress by remember { mutableStateOf("") }
+    var showErrorAddress by remember { mutableStateOf(false) }
+
+    var showProvinceDropdown by remember { mutableStateOf(false) }
+    var showCityDropdown by remember { mutableStateOf(false) }
+    var showWardDropdown by remember { mutableStateOf(false) }
+    var showTeamDropdown by remember { mutableStateOf(false) }
+
+    var selectedProvince by remember { mutableStateOf<Province?>(null) }
+    var selectedCity by remember { mutableStateOf<City?>(null) }
+    var selectedWard by remember { mutableStateOf<Ward?>(null) }
+    var selectedTeam by remember { mutableStateOf<Team?>(null) }
+
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(5.dp).background(Color.White),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp, 5.dp, 10.dp, 0.dp)
+                .background(Color.White),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.AddCircle,
+                contentDescription = "Location Icon",
+                tint = Color.Red,
+                modifier = Modifier.size(30.dp)
+            )
+            Text(
+                text = "Dùng địa chỉ khác",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                ),
+                modifier = Modifier.padding(10.dp, 10.dp)
+            )
+            val checkedStateOther = remember { mutableStateOf(false) }
+            Checkbox(
+                checked = checkedStateOther.value,
+                onCheckedChange = { checkedStateOther.value = it },
+                modifier = Modifier
+                    .size(20.dp) // Thay đổi kích thước của checkbox
+                    .padding(130.dp, 0.dp, 15.dp, 0.dp)
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Box {
+                Row(
+                    modifier = Modifier
+                        .size(132.dp, 45.dp)
+                        .border(1.dp, Color.White, RoundedCornerShape(10.dp))
+                        .background(Color(0xFFffcccc), RoundedCornerShape(10.dp)),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Text(
+                        text = selectedProvince?.name ?: "Tỉnh/Thành Phố",
+                        modifier = Modifier
+                            .padding(start = 5.dp, top = 5.dp, bottom = 5.dp)
+                            .clickable { showProvinceDropdown = true })
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Dropdown icon"
+                    )
+                }
+                DropdownMenu(
+                    expanded = showProvinceDropdown,
+                    onDismissRequest = { showProvinceDropdown = false },
+                    modifier = Modifier.fillMaxWidth()
+
+                ) {
+                    provinces.forEach { province ->
+                        DropdownMenuItem(
+                            onClick = {
+                                selectedProvince = province
+                                selectedCity = null
+                                selectedWard = null
+                                selectedTeam = null
+                                showProvinceDropdown = false
+                            },
+                            text = {
+                                Text(text = province.name)
+                            }
+                        )
+                    }
+                }
+            }
+            Box {
+                Row(
+                    modifier = Modifier
+                        .size(132.dp, 45.dp)
+                        .border(1.dp, Color.White, RoundedCornerShape(10.dp))
+                        .background(Color(0xFFffcccc), RoundedCornerShape(10.dp)),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = selectedCity?.name ?: "Quận/Huyện",
+                        modifier = Modifier
+                            .padding(start = 5.dp, top = 5.dp, bottom = 5.dp)
+                            .clickable {
+                                if (selectedProvince != null) {
+                                    showCityDropdown = true
+                                }
+                            }
+                    )
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Dropdown icon"
+                    )
+                }
+                DropdownMenu(
+                    expanded = showCityDropdown,
+                    onDismissRequest = { showCityDropdown = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    selectedProvince?.cities?.forEach { city ->
+                        DropdownMenuItem(
+                            onClick = {
+                                selectedCity = city
+                                selectedWard = null
+                                selectedTeam = null
+                                showCityDropdown = false
+                            },
+                            text = {
+                                Text(text = city.name)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Box {
+                Row(
+                    modifier = Modifier
+                        .size(132.dp, 45.dp)
+                        .border(1.dp, Color.White, RoundedCornerShape(10.dp))
+                        .background(Color(0xFFffcccc), RoundedCornerShape(10.dp)),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = selectedWard?.name ?: "Xã/Phường",
+                        modifier = Modifier
+                            .padding(start = 5.dp, top = 5.dp, bottom = 5.dp)
+                            .clickable {
+                                if (selectedCity != null) {
+                                    showWardDropdown = true
+                                }
+                            }
+                    )
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Dropdown icon"
+                    )
+                }
+                DropdownMenu(
+                    expanded = showWardDropdown,
+                    onDismissRequest = { showWardDropdown = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    selectedCity?.wards?.forEach { ward ->
+                        DropdownMenuItem(
+                            onClick = {
+                                selectedWard = ward
+                                selectedTeam = null
+                                showWardDropdown = false
+                            },
+                            text = {
+                                Text(text = ward.name)
+                            }
+                        )
+                    }
+                }
+            }
+            Box {
+                Row(
+                    modifier = Modifier
+                        .size(132.dp, 45.dp)
+                        .border(1.dp, Color.White, RoundedCornerShape(10.dp))
+                        .background(Color(0xFFffcccc), RoundedCornerShape(10.dp)),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = selectedTeam?.name ?: "Thôn/Tổ",
+                        modifier = Modifier
+                            .padding(start = 5.dp, top = 5.dp, bottom = 5.dp)
+                            .clickable {
+                                if (selectedWard != null) {
+                                    showTeamDropdown = true
+                                }
+                            }
+                    )
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Dropdown icon"
+                    )
+                }
+                DropdownMenu(
+                    expanded = showTeamDropdown,
+                    onDismissRequest = { showTeamDropdown = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    selectedWard?.teams?.forEach { team ->
+                        DropdownMenuItem(
+                            onClick = {
+                                selectedTeam = team
+                                showTeamDropdown = false
+                            },
+                            text = {
+                                Text(text = team.name)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        BasicTextField(
+            value = listOfNotNull(
+                selectedTeam?.name,
+                selectedWard?.name,
+                selectedCity?.name,
+                selectedProvince?.name
+            ).joinToString(", "),
+            onValueChange = {},
+            textStyle = TextStyle(
+                color = Color.Black
+            ),
+            modifier = Modifier.padding(start = 5.dp, end = 5.dp)
+                .height(70.dp)
+                .fillMaxWidth()
+                .border(1.dp, Color.Black, RoundedCornerShape(10.dp))
+                .background(Color.White, RoundedCornerShape(10.dp))
+                .padding(vertical = 12.dp, horizontal = 12.dp)
+
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+        TextField(
+            value = newAddress,
+            onValueChange = { newAddress = it },
+            placeholder = { Text("Nhập tên đường, số nhà, số ngõ nếu có hoặc đặc điểm chi tiết tại đây.") },
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = Color(0xffffebe6),
+                unfocusedIndicatorColor = Color(0xffe62e00),
+            )
+        )
+
+        if (showErrorAddress) {
+            Text(
+                text = "Vui lòng chọn đầy đủ địa chỉ và nhập địa chỉ chi tiết.",
+                color = Color.Red,
+                modifier = Modifier.padding(16.dp),
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    fontStyle = FontStyle.Italic
+                )
+            )
+        }
+    }
+}
+
+
 @Preview(showBackground = true)
 @Composable
 fun ProPreview() {
-    getAddress(
-        User(1, "", "", 123456789, "", "", "", "", "", ""), AccountViewModel(
-            LocalContext.current
-        )
-    )
+    getLocation()
 }
 
 

@@ -18,6 +18,10 @@ import com.example.sttc.model.UpdateMailRequest
 import com.example.sttc.model.UpdateMailResponse
 import com.example.sttc.model.UpdateNameRequest
 import com.example.sttc.model.UpdateNameResponse
+import com.example.sttc.model.UpdateOTPRequest
+import com.example.sttc.model.UpdateOTPResponse
+import com.example.sttc.model.UpdatePassRequest
+import com.example.sttc.model.UpdatePassResponse
 import com.example.sttc.model.UpdatePhoneRequest
 import com.example.sttc.model.UpdatePhoneResponse
 import com.example.sttc.model.User
@@ -38,6 +42,12 @@ class AccountViewModel(context: Context) : ViewModel() {
 
     private val _request = MutableLiveData<String>(null)
     val request = _request.asFlow()
+
+    private val _update= MutableLiveData<Result<Pair<String, String>>>()
+    val update= _update.asFlow()
+
+    private val _create= MutableLiveData<Result<String>>()
+    val create= _create.asFlow()
 
     private val _loginResult = MutableLiveData<Result<String>>()
     val loginResult = _loginResult.asFlow()
@@ -111,7 +121,7 @@ class AccountViewModel(context: Context) : ViewModel() {
     fun updateName(username: String, id: Int) {
         val token = getTokenFromSharedPreferences()
         if (token == null) {
-            _loginResult.value = Result.failure(Exception("No token found"))
+            _update.value = Result.failure(Exception("No token found"))
             return
         }
         val updateNameRequest = UpdateNameRequest(username, id)
@@ -122,9 +132,10 @@ class AccountViewModel(context: Context) : ViewModel() {
                         val user = updatedResponse.user
                         saveUserInfoToSharedPreferences(token, user)
                         updateUserInfo(user)
-                        _loginResult.value = Result.success(token)
+                        val type = Pair(token, "updateName")
+                        _update.value = Result.success(type)
                     } ?: run {
-                        _loginResult.value = Result.failure(Exception("No user found"))
+                        _update.value = Result.failure(Exception("No user found"))
                     }
                 } else {
                     handleErrorResponse(response, "updateName")
@@ -132,7 +143,7 @@ class AccountViewModel(context: Context) : ViewModel() {
             }
 
             override fun onFailure(call: Call<UpdateNameResponse>, t: Throwable) {
-                _loginResult.value = Result.failure(t)
+                _update.value = Result.failure(t)
             }
         })
     }
@@ -140,7 +151,7 @@ class AccountViewModel(context: Context) : ViewModel() {
     fun updateMail(email: String, id: Int) {
         val token = getTokenFromSharedPreferences()
         if (token == null) {
-            _loginResult.value = Result.failure(Exception("No token found"))
+            _update.value = Result.failure(Exception("No token found"))
             return
         }
         val updateMailRequest = UpdateMailRequest(email, id)
@@ -151,9 +162,10 @@ class AccountViewModel(context: Context) : ViewModel() {
                         val user = updatedResponse.user
                         saveUserInfoToSharedPreferences(token, user)
                         updateUserInfo(user)
-                        _loginResult.value = Result.success(token)
+                        val type = Pair(token, "updateMail")
+                        _update.value = Result.success(type)
                     } ?: run {
-                        _loginResult.value = Result.failure(Exception("No user found"))
+                        _update.value = Result.failure(Exception("No user found"))
                     }
                 } else {
                     handleErrorResponse(response, "updateMail")
@@ -161,7 +173,7 @@ class AccountViewModel(context: Context) : ViewModel() {
             }
 
             override fun onFailure(call: Call<UpdateMailResponse>, t: Throwable) {
-                _loginResult.value = Result.failure(t)
+                _update.value = Result.failure(t)
             }
         })
     }
@@ -169,7 +181,7 @@ class AccountViewModel(context: Context) : ViewModel() {
     fun updatePhone(sdt: Int, id: Int) {
         val token = getTokenFromSharedPreferences()
         if (token == null) {
-            _loginResult.value = Result.failure(Exception("No token found"))
+            _update.value = Result.failure(Exception("No token found"))
             return
         }
         val updatePhoneRequest = UpdatePhoneRequest(sdt, id)
@@ -180,9 +192,10 @@ class AccountViewModel(context: Context) : ViewModel() {
                         val user = updatedResponse.user
                         saveUserInfoToSharedPreferences(token, user)
                         updateUserInfo(user)
-                        _loginResult.value = Result.success(token)
+                        val type = Pair(token, "updatePhone")
+                        _update.value = Result.success(type)
                     } ?: run {
-                        _loginResult.value = Result.failure(Exception("No user found"))
+                        _update.value = Result.failure(Exception("No user found"))
                     }
                 } else {
                     handleErrorResponse(response, "updatePhone")
@@ -190,7 +203,7 @@ class AccountViewModel(context: Context) : ViewModel() {
             }
 
             override fun onFailure(call: Call<UpdatePhoneResponse>, t: Throwable, ) {
-                _loginResult.value = Result.failure(t)
+                _update.value = Result.failure(t)
             }
         })
     }
@@ -198,7 +211,7 @@ class AccountViewModel(context: Context) : ViewModel() {
     fun updateAddress(diachi: String, id: Int) {
         val token = getTokenFromSharedPreferences()
         if (token == null) {
-            _loginResult.value = Result.failure(Exception("No token found"))
+            _update.value = Result.failure(Exception("No token found"))
             return
         }
         val updateAddressRequest = UpdateAddressRequest(diachi, id)
@@ -209,9 +222,10 @@ class AccountViewModel(context: Context) : ViewModel() {
                         val user = updatedResponse.user
                         saveUserInfoToSharedPreferences(token, user)
                         updateUserInfo(user)
-                        _loginResult.value = Result.success(token)
+                        val type = Pair(token, "updateAddress")
+                        _update.value = Result.success(type)
                     } ?: run {
-                        _loginResult.value = Result.failure(Exception("No user found"))
+                        _update.value = Result.failure(Exception("No user found"))
                     }
                 } else {
                     handleErrorResponse(response, "updateAddress")
@@ -219,7 +233,105 @@ class AccountViewModel(context: Context) : ViewModel() {
             }
 
             override fun onFailure(call: Call<UpdateAddressResponse>, t: Throwable) {
-                _loginResult.value = Result.failure(t)
+                _update.value = Result.failure(t)
+            }
+        })
+    }
+
+    fun changePass(currentpassword: String, newpassword: String, confirmpassword: String, id: Int) {
+        val token = getTokenFromSharedPreferences()
+        if (token == null) {
+            _update.value = Result.failure(Exception("No token found"))
+            return
+        }
+        val updatePassRequest = UpdatePassRequest(currentpassword, newpassword, confirmpassword, id)
+        apiService.changePass("Bearer $token", id, updatePassRequest).enqueue(object : Callback<UpdatePassResponse> {
+            override fun onResponse(call: Call<UpdatePassResponse>, response: Response<UpdatePassResponse>) {
+                if (response.isSuccessful) {
+                    response.body()?.let { updatedResponse ->
+                        val user = updatedResponse.user
+                        saveUserInfoToSharedPreferences(token, user)
+                        updateUserInfo(user)
+                        val type = Pair(token, "changePass")
+                        _update.value = Result.success(type)
+                        Log.d("token", updatedResponse.message)
+                    } ?: run {
+                        _update.value = Result.failure(Exception("No user found"))
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("API ChangePass Error", "Error body: $errorBody")
+
+                    // Parse JSON error body
+                    val errorMessage = try {
+                        val jsonObject = JSONObject(errorBody)
+                        // Directly fetch the error message using the "error" key
+                        jsonObject.getString("error")
+                    } catch (e: JSONException) {
+                        "Unknown error occurred"
+                    }
+                    Log.e("API ChangePass Error", "Parsed error message: $errorMessage")
+                    _update.value = Result.failure(Exception(errorMessage))
+                }
+            }
+
+            override fun onFailure(call: Call<UpdatePassResponse>, t: Throwable) {
+                _update.value = Result.failure(t)
+            }
+        })
+    }
+
+    fun createOTP(otp: String, id: Int) {
+        val token = getTokenFromSharedPreferences()
+        if (token == null) {
+            _create.value = Result.failure(Exception("No token found"))
+            return
+        }
+        val updateOTPRequest = UpdateOTPRequest(otp, id)
+        apiService.createOTP("Bearer $token", id, updateOTPRequest).enqueue(object : Callback<UpdateOTPResponse> {
+            override fun onResponse(call: Call<UpdateOTPResponse>, response: Response<UpdateOTPResponse>) {
+                if (response.isSuccessful) {
+                    response.body()?.let { updatedResponse ->
+                        val user = updatedResponse.user
+                        saveUserInfoToSharedPreferences(token, user)
+                        updateUserInfo(user)
+                        _create.value = Result.success(token)
+                    } ?: run {
+                        _create.value = Result.failure(Exception("No user found"))
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("API CreateOTP Error", "Error body: $errorBody")
+
+                    // Parse JSON error body
+                    val errorMessage = try {
+                        val jsonObject = JSONObject(errorBody)
+                        val errorsObject = jsonObject.getJSONObject("errors")
+
+                        val errorMessages = mutableListOf<String>()
+
+                        // Iterate through all fields in the errors object
+                        errorsObject.keys().forEach { key ->
+                            val errorArray = errorsObject.getJSONArray(key)
+                            for (i in 0 until errorArray.length()) {
+                                errorMessages.add(errorArray.getString(i))
+                            }
+                        }
+
+                        // Join all error messages into a single string
+                        errorMessages.joinToString(separator = "\n")
+
+                    } catch (e: JSONException) {
+                        "Unknown error occurred"
+                    }
+                    Log.e("API CreateOTP Error", "Parsed error message: $errorMessage")
+
+                    _create.value = Result.failure(Exception(errorMessage))
+                }
+            }
+
+            override fun onFailure(call: Call<UpdateOTPResponse>, t: Throwable) {
+                _create.value = Result.failure(t)
             }
         })
     }
@@ -323,7 +435,7 @@ class AccountViewModel(context: Context) : ViewModel() {
             "Unknown error occurred"
         }
         Log.e("API Update Error", "Parsed error message: $errorMessage")
-        _loginResult.value = Result.failure(Exception(errorMessage))
+         _update.value = Result.failure(Exception(errorMessage))
     }
 
 }

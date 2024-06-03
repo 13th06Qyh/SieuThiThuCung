@@ -2,6 +2,7 @@ package com.example.sttc.view.System
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,13 +19,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -35,10 +42,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
+import com.example.sttc.ui.theme.STTCTheme
+import com.example.sttc.view.TestAccountScreen
 import com.example.sttc.viewmodel.ProductViewModel
 import kotlinx.coroutines.delay
 import java.text.NumberFormat
@@ -109,6 +119,60 @@ fun capitalizeWords(text: String): String {
     }
 }
 
+@Composable
+fun allow(
+    openCard: () -> Unit
+) {
+    var showDialogAllow by remember { mutableStateOf(false) }
+    if (showDialogAllow) {
+        AlertDialog(
+            containerColor = Color(0xFFccf5ff),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.size(400.dp, 150.dp),
+            onDismissRequest = { showDialogAllow = false },
+            title = {},
+            text = {},
+            confirmButton = {},
+            dismissButton = {
+                Column {
+                    Text(
+                        "Bạn đã tạo mã thành công \n ~~ * ~~",
+                        style = TextStyle(
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color(0xFF000099)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                    )
+                    Button(
+                        onClick = {
+                            showDialogAllow = false
+                            openCard()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFccffdd), // Màu nền của nút
+                            contentColor = Color.Black, // Màu chữ của nút
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        border = BorderStroke(1.dp, Color(0xFF00e64d)),
+                    ) {
+                        Text(
+                            "OK",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFcc3300)
+                            )
+                        )
+                    }
+                }
+            }
+        )
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CustomPagerIndicator(
@@ -139,7 +203,7 @@ fun CustomPagerIndicator(
 
 @Composable
 fun SuggestTodayopen(
-    openDetailProducts: (id:Int) -> Unit,
+    openDetailProducts: (id: Int) -> Unit,
     productViewModel: ProductViewModel,
     context: Context,
     selectedOption: String,
@@ -266,8 +330,7 @@ fun SuggestTodayopen(
                             Text(
                                 text = shortenedName, // Thay thế bằng tên sản phẩm thực tế của bạn
                                 modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    ,
+                                    .padding(horizontal = 8.dp),
                                 style = TextStyle(
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
@@ -292,6 +355,14 @@ fun SuggestTodayopen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TestAll() {
+    STTCTheme {
+        allow(openCard = {})
     }
 }
 

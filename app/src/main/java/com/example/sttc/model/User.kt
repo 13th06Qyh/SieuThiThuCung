@@ -10,7 +10,8 @@ data class User(
     val updated_at: String,
     val blacklist: Any?,
     val note: Any?,
-    var diachi: String
+    var diachi: String,
+    var otp: String
 )
 
 data class LoginRequest(
@@ -64,6 +65,28 @@ data class UpdateAddressRequest(
 )
 
 data class UpdateAddressResponse(
+    val message: String,
+    val user: User
+)
+
+data class UpdatePassRequest(
+    val currentpassword: String,
+    val newpassword: String,
+    val confirmpassword: String,
+    val id: Int
+)
+
+data class UpdatePassResponse(
+    val message: String,
+    val user: User
+)
+
+data class UpdateOTPRequest(
+    val diachi: String,
+    val id: Int
+)
+
+data class UpdateOTPResponse(
     val message: String,
     val user: User
 )
