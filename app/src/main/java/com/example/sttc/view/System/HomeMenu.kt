@@ -298,6 +298,7 @@ fun HomeMenuScreen(
                     composable("otp") {
                         Secret(
                             back = { navController.popBackStack() },
+                            openCard = { navController.navigate("card") },
                             accountViewModel = AccountViewModel(context)
                         )
                     }
