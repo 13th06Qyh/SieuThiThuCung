@@ -12,7 +12,7 @@ object ApiService {
         })
         .build()
 
-    private const val BASE_URL = "http://192.168.1.8:8000/api/"
+    private const val BASE_URL = "http://172.21.1.240:8000/api/"
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)

@@ -3,6 +3,7 @@ package com.example.sttc.service
 import androidx.lifecycle.LiveData
 import com.example.sttc.model.Blogs
 import com.example.sttc.model.BlogsData
+import com.example.sttc.model.ImageBlogs
 import com.example.sttc.model.ImageSP
 import com.example.sttc.model.ProductData
 import retrofit2.Call
@@ -22,11 +23,11 @@ interface ApiInterface {
 
 
     // blog
-    @GET("admin/blogs/")
+    @GET("admin/blogs")
     fun getListBlogs(): Call<BlogsData>
-    @GET("admin/blogs/{id}")
-    fun getBlogById(@Path("id") blogId: Int): Call<BlogsData>
-//    @GET("admin/blogs/detail/{id}")
-//    fun getBlogDetailById(@Path("id") blogId: Int): Call<BlogsData>
+    @GET("admin/blogs/{id}/images")
+    fun getImagesByBlogId(@Path("id") productId: Int): Call<List<ImageBlogs>>
 
+    @GET("admin/blogs/detailBlog/{id}")
+    fun getBlogDetailById(@Path("id") blogId: Int): Call<BlogsData>
 }

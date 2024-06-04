@@ -1,5 +1,7 @@
 package com.example.sttc.view.Blogs
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,11 +28,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,20 +45,25 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.viewmodel.BlogsViewModel
+import kotlinx.coroutines.delay
+import kotlin.math.log
+
 @Composable
 fun ListBlogScreen(
     blogsViewModel: BlogsViewModel,
     blogType: String,
     openDetailCmt: (id: Int) -> Unit,
-    openDetailBlogs: (id: Int) -> Unit
+    openDetailBlogs: (id: Int) -> Unit,
+    context: Context
 ) {
+    val blogs by blogsViewModel.blogs.collectAsState(initial = emptyList())
+    val imagesMap by blogsViewModel.imagesBlogs.collectAsState(initial = emptyMap())
     val selectedAnimal = when (blogType) {
         "dog" -> 1
         "cat" -> 2
@@ -65,76 +72,81 @@ fun ListBlogScreen(
         "hamster" -> 4
         else -> 1
     }
-    val blogs by blogsViewModel.blogs.collectAsState(initial = emptyList())
-    val selectedBlogs = blogs.filter { blog ->
-        blog.idAnimal.any { animal -> animal.animalname == blogType }
-    }
-    if (selectedBlogs.isEmpty()) {
-        Text(
-            "Chưa có bài viết nào",
-            modifier = Modifier.fillMaxSize(),
-            textAlign = TextAlign.Center
-        )
-    } else {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF000000)),
-        ) {
-            items(items = selectedBlogs, key = { it.id }) { blog ->
-                Column(
+    val filteredBlogs = blogs.filter { it.idanimal == selectedAnimal }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF000000)),
+    ) {
+        items(items = filteredBlogs) { blog ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Surface(
+                    color = Color.White,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .border(BorderStroke(2.dp, Color(0xFF000000)))
                 ) {
-                    Surface(
-                        color = Color.White,
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .border(BorderStroke(2.dp, Color(0xFF000000)))
+                            .fillMaxSize()
+                            .background(
+                                Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFF9CD8FF),
+                                        Color(0xFFFFFFFF),
+                                        Color(0xFFDAEBFF),
+                                        Color(0xFFFFFFFF),
+                                    ),
+                                    startX = 1000f,
+                                    endX = 70f
+                                )
+                            )
                     ) {
+                        Avatar()
                         Column(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    Brush.horizontalGradient(
-                                        colors = listOf(
-                                            Color(0xFF9CD8FF),
-                                            Color(0xFFFFFFFF),
-                                            Color(0xFFDAEBFF),
-                                            Color(0xFFFFFFFF),
-                                        ),
-                                        startX = 1000f,
-                                        endX = 70f
-                                    )
-                                )
+                                .padding(0.dp, 5.dp, 0.dp, 0.dp)
+                                .background(Color(0xFFffffff))
+                                .fillMaxWidth()
                         ) {
-                            Avatar()
-                            Column(
-                                modifier = Modifier
-                                    .padding(0.dp, 5.dp, 0.dp, 0.dp)
-                                    .background(Color(0xFFffffff))
-                                    .fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = blog.title,
-                                    style = TextStyle(
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 18.sp,
-                                        fontStyle = FontStyle.Italic
-                                    ),
-                                    modifier = Modifier.padding(
-                                        top = 12.dp,
-                                        bottom = 4.dp,
-                                        start = 10.dp,
-                                        end = 10.dp
-                                    )
+                            Text(
+                                text = blog.title,
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    fontStyle = FontStyle.Italic
+                                ),
+                                modifier = Modifier.padding(
+                                    top = 12.dp,
+                                    bottom = 4.dp,
+                                    start = 10.dp,
+                                    end = 10.dp
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                val dbUrl = blog.imageBlogs
-
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+//                            val isImagesFetched = remember { mutableStateOf(false) }
+//                            if (!isImagesFetched.value) {
+//                                blogsViewModel.fetchImages(blog.maBlog)
+//                                isImagesFetched.value = true
+//                            }
+                            blogsViewModel.fetchImages(blog.maBlog)
+                            val blogImages = imagesMap[blog.maBlog].orEmpty()
+                            if (blogImages.isNotEmpty()) {
+                                val image = blogImages.first()
+                                val imageUrl = image.image
+                                val fileName = imageUrl.substringBeforeLast(".")
+                                val resourceId = context.resources.getIdentifier(
+                                    fileName,
+                                    "drawable",
+                                    context.packageName
+                                )
+                                if (resourceId != 0) {
                                     Image(
-                                        painter = painterResource(id = blog.imageBlogs),
+                                        painter = painterResource(id = resourceId),
                                         contentDescription = "blog image",
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
@@ -143,73 +155,81 @@ fun ListBlogScreen(
                                             .height(200.dp)
                                             .clip(shape = RoundedCornerShape(4.dp))
                                     )
-
+                                } else {
+                                    Log.e("ListBlogScreen", "Image not found: $imageUrl")
+                                }
                             }
-
                         }
                     }
                 }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White),
-
-                    ) {
-                    Button(
-                        modifier = Modifier
-                            .weight(1f),
-                        shape = RectangleShape,
-                        onClick = { /*TODO*/ },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                        )
-                    ) {
-                        Icon(
-                            Icons.Default.ThumbUp,
-                            contentDescription = "",
-                            tint = Color.Blue
-                        )
-                        Spacer(modifier = Modifier.width(7.dp))
-                        Text(text = "Thích", color = Color.Gray)
-                    }
-                    Button(
-                        shape = RectangleShape,
-                        onClick = { openDetailCmt(blog.id) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                        )
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.cmt),
-                            contentDescription = "",
-                            tint = Color(0xFF8A8686),
-                        )
-                        Spacer(modifier = Modifier.width(7.dp))
-                        Text(text = "Bình Luận", color = Color.Gray)
-                    }
-                    Button(
-                        shape = RectangleShape,
-                        onClick = { openDetailBlogs(blog.id) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                        )
-                    ) {
-                        Icon(
-                            Icons.Default.Menu,
-                            contentDescription = "",
-                            tint = Color.Red
-                        )
-                        Spacer(modifier = Modifier.width(7.dp))
-                        Text(text = "Chi Tiết", color = Color.Gray)
-                    }
-                }
-                HorizontalDivider(thickness = 7.dp, color = Color(0xFF99d6ff))
-
             }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White),
+            ) {
+                Button(
+                    modifier = Modifier.weight(1f),
+                    shape = RectangleShape,
+                    onClick = { /*TODO*/ },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                    )
+                ) {
+                    Icon(
+                        Icons.Default.ThumbUp,
+                        contentDescription = "",
+                        tint = Color.Blue
+                    )
+                    Spacer(modifier = Modifier.width(7.dp))
+                    Text(text = "Thích", color = Color.Gray)
+                }
+                Button(
+                    shape = RectangleShape,
+                    onClick = {
+                        Log.e(
+                            "aeurszagvjkx",
+                            "openDetailCmt: ${blog.maBlog}"
+                        ) // Ghi log khi click
+                        openDetailCmt(blog.maBlog)
+                    },
+
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                    )
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.cmt),
+                        contentDescription = "",
+                        tint = Color(0xFF8A8686),
+                    )
+                    Spacer(modifier = Modifier.width(7.dp))
+                    Text(text = "Bình Luận", color = Color.Gray)
+                }
+                Button(
+                    shape = RectangleShape,
+                    onClick = { openDetailBlogs(blog.maBlog) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                    )
+                ) {
+                    Icon(
+                        Icons.Default.Menu,
+                        contentDescription = "",
+                        tint = Color.Red
+                    )
+                    Spacer(modifier = Modifier.width(7.dp))
+                    Text(text = "Chi Tiết", color = Color.Gray)
+                }
+            }
+            HorizontalDivider(thickness = 7.dp, color = Color(0xFF99d6ff))
         }
     }
+
+
 }
+
 
 @Composable
 fun Avatar() {
@@ -222,7 +242,6 @@ fun Avatar() {
             modifier = Modifier
                 .size(40.dp)
         ) {
-
             Icon(
                 painter = painterResource(R.drawable.logo),
                 contentDescription = "avatar",
@@ -259,12 +278,13 @@ fun Avatar() {
 @Composable
 fun BaiVietPreview() {
     STTCTheme {
-        var selectedBlogType by remember { mutableStateOf("") }
+        val selectedBlogType by remember { mutableStateOf("") }
         ListBlogScreen(
             blogsViewModel = BlogsViewModel(),
-            selectedBlogType,
+            blogType = selectedBlogType,
             openDetailCmt = {},
             openDetailBlogs = {},
+            context = LocalContext.current
         )
     }
 }

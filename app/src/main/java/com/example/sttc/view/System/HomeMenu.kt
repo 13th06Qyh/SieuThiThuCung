@@ -222,16 +222,20 @@ fun HomeMenuScreen() { //
                         ListBlogScreen(
                             blogsViewModel = BlogsViewModel() ,
                             blogType = selectBlogType,
-                            openDetailBlogs = { id->navController.navigate("DetailBlogs/{$id}") },
-                            openDetailCmt = { id-> navController.navigate("DetailComments/{$id}") },
+                            openDetailBlogs = { id->navController.navigate("detailBlog/$id") },
+                            openDetailCmt = { id-> navController.navigate("detailComments/$id") },
+                            context = LocalContext.current
                         )
                     }
-                    composable("DetailBlogs") {
+                    composable("detailBlog/{id}") {backStackEntry->
                         DetailBlogsScreen(
                             back = { navController.popBackStack() },
+                            blogsViewModel = BlogsViewModel() ,
+                            context = LocalContext.current ,
+                            blogId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
                         )
                     }
-                    composable("DetailComments") {
+                    composable("detailComments") {
                         DetailCommentScreen(
                             back = { navController.popBackStack() },
                         )

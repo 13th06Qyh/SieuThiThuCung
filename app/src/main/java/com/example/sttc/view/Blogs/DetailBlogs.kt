@@ -1,5 +1,9 @@
 package com.example.sttc.view
 
+import android.content.Context
+import android.util.Log
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,6 +39,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -52,15 +59,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.Blogs.Avatar
 import com.example.sttc.view.System.ItemsCmt
+import com.example.sttc.viewmodel.BlogsViewModel
+import androidx.compose.ui.viewinterop.AndroidView
 
 @Composable
 fun DetailBlogsScreen(
-    back : () -> Unit
+    back: () -> Unit,
+    blogsViewModel: BlogsViewModel,
+    context: Context,
+    blogId: Int
 ) {
+    Log.e("DetailBlogsScreen", "Blog ID: $blogId")
     val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
@@ -69,18 +83,21 @@ fun DetailBlogsScreen(
             .verticalScroll(scrollState),
     ) {
         NavagationTop(back)
-        HorizontalDivider( color = Color(0xFFcccccc), thickness = 1.dp)
-        ContentBlogs()
-        HorizontalDivider( color = Color(0xFFcccccc), thickness = 5.dp, modifier = Modifier.padding(0.dp, 10.dp))
+        HorizontalDivider(color = Color(0xFFcccccc), thickness = 1.dp)
+        ContentBlogs(blogsViewModel, blogId, context)
+        HorizontalDivider(
+            color = Color(0xFFcccccc),
+            thickness = 5.dp,
+            modifier = Modifier.padding(0.dp, 10.dp)
+        )
         TitleCmt()
         ShowCmt()
-
     }
 
 }
 
 @Composable
-fun NavagationTop(back : () -> Unit){
+fun NavagationTop(back: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -89,7 +106,7 @@ fun NavagationTop(back : () -> Unit){
 
     ) {
         IconButton(
-            onClick = {back()},
+            onClick = { back() },
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.arrow_back),
@@ -114,8 +131,17 @@ fun NavagationTop(back : () -> Unit){
 }
 
 @Composable
-fun ContentBlogs() {
+fun ContentBlogs(
+    blogsViewModel: BlogsViewModel,
+    blogId: Int,
+    context: Context,
+) {
+    val blogs by blogsViewModel.blogs.collectAsState(initial = emptyList())
+    val imagesMap by blogsViewModel.imagesBlogs.collectAsState(initial = emptyMap())
+    Log.e("Blog ID", "Blog ID: $blogId")
+    blogsViewModel.fetchBlogDetailById(blogId)
 
+    val blog = blogs.find { it.maBlog == blogId }
     Surface(
         color = Color.White,
         shape = RoundedCornerShape(8.dp),
@@ -143,29 +169,51 @@ fun ContentBlogs() {
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.bg4),
-                        contentDescription = "blog image",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .padding(start = 5.dp, end = 5.dp)
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(shape = RoundedCornerShape(4.dp))
+                    blogsViewModel.fetchImages(blogId)
+                    val blogImages = imagesMap[blog?.maBlog].orEmpty()
+                    if (blogImages.isNotEmpty()) {
+                        val image = blogImages.first()
+                        val imageUrl = image.image
+                        val fileName = imageUrl.substringBeforeLast(".")
+                        val resourceId = context.resources.getIdentifier(
+                            fileName,
+                            "drawable",
+                            context.packageName
+                        )
+                        if (resourceId != 0) {
+                            Image(
+                                painter = painterResource(id = resourceId),
+                                contentDescription = "blog image",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .padding(start = 5.dp, end = 5.dp)
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                                    .clip(shape = RoundedCornerShape(4.dp))
+                            )
+                        } else {
+                            Log.e("ListBlogScreen", "Image not found: $imageUrl")
+                        }
+                    }
+                }
+                if (blog != null) {
+                    Text(
+                        text = blog.title,
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 27.sp,
+                            fontStyle = FontStyle.Italic
+                        ),
+                        modifier = Modifier.padding(
+                            top = 12.dp,
+                            bottom = 4.dp,
+                            start = 10.dp,
+                            end = 10.dp
+                        )
                     )
                 }
-
-                Text(
-                    text = "Một số đặc điểm nổi bậc của loài mèo Ba Tư",
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 27.sp,
-                        fontStyle = FontStyle.Italic
-                    ),
-                    modifier = Modifier.padding(top = 12.dp, bottom = 4.dp, start = 10.dp, end = 10.dp)
-                )
                 Spacer(modifier = Modifier.height(4.dp))
-                Card (
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(5.dp, 0.dp)
@@ -179,13 +227,28 @@ fun ContentBlogs() {
                         Color(0xFFFFFFFF)
                     ),
                     content = {
-                        Text(
-                            text = "Nội dung bài viết 1",
-                            style = TextStyle(
-                                fontSize = 18.sp,
-                            ),
-                            modifier = Modifier.padding(10.dp, 12.dp)
-                        )
+                        if (blog != null) {
+                            AndroidView(
+                                factory = { context ->
+                                    WebView(context).apply {
+                                        webViewClient =
+                                            WebViewClient() // Để mở trong WebView, không mở trình duyệt ngoài
+                                        loadDataWithBaseURL(
+                                            null,
+                                            blog.noidung,
+                                            "text/html",
+                                            "UTF-8",
+                                            null
+                                        )
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp, 12.dp)
+                            )
+                        } else {
+                            Text(text = "No blog content available")
+                        }
                     }
                 )
             }
@@ -196,13 +259,13 @@ fun ContentBlogs() {
 }
 
 @Composable
-fun TitleCmt(){
+fun TitleCmt() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp, 0.dp, 10.dp, 10.dp),
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
         Icon(
             painter = painterResource(id = R.drawable.cmt),
             contentDescription = "Cmt",
@@ -212,14 +275,15 @@ fun TitleCmt(){
         Text(
             text = "Bình luận",
             fontWeight = FontWeight.Bold,
-            fontSize = 22.sp ,
+            fontSize = 22.sp,
             modifier = Modifier.padding(start = 10.dp)
         )
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowCmt(){
+fun ShowCmt() {
     //dialog
     var openDialogDelete by remember { mutableStateOf(false) }
     var openDialogBuild by remember { mutableStateOf(false) }
@@ -480,10 +544,16 @@ fun ShowCmt(){
         }
     }
 }
-@Preview(showBackground = true)
+
+@Preview
 @Composable
-fun DetailBlogPreview() {
+fun PreviewDetailBlogsScreen() {
     STTCTheme {
-        DetailBlogsScreen(back = {})
+        DetailBlogsScreen(
+            back = {},
+            blogsViewModel = BlogsViewModel(),
+            context = LocalContext.current,
+            0
+        )
     }
 }

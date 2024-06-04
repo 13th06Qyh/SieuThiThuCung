@@ -1,14 +1,17 @@
 package com.example.sttc.model
 
 data class Blogs(
-    val id: Int,
+    val maBlog: Int,
+    val idanimal: Int,
     val title: String,
-    val noiDung : String ,
+    val noidung : String ,
     val created_at: String,
     val updated_at: String ,
-    val idAnimal: List<Animal>,
-    val imageBlogs: List<ImageBlogs>,
+
+
 )
 data class BlogsData(
-    val blogs : List<Blogs>
+    val blogs : List<Blogs> ,
+    val animals: List<Animal>,
+    val blogDetail : List<Blogs>
 )
