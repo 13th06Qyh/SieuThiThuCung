@@ -30,6 +30,7 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,6 +74,7 @@ import com.example.sttc.view.Products.ProductScreens
 import com.example.sttc.view.Users.AccountScreen
 import com.example.sttc.view.Users.LoginForm
 import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.CartViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,10 +82,11 @@ import com.example.sttc.viewmodel.ProductViewModel
 fun HomeMenuScreen(
     accountViewModel: AccountViewModel,
     openLogin : () -> Unit,
-    openLogout: () -> Unit
+    openLogout: () -> Unit,
 ) { //
     val navController = rememberNavController()
     var selectedProductType by remember { mutableStateOf("") }
+    val user by accountViewModel.userInfoFlow.collectAsState(null)
     Column(
         modifier = Modifier.fillMaxSize(),
     )
@@ -136,7 +139,12 @@ fun HomeMenuScreen(
                     )
                 }
             }
-            IconButton(onClick = { navController.navigate("cart") }) {
+
+            IconButton(
+                onClick = {
+                    navController.navigate("cart")
+                }
+            ) {
                 Icon(
                     Icons.Filled.ShoppingCart,
                     contentDescription = "Cart",
@@ -224,6 +232,8 @@ fun HomeMenuScreen(
                             openCart = { navController.navigate("cart") },
                             openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
                             productViewModel = ProductViewModel(),
+                            cartViewModel = CartViewModel(context),
+                            accountViewModel = AccountViewModel(context),
                             context = LocalContext.current,
                             productId = productId
                         )
@@ -283,7 +293,11 @@ fun HomeMenuScreen(
                     // ------------cart---------------
                     composable("cart") {
                         CartScreen(
-                            back = { navController.popBackStack() }
+                            back = { navController.popBackStack() },
+                            openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
+                            accountViewModel = AccountViewModel(context),
+                            cartViewModel = CartViewModel(context),
+                            context = context
                         )
                     }
                     composable("payments") {

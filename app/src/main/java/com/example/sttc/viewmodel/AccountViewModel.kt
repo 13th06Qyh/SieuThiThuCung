@@ -341,6 +341,7 @@ class AccountViewModel(context: Context) : ViewModel() {
         with(sharedPreferences.edit()) {
             putString("token", token)
             putString("user", Gson().toJson(user)) // Convert user object to JSON string
+            putInt("iduser", user.id) // Lưu iduser vào SharedPreferences
             apply()
         }
     }

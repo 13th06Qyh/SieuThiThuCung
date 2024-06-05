@@ -58,7 +58,7 @@ class BillViewModel : ViewModel() {
                     } catch (e: JsonSyntaxException) {
                         ErrorAddResponse("BillAdd failed", "Malformed error response")
                     }
-                    _buy.value = Result.failure(Exception(errorResponse.errors))
+                    _buy.value = Result.failure(Exception(errorResponse.error))
                 }
             }
 

@@ -12,6 +12,7 @@ import com.example.sttc.view.System.HomeMenuScreen
 import com.example.sttc.view.Users.LoginForm
 import com.example.sttc.view.Users.SignUpForm
 import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.CartViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

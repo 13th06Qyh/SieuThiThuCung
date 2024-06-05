@@ -4,8 +4,10 @@ data class Carts(
     val maCart: Int,
     val idsp: Int,
     val iduser: Int,
-    val created_at: String,
-    val updated_at: String
+    val sanpham: Sanpham,
+    val proname: String,
+    val tagname: String,
+    val image: String
 )
 
 data class CartData(
@@ -22,9 +24,7 @@ data class DeleteResponse(
 )
 
 data class AddRequest(
-    val maCart: Int,
-    val idsp: Int,
-    val iduser: Int
+    val idsp: Int
 )
 
 data class AddResponse(
@@ -33,5 +33,5 @@ data class AddResponse(
 )
 data class ErrorAddResponse(
     val message: String,
-    val errors: String
+    val error: String
 )

@@ -26,6 +26,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +52,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.CartViewModel
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +64,7 @@ fun LoginForm(
     val username = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val loginResult by accountViewModel.loginResult.collectAsState(null)
+    val user by accountViewModel.userInfoFlow.collectAsState(null)
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -235,6 +239,11 @@ fun LoginForm(
                     onSuccess = { token ->
                         println("Đăng nhập thành công")
                         navController.navigate("homemenu")
+//                        LaunchedEffect(user) {
+//                            user?.let { user ->
+//                                cartViewModel.fetchCart(user.id)
+//                            }
+//                        }
 //                        println("heelooooo")
                     },
                     onFailure = { exception ->

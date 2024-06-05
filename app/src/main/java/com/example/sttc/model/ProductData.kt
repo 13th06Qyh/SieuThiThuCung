@@ -11,9 +11,6 @@ data class ProductData(
     val provides: List<Provide>
 )
 
-data class UserData(
-    val users: List<User>
-)
 
 
 
