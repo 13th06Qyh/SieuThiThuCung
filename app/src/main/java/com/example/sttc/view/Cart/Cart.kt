@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -35,8 +36,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,6 +58,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
+import com.example.sttc.model.PayData
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.formatNumber
 import com.example.sttc.viewmodel.AccountViewModel
@@ -66,17 +70,32 @@ import kotlinx.coroutines.delay
 fun CartScreen(
     back: () -> Unit,
     openDetailProducts: (id: Int) -> Unit,
+    openPayment: (List<PayData>) -> Unit,
     accountViewModel: AccountViewModel,
     cartViewModel: CartViewModel,
     context: Context
 ) {
-    val user by accountViewModel.userInfoFlow.collectAsState(null)
+    val users by accountViewModel.userInfoFlow.collectAsState(null)
     val carts by cartViewModel.cart.collectAsState(emptyList())
     val destroy by cartViewModel.delete.collectAsState(null)
+    val checkAll = remember { mutableStateOf(false) }
+    val checkOnlyStates = remember { mutableStateListOf<MutableState<Boolean>>() }
+    val selectedItemsPrice = remember { mutableStateOf(0) }
+    val quantities = remember { mutableStateListOf<MutableState<Int>>() }
     var openDialogDeleteCart by remember { mutableStateOf(false) }
 
-    LaunchedEffect(user) {
-        user?.let { user ->
+    fun calculateTotalPrice() {
+        val totalPrice = carts
+            .mapIndexed { index, cart ->
+                if (checkOnlyStates[index].value) cart.sanpham.buyprice.toInt() * quantities[index].value
+                else 0
+            }
+            .sum()
+        selectedItemsPrice.value = totalPrice
+    }
+
+    LaunchedEffect(users) {
+        users?.let { user ->
             cartViewModel.fetchCart()
             Log.d("CartScreenUU", "User ID: ${user.id}")
         }
@@ -84,6 +103,22 @@ fun CartScreen(
 
     Log.d("CartScreen", "Carts: $carts")
 
+    LaunchedEffect(carts) {
+        checkOnlyStates.clear()
+        quantities.clear()
+        carts.forEach { _ ->
+            checkOnlyStates.add(mutableStateOf(false))
+            quantities.add(mutableStateOf(1))
+        }
+        calculateTotalPrice()
+    }
+    LaunchedEffect(checkOnlyStates, quantities) {
+        calculateTotalPrice()
+    }
+    LaunchedEffect(checkAll.value) {
+        checkOnlyStates.forEach { it.value = checkAll.value }
+        calculateTotalPrice()
+    }
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -147,8 +182,18 @@ fun CartScreen(
                 .background(Color(0xFFffcccc))
                 .padding(5.dp, 5.dp)
         ) {
-            items(carts) { cart ->
+            itemsIndexed(carts) { index, cart ->
                 val product = cart.sanpham
+                val checkOnly =
+                    checkOnlyStates.getOrNull(index) ?: remember { mutableStateOf(false) }
+                val quantityState = quantities.getOrNull(index) ?: remember { mutableStateOf(1) }
+                var quantity by remember { mutableStateOf(quantityState.value) }
+
+                LaunchedEffect(product.soluongkho) {
+                    quantity =
+                        if (quantity < 1) 1 else if (quantity > product.soluongkho) product.soluongkho else quantity
+                }
+
                 Column(
                     modifier = Modifier
                         .padding(0.dp, 0.dp, 0.dp, 10.dp)
@@ -179,10 +224,15 @@ fun CartScreen(
                                 .padding(10.dp, 5.dp)
                         )
 
-                        val checkedState = remember { mutableStateOf(false) }
                         Checkbox(
-                            checked = checkedState.value,
-                            onCheckedChange = { checkedState.value = it },
+                            checked = checkOnly.value,
+                            onCheckedChange = {
+                                checkOnly.value = it
+                                if (!it) checkAll.value = false
+                                if (checkOnlyStates.all { state -> state.value }) checkAll.value =
+                                    true
+                                calculateTotalPrice()
+                            },
                             modifier = Modifier
                                 .size(20.dp) // Thay đổi kích thước của checkbox
                                 .padding(0.dp, 0.dp, 15.dp, 0.dp)
@@ -271,32 +321,48 @@ fun CartScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(40.dp)
-                            .padding(end = 5.dp),
-                        horizontalArrangement = Arrangement.SpaceAround,
+                            .height(50.dp)
+                            .padding(end = 10.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-
-                        IconButton(onClick = { openDialogDeleteCart = true }) {
+                        // Delete Icon Button
+                        IconButton(
+                            onClick = {
+                                val cartIdToDelete = cart.maCart// Lưu lại cartId khi nhấn nút
+                                Log.d(
+                                    "CartScreenD",
+                                    "Delete button clicked for cart ID: $cartIdToDelete"
+                                )
+                                cartViewModel.deleteCart(cart.maCart)
+                            },
+                            modifier = Modifier.size(40.dp)
+                        ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.trash3),
                                 contentDescription = "Delete",
                                 tint = Color.Red,
-                                modifier = Modifier.size(25.dp)
+                                modifier = Modifier.size(30.dp)
                             )
                         }
 
+                        // Quantity Control Row
                         Row(
                             modifier = Modifier
-                                .padding(start = 145.dp)
-                                .height(40.dp)
-                                .border(1.dp, color = Color(0xFFd9d9d9)),
+                                .fillMaxWidth(),
                             horizontalArrangement = Arrangement.End,
                             verticalAlignment = Alignment.CenterVertically
-
                         ) {
-
+                            // Remove Button
                             IconButton(
-                                onClick = { /*TODO*/ },
+                                onClick = {
+                                    if (quantity > 1) quantity -= 1
+                                    quantityState.value = quantity
+                                    calculateTotalPrice()
+                                },
+                                modifier = Modifier
+                                    .height(40.dp)
+                                    .border(1.dp, Color.Gray)
                             ) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.remove),
@@ -305,33 +371,38 @@ fun CartScreen(
                                 )
                             }
 
-
+                            // Quantity Display
                             Row(
                                 modifier = Modifier
                                     .width(60.dp)
-                                    .height(40.dp)
+                                    .height(45.dp)
                                     .border(1.dp, Color.Gray),
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                val range = 1.toString()
                                 Text(
-                                    text = range,
-                                    modifier = Modifier
-                                        .width(60.dp),
+                                    text = quantity.toString(),
                                     style = TextStyle(
                                         fontSize = 20.sp,
                                         color = Color.Black,
-                                        textAlign = TextAlign.Center,
+                                        textAlign = TextAlign.Center
                                     )
                                 )
                             }
 
+                            // Add Button
                             IconButton(
-                                onClick = { /*TODO*/ },
+                                onClick = {
+                                    if (quantity < product.soluongkho.toInt()) quantity += 1
+                                    quantityState.value = quantity
+                                    calculateTotalPrice()
+                                },
+                                modifier = Modifier
+                                    .height(40.dp)
+                                    .border(1.dp, Color.Gray)
                             ) {
                                 Icon(
-                                    Icons.Default.Add,
+                                    imageVector = Icons.Default.Add,
                                     contentDescription = "Add",
                                     tint = Color(0xFF4d4d4d)
                                 )
@@ -341,71 +412,17 @@ fun CartScreen(
                     HorizontalDivider(thickness = 10.dp, color = Color.White)
                 }
 
-                if (openDialogDeleteCart) {
-                    AlertDialog(
-                        containerColor = Color(0xFFfffff5),
-                        onDismissRequest = { openDialogDeleteCart = false },
-                        title = {
-                            Text(
-                                "Bạn chắc chắn muốn xóa khỏi giỏ hàng?",
-                                style = TextStyle(
-                                    textAlign = TextAlign.Center,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        },
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    cartViewModel.deleteCart(cart.maCart)
-                                    openDialogDeleteCart = false
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFFFA483), // Màu nền của nút
-                                    contentColor = Color.Black, // Màu chữ của nút
-                                ),
 
-                                border = BorderStroke(1.dp, Color(0xFF8B2701)),
-                            ) {
-                                Text(
-                                    "Xác nhận",
-                                    style = TextStyle(
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                )
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(
-                                onClick = {
-                                    openDialogDeleteCart = false
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFA2FFAB), // Màu nền của nút
-                                    contentColor = Color.Black, // Màu chữ của nút
-                                ),
-
-                                border = BorderStroke(1.dp, Color(0xFF018B0F)),
-                            ) {
-                                Text(
-                                    "Hủy",
-                                    style = TextStyle(
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                )
-                            }
-                        }
-                    )
-                }
 
                 LaunchedEffect(destroy) {
                     destroy?.let {
                         if (it.isSuccess) {
                             cartViewModel.fetchCart() // Cập nhật lại giỏ hàng sau khi xóa thành công
                         } else {
-                            Log.e("CartScreen", "Failed to delete cart: ${it.exceptionOrNull()?.message}")
+                            Log.e(
+                                "CartScreen",
+                                "Failed to delete cart: ${it.exceptionOrNull()?.message}"
+                            )
                         }
                     }
                 }
@@ -428,17 +445,20 @@ fun CartScreen(
             Row(
                 modifier = Modifier
                     .width(95.dp)
-                    .padding(start = 10.dp)
-                    .clickable { /*TODO*/ },
+                    .padding(start = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
-                    checked = false,
-                    onCheckedChange = { /*TODO: Add your action here*/ },
+                    checked = checkAll.value,
+                    onCheckedChange = {
+                        checkAll.value = it
+                        checkOnlyStates.forEach { state -> state.value = it }
+                        calculateTotalPrice()
+                    },
                     modifier = Modifier
                         .size(20.dp),
                     colors = CheckboxDefaults.colors(
-                        checkmarkColor = Color(0xFFcc2900),
+                        checkmarkColor = Color.White,
                         checkedColor = Color(0xFFcc2900),
                         uncheckedColor = Color.Gray,
                     )
@@ -465,14 +485,29 @@ fun CartScreen(
                         modifier = Modifier.padding(bottom = 3.dp)
                     )
                     Text(
-                        text = formatNumber(1000000) + "đ ",
+                        text = formatNumber(selectedItemsPrice.value) + "đ ",
                         color = Color.Red,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.End,
                     )
                 }
                 Button(
                     shape = RectangleShape,
-                    onClick = { /*TODO: Add your action here*/ },
+                    onClick = {
+                        val selectedProducts = carts
+                            .filterIndexed { index, _ -> checkOnlyStates[index].value }
+                            .mapIndexed { index, cart ->
+                                PayData(
+                                    id = cart.sanpham.maSP,
+                                    image = cart.image,
+                                    name = cart.sanpham.tensp,
+                                    tag = cart.tagname,
+                                    price = cart.sanpham.buyprice.toInt(),
+                                    quantity = quantities[index].value  // Cân chỉnh số lượng khi cần
+                                )
+                            }
+                        openPayment(selectedProducts)
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Red,
                     ),
@@ -501,6 +536,7 @@ fun CartPreview() {
         CartScreen(
             back = {},
             openDetailProducts = {},
+            openPayment = {},
             AccountViewModel(LocalContext.current),
             CartViewModel(LocalContext.current),
             LocalContext.current

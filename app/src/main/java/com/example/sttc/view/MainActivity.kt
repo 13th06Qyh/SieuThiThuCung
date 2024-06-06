@@ -54,6 +54,7 @@ fun App(
                     accountViewModel.logout()
                     navController.navigate("login")
                 },
+                cartViewModel = CartViewModel(context)
             )
         }
 

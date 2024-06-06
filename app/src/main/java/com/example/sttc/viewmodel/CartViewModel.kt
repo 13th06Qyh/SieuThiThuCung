@@ -29,7 +29,10 @@ class CartViewModel(context: Context) : ViewModel() {
     private val _cart = MutableLiveData<List<Carts>>()
     val cart = _cart.asFlow()
 
-    private val _delete = MutableLiveData<Result<Carts>>()
+    private val _count = MutableLiveData<Int>()
+    val count = _count.asFlow()
+
+    private val _delete = MutableLiveData<Result<String>>()
     val delete = _delete.asFlow()
 
     private val _add = MutableLiveData<Result<String>>()
@@ -68,7 +71,10 @@ class CartViewModel(context: Context) : ViewModel() {
 
                             val cartData = response.body()
                             _cart.value = cartData?.carts
+                            _count.value = cartData?.productCount
                             Log.d("CartViewModel", "Fetched Cart Data: ${cartData?.carts}")
+                            Log.d("CartViewModelCount", "Fetched Cart Data: ${cartData?.productCount}")
+
                             Log.e("Response Category", cartData.toString())
                             lastFetchTime = System.currentTimeMillis()
 
@@ -102,54 +108,48 @@ class CartViewModel(context: Context) : ViewModel() {
     }
 
     fun deleteCart(cartId: Int) {
-        val iduser = getUserIdFromSharedPreferences() ?: return
+        Log.d("E", "Attempting to delete cart with ID: $cartId")
         viewModelScope.launch {
             if (System.currentTimeMillis() - lastFetchTime < 60000) {
                 // Nếu lần tải trước đó chưa quá 60 giây, không tải lại
                 return@launch
             }
-            try {
-                // Gửi yêu cầu để xóa sản phẩm khỏi giỏ hàng
-                val deleteRequest = DeleteRequest(cartId)
-                apiService.deleteSPtoCart(cartId, iduser, deleteRequest)
-                    .enqueue(object : Callback<DeleteResponse> {
-                        override fun onResponse(
-                            call: Call<DeleteResponse>,
-                            response: Response<DeleteResponse>
-                        ) {
-                            if (response.isSuccessful) {
-                                response.body()?.let { deleteResponse ->
-                                    val carts = deleteResponse.carts
-                                    _delete.value = Result.success(carts)
-                                    fetchCart() // Cập nhật lại giỏ hàng sau khi xóa thành công
-                                } ?: run {
-                                    _delete.value = Result.failure(Exception("No cart found"))
-                                }
-                            } else {
-                                if (response.code() == 429) {
-                                    Log.e(
-                                        "API CartDelete Error",
-                                        "Error: Too Many Requests (429), retrying in 60 seconds"
-                                    )
-                                    viewModelScope.launch(Dispatchers.IO) {
-                                        delay(60000) // Wait for 60 seconds before retrying
-                                        deleteCart(cartId)
-                                    }
-                                } else {
-                                    Log.e("API CartDelete Error", "Error: ${response.code()}")
-                                }
+            val call: Call<DeleteResponse> = apiService.deleteSPtoCart(cartId)
+            call.enqueue(object : Callback<DeleteResponse> {
+                override fun onResponse(
+                    call: Call<DeleteResponse>,
+                    response: Response<DeleteResponse>
+                ) {
+                    Log.d("Run", "Chạy: $cartId")
+                    if (response.isSuccessful) {
+                        response.body()?.let {
+                            _delete.value = Result.success(it.message)
+                            Log.d("CartViewModelDelete", "Deleted cart with ID: $cartId")
+                            fetchCart() // Cập nhật lại giỏ hàng sau khi xóa thành công
+                        } ?: run {
+                            _delete.value = Result.failure(Exception("No cart found"))
+                        }
+                    } else {
+                        if (response.code() == 429) {
+                            Log.e(
+                                "API CartDelete Error",
+                                "Error: Too Many Requests (429), retrying in 60 seconds"
+                            )
+                            viewModelScope.launch(Dispatchers.IO) {
+                                delay(60000) // Wait for 60 seconds before retrying
+                                deleteCart(cartId)
                             }
+                        } else {
+                            Log.e("API CartDelete Error", "Error: ${response.code()}")
                         }
+                    }
+                }
 
-                        override fun onFailure(call: Call<DeleteResponse>, t: Throwable) {
-                            Log.e("API CartDelete Error", "Error: ${t.message}")
-                            t.printStackTrace()
-                        }
-                    })
-            } catch (e: Exception) {
-                Log.e("API CartDelete Error", "Error: ${e.message}")
-                e.printStackTrace()
-            }
+                override fun onFailure(call: Call<DeleteResponse>, t: Throwable) {
+                    Log.e("API CartDelete Error", "Error: ${t.message}")
+                    t.printStackTrace()
+                }
+            })
         }
     }
 

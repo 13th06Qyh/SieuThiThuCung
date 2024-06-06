@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -1013,7 +1014,10 @@ fun getAddress(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun getLocation() {
+fun getLocation(
+    checkedStateOther: MutableState<Boolean>,
+    checkedStateDefautl: MutableState<Boolean>
+) {
     var newAddress by remember { mutableStateOf("") }
     var showErrorAddress by remember { mutableStateOf(false) }
 
@@ -1028,7 +1032,10 @@ fun getLocation() {
     var selectedTeam by remember { mutableStateOf<Team?>(null) }
 
     Column(
-        modifier = Modifier.fillMaxWidth().padding(5.dp).background(Color.White),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(5.dp)
+            .background(Color.White),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -1054,18 +1061,27 @@ fun getLocation() {
                 ),
                 modifier = Modifier.padding(10.dp, 10.dp)
             )
-            val checkedStateOther = remember { mutableStateOf(false) }
-            Checkbox(
-                checked = checkedStateOther.value,
-                onCheckedChange = { checkedStateOther.value = it },
-                modifier = Modifier
-                    .size(20.dp) // Thay đổi kích thước của checkbox
-                    .padding(130.dp, 0.dp, 15.dp, 0.dp)
-            )
+//            val checkedStateOther = remember { mutableStateOf(false) }
+           Row (
+               modifier = Modifier
+                   .fillMaxWidth()
+                   .padding(end = 7.dp),
+               horizontalArrangement = Arrangement.End
+           ){
+                Checkbox(
+                    checked = checkedStateOther.value,
+                    onCheckedChange = { checkedStateOther.value = it
+                        if (it) checkedStateDefautl.value = false },
+                    modifier = Modifier
+                        .size(20.dp)
+                )
+            }
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Box {
@@ -1261,7 +1277,8 @@ fun getLocation() {
             textStyle = TextStyle(
                 color = Color.Black
             ),
-            modifier = Modifier.padding(start = 5.dp, end = 5.dp)
+            modifier = Modifier
+                .padding(start = 5.dp, end = 5.dp)
                 .height(70.dp)
                 .fillMaxWidth()
                 .border(1.dp, Color.Black, RoundedCornerShape(10.dp))
@@ -1300,7 +1317,7 @@ fun getLocation() {
 @Preview(showBackground = true)
 @Composable
 fun ProPreview() {
-    getLocation()
+    getLocation(remember { mutableStateOf(false) }, remember { mutableStateOf(false) })
 }
 
 

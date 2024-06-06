@@ -45,7 +45,6 @@
 //import androidx.compose.ui.graphics.Brush
 //import androidx.compose.ui.graphics.Color
 //import androidx.compose.ui.graphics.RectangleShape
-//import androidx.compose.ui.layout.ContentScale
 //import androidx.compose.ui.platform.LocalContext
 //import androidx.compose.ui.res.painterResource
 //import androidx.compose.ui.text.TextStyle
@@ -55,21 +54,9 @@
 //import androidx.compose.ui.tooling.preview.Preview
 //import androidx.compose.ui.unit.dp
 //import androidx.compose.ui.unit.sp
-//import androidx.navigation.compose.NavHost
-//import androidx.navigation.compose.composable
-//import androidx.navigation.compose.rememberNavController
 //import com.example.sttc.R
 //import com.example.sttc.ui.theme.STTCTheme
-//import com.example.sttc.view.PaymentScreen
-//import com.example.sttc.view.System.Bill
-//import com.example.sttc.view.System.BillProduct
-//import com.example.sttc.view.System.Card
-//import com.example.sttc.view.System.HomeMenuScreen
-//import com.example.sttc.view.System.Product
-//import com.example.sttc.view.System.Secret
 //import com.example.sttc.view.System.formatNumber
-//import com.example.sttc.view.Users.LoginForm
-//import com.example.sttc.view.Users.SignUpForm
 //import com.example.sttc.viewmodel.AccountViewModel
 //import com.example.sttc.viewmodel.CartViewModel
 //import com.example.sttc.viewmodel.ProductViewModel
@@ -81,38 +68,20 @@
 //    openDetailProducts: (id: Int) -> Unit,
 //    accountViewModel: AccountViewModel,
 //    cartViewModel: CartViewModel,
-//    productViewModel: ProductViewModel,
 //    context: Context
 //) {
-//    val products by productViewModel.products.collectAsState(initial = emptyList())
-//    val user by accountViewModel.userInfoFlow.collectAsState(null)
+//    val users by accountViewModel.userInfoFlow.collectAsState(null)
 //    val carts by cartViewModel.cart.collectAsState(emptyList())
-//    val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())
-//    val tag by productViewModel.tag.collectAsState(initial = emptyList())
-//    val tagMap = remember(tag) { tag.associateBy { it.maTag } }
-//    val provide by productViewModel.provide.collectAsState(initial = emptyList())
-//    val provideMap = remember(provide) { provide.associateBy { it.maNCC } }
+//    val destroy by cartViewModel.delete.collectAsState(null)
 //    var openDialogDeleteCart by remember { mutableStateOf(false) }
 //
-//    LaunchedEffect(user) {
-//        user?.let { user ->
-//            cartViewModel.fetchCart(user.id)
-//            Log.d("CartScreen", "User ID: ${user.id}")
+//    LaunchedEffect(users) {
+//        users?.let { user ->
+//            cartViewModel.fetchCart()
+//            Log.d("CartScreenUU", "User ID: ${user.id}")
 //        }
 //    }
 //
-//    LaunchedEffect(products, carts) {
-//        carts.forEach { cart ->
-//            productViewModel.fetchProductById(cart.idsp)
-//            delay(7000)
-//            productViewModel.fetchTag()
-//            delay(5000)
-//            productViewModel.fetchProvide()
-//            Log.d("CartScreen", "Fetching product for Cart Item ID: ${cart.idsp}")
-//        }
-//    }
-//
-//    Log.d("CartScreen", "Products: $products")
 //    Log.d("CartScreen", "Carts: $carts")
 //
 //    Column(
@@ -123,7 +92,6 @@
 //        Row(
 //            modifier = Modifier
 //                .fillMaxWidth()
-////            .height(50.dp)
 //                .background(
 //                    Brush.radialGradient(
 //                        colors = listOf(
@@ -134,9 +102,7 @@
 //                        radius = 600f
 //                    )
 //                )
-//                .padding(top = 0.dp)
-////                .border(1.dp, color = Color(0xFFff6666))
-//            ,
+//                .padding(top = 0.dp),
 //            horizontalArrangement = Arrangement.Start
 //        ) {
 //            Icon(
@@ -182,267 +148,229 @@
 //                .padding(5.dp, 5.dp)
 //        ) {
 //            items(carts) { cart ->
-//                val product = products.find { it.maSP == cart.idsp }
-//                if (product != null) {
-//                    Column(
+//                val product = cart.sanpham
+//                Column(
+//                    modifier = Modifier
+//                        .padding(0.dp, 0.dp, 0.dp, 10.dp)
+//                        .border(1.dp, color = Color(0xFFFFFFFF))
+//                        .fillMaxWidth()
+//                        .background(
+//                            Color.White
+//                        ),
+//                    horizontalAlignment = Alignment.CenterHorizontally
+//                ) {
+//                    Row(
 //                        modifier = Modifier
-//                            .padding(0.dp, 0.dp, 0.dp, 10.dp)
-//                            .border(1.dp, color = Color(0xFFFFFFFF))
 //                            .fillMaxWidth()
-//                            .background(
-//                                Color.White
-//                            ),
-//                        horizontalAlignment = Alignment.CenterHorizontally
+//                            .height(40.dp),
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.SpaceBetween
 //                    ) {
-//                        Row(
+//                        Text(
+//                            text = cart.proname,
+//                            style = TextStyle(
+//                                fontSize = 15.sp,
+//                                fontStyle = FontStyle.Italic,
+//                                textAlign = TextAlign.Start,
+//                                fontWeight = FontWeight.Bold,
+//                                color = Color(0xFF000000),
+//                            ),
+//                            modifier = Modifier
+//                                .padding(10.dp, 5.dp)
+//                        )
+//
+//                        val checkedState = remember { mutableStateOf(false) }
+//                        Checkbox(
+//                            checked = checkedState.value,
+//                            onCheckedChange = { checkedState.value = it },
+//                            modifier = Modifier
+//                                .size(20.dp) // Thay đổi kích thước của checkbox
+//                                .padding(0.dp, 0.dp, 15.dp, 0.dp)
+//                        )
+//                    }
+//
+//                    HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+//
+//                    Row(
+//                        modifier = Modifier
+//                            .clickable { openDetailProducts(product.maSP) },
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        horizontalArrangement = Arrangement.SpaceEvenly
+//                    ) {
+//                        val productImages = cart.image
+//                        val imageUrl = productImages
+//                        val fileName =
+//                            imageUrl.substringAfterLast("/").substringBeforeLast(".")
+//                        val resourceId = context.resources.getIdentifier(
+//                            fileName,
+//                            "drawable",
+//                            context.packageName
+//                        )
+//                        val a = context.resources.getResourceName(resourceId)
+//                        val b = a.substringAfter('/')
+////                        Log.d("test", "FileName: $fileName")
+////                        Log.d("test", "ResourceId: $resourceId")
+////                        Log.d("test", "ResourceName1: $a")
+////                        Log.d("test", "ResourceName2: $b")
+//                        if (b == fileName) {
+//                            Image(
+//                                painter = painterResource(id = resourceId),
+//                                contentDescription = "Image",
+//                                modifier = Modifier
+//                                    .size(100.dp)
+//                                    .padding(5.dp, 5.dp)
+//                                    .border(0.1.dp, color = Color.Black)
+//                            )
+//                        } else {
+//                            Text(text = "Image not found")
+//                        }
+//
+//
+//                        Column(
 //                            modifier = Modifier
 //                                .fillMaxWidth()
-//                                .height(40.dp),
-//                            verticalAlignment = Alignment.CenterVertically,
-//                            horizontalArrangement = Arrangement.SpaceBetween
+//                                .height(100.dp)
+//                                .padding(5.dp, 16.dp),
 //                        ) {
-//                            val provides = provideMap[product.idNCC]
-//                            if (provides != null) {
-//                                Text(
-//                                    text = provides.proname,
-//                                    style = TextStyle(
-//                                        fontSize = 15.sp,
-//                                        fontStyle = FontStyle.Italic,
-//                                        textAlign = TextAlign.Start,
-//                                        fontWeight = FontWeight.Bold,
-//                                        color = Color(0xFF000000),
-//                                    ),
-//                                    modifier = Modifier
-//                                        .padding(10.dp, 5.dp)
+//                            Text(
+//                                text = product.tensp,
+//                                style = TextStyle(
+//                                    fontSize = 22.sp,
+//                                    fontWeight = FontWeight.Bold,
+//                                    color = Color.Black
 //                                )
-//                            }
+//                            )
+//                            Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
 //
-//                            val checkedState = remember { mutableStateOf(false) }
-//                            Checkbox(
-//                                checked = checkedState.value,
-//                                onCheckedChange = { checkedState.value = it },
-//                                modifier = Modifier
-//                                    .size(20.dp) // Thay đổi kích thước của checkbox
-//                                    .padding(0.dp, 0.dp, 15.dp, 0.dp)
+//                            Text(
+//                                text = cart.tagname,
+//                                style = TextStyle(
+//                                    fontSize = 16.sp,
+//                                    fontStyle = FontStyle.Italic,
+//                                    color = Color.Black,
+//                                )
+//                            )
+//
+//                            val price = product.buyprice.toInt()
+//                            Text(
+//                                "Giá: " + formatNumber(price) + "đ",
+//                                style = TextStyle(
+//                                    fontSize = 18.sp,
+//                                    fontWeight = FontWeight.Bold,
+//                                    color = Color.Red,
+//                                    textAlign = TextAlign.End
+//                                ),
+//                                modifier = Modifier.fillMaxWidth()
+//                            )
+//                        }
+//                    }
+//
+//                    HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+//                    HorizontalDivider(thickness = 10.dp, color = Color.White)
+//
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .height(50.dp)
+//                            .padding(end = 10.dp),
+//                        horizontalArrangement = Arrangement.Start,
+//                        verticalAlignment = Alignment.CenterVertically
+//                    ) {
+//                        // Delete Icon Button
+//                        IconButton(
+//                            onClick = {
+//                                val cartIdToDelete = cart.maCart// Lưu lại cartId khi nhấn nút
+//                                Log.d(
+//                                    "CartScreenD",
+//                                    "Delete button clicked for cart ID: $cartIdToDelete"
+//                                )
+//                                cartViewModel.deleteCart(cart.maCart)
+//                            },
+//                            modifier = Modifier.size(40.dp)
+//                        ) {
+//                            Icon(
+//                                painter = painterResource(id = R.drawable.trash3),
+//                                contentDescription = "Delete",
+//                                tint = Color.Red,
+//                                modifier = Modifier.size(30.dp)
 //                            )
 //                        }
 //
-//                        HorizontalDivider(thickness = 1.dp, color = Color.Gray)
-//
+//                        // Quantity Control Row
 //                        Row(
 //                            modifier = Modifier
-//                                .clickable { openDetailProducts(product.maSP) },
-//                            verticalAlignment = Alignment.CenterVertically,
-//                            horizontalArrangement = Arrangement.SpaceEvenly
+//                                .fillMaxWidth(),
+//                            horizontalArrangement = Arrangement.End,
+//                            verticalAlignment = Alignment.CenterVertically
 //                        ) {
-//                            val productImages = imagesMap[product.maSP].orEmpty()
-//                            if (productImages.isNotEmpty()) {
-//                                val image = productImages.first()
-//                                val imageUrl = image.image
-//                                val fileName =
-//                                    imageUrl.substringAfterLast("/").substringBeforeLast(".")
-//                                val resourceId = context.resources.getIdentifier(
-//                                    fileName,
-//                                    "drawable",
-//                                    context.packageName
-//                                )
-//                                val a = context.resources.getResourceName(resourceId)
-//                                val b = a.substringAfter('/')
-//                                if (b == fileName) {
-//                                    Image(
-//                                        painter = painterResource(id = product.maSP),
-//                                        contentDescription = "Image",
-//                                        modifier = Modifier
-//                                            .size(100.dp)
-//                                            .padding(5.dp, 5.dp)
-//                                            .border(0.1.dp, color = Color.Black)
-//                                    )
-//                                } else {
-//                                    Text(text = "Image not found")
-//                                }
-//                            }
-//
-//                            Column(
+//                            // Remove Button
+//                            IconButton(
+//                                onClick = { /* Handle remove action */ },
 //                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .height(100.dp)
-//                                    .padding(5.dp, 16.dp),
+//                                    .height(40.dp)
+//                                    .border(1.dp, Color.Gray)
 //                            ) {
-//                                Text(
-//                                    text = product.tensp,
-//                                    style = TextStyle(
-//                                        fontSize = 22.sp,
-//                                        fontWeight = FontWeight.Bold,
-//                                        color = Color.Black
-//                                    )
-//                                )
-//                                Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
-//                                val tags = tagMap[product.idtag]
-//                                if (tags != null) {
-//                                    Text(
-//                                        text = tags.tagname,
-//                                        style = TextStyle(
-//                                            fontSize = 16.sp,
-//                                            fontStyle = FontStyle.Italic,
-//                                            color = Color.Black,
-//                                        )
-//                                    )
-//                                }
-//                                val price = product.buyprice.toInt()
-//                                Text(
-//                                    "Giá: " + formatNumber(price) + "đ",
-//                                    style = TextStyle(
-//                                        fontSize = 18.sp,
-//                                        fontWeight = FontWeight.Bold,
-//                                        color = Color.Red,
-//                                        textAlign = TextAlign.End
-//                                    ),
-//                                    modifier = Modifier.fillMaxWidth()
-//                                )
-//                            }
-//                        }
-//
-//                        HorizontalDivider(thickness = 1.dp, color = Color.Gray)
-//                        HorizontalDivider(thickness = 10.dp, color = Color.White)
-//
-//                        Row(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .height(40.dp)
-//                                .padding(end = 5.dp),
-//                            horizontalArrangement = Arrangement.SpaceAround,
-//                        ) {
-//
-//                            IconButton(onClick = { openDialogDeleteCart = true }) {
 //                                Icon(
-//                                    painter = painterResource(id = R.drawable.trash3),
-//                                    contentDescription = "Delete",
-//                                    tint = Color.Red,
-//                                    modifier = Modifier.size(25.dp)
+//                                    painter = painterResource(id = R.drawable.remove),
+//                                    contentDescription = "Remove",
+//                                    tint = Color(0xFF4d4d4d)
 //                                )
 //                            }
 //
+//                            // Quantity Display
 //                            Row(
 //                                modifier = Modifier
-//                                    .padding(start = 145.dp)
-//                                    .height(40.dp)
-//                                    .border(1.dp, color = Color(0xFFd9d9d9)),
-//                                horizontalArrangement = Arrangement.End,
+//                                    .width(60.dp)
+//                                    .height(45.dp)
+//                                    .border(1.dp, Color.Gray),
+//                                horizontalArrangement = Arrangement.Center,
 //                                verticalAlignment = Alignment.CenterVertically
-//
 //                            ) {
-//
-//                                IconButton(
-//                                    onClick = { /*TODO*/ },
+//                                Text(
+//                                    text = "1",
+//                                    style = TextStyle(
+//                                        fontSize = 20.sp,
+//                                        color = Color.Black,
+//                                        textAlign = TextAlign.Center
+//                                    )
 //                                )
-//                                {
-//                                    Icon(
-//                                        painterResource(id = R.drawable.remove),
-//                                        contentDescription = "remove",
-//                                        tint = Color(0xFF4d4d4d),
-//                                    )
-//                                }
+//                            }
 //
-//                                if (openDialogDeleteCart) {
-//                                    AlertDialog(
-//                                        containerColor = Color(0xFFfffff5),
-//                                        onDismissRequest = { openDialogDeleteCart = false },
-//                                        title = {
-//                                            Text(
-//                                                "Bạn chắc chắn muốn xóa khỏi giỏ hàng?",
-//                                                style = TextStyle(
-//                                                    textAlign = TextAlign.Center,
-//                                                    fontWeight = FontWeight.Bold,
-//                                                    fontSize = 16.sp,
-//                                                ),
-//                                                modifier = Modifier.fillMaxWidth()
-//                                            )
-//                                        },
-//                                        confirmButton = {
-//                                            TextButton(
-//                                                onClick = {
-//                                                    openDialogDeleteCart = false
-//                                                },
-//                                                colors = ButtonDefaults.buttonColors(
-//                                                    containerColor = Color(0xFFFFA483), // Màu nền của nút
-//                                                    contentColor = Color.Black, // Màu chữ của nút
-//                                                ),
-//
-//                                                border = BorderStroke(1.dp, Color(0xFF8B2701)),
-//                                            ) {
-//                                                Text(
-//                                                    "Xác nhận",
-//                                                    style = TextStyle(
-//                                                        fontWeight = FontWeight.Bold
-//                                                    )
-//                                                )
-//                                            }
-//                                        },
-//                                        dismissButton = {
-//                                            TextButton(
-//                                                onClick = {
-//                                                    openDialogDeleteCart = false
-//                                                },
-//                                                colors = ButtonDefaults.buttonColors(
-//                                                    containerColor = Color(0xFFA2FFAB), // Màu nền của nút
-//                                                    contentColor = Color.Black, // Màu chữ của nút
-//                                                ),
-//
-//                                                border = BorderStroke(1.dp, Color(0xFF018B0F)),
-//                                            ) {
-//                                                Text(
-//                                                    "Hủy",
-//                                                    style = TextStyle(
-//                                                        fontWeight = FontWeight.Bold
-//                                                    )
-//                                                )
-//                                            }
-//                                        }
-//                                    )
-//                                }
-//
-//                                Row(
-//                                    modifier = Modifier
-//                                        .width(60.dp)
-//                                        .height(40.dp)
-//                                        .border(1.dp, Color.Gray),
-//                                    horizontalArrangement = Arrangement.Center,
-//                                    verticalAlignment = Alignment.CenterVertically
-//                                ) {
-//                                    val range = 1.toString()
-//                                    Text(
-//                                        text = range,
-//                                        modifier = Modifier
-//                                            .width(60.dp),
-//                                        style = TextStyle(
-//                                            fontSize = 20.sp,
-//                                            color = Color.Black,
-//                                            textAlign = TextAlign.Center,
-//                                        )
-//                                    )
-//                                }
-//
-//                                IconButton(
-//                                    onClick = { /*TODO*/ },
-//                                ) {
-//                                    Icon(
-//                                        Icons.Default.Add,
-//                                        contentDescription = "Add",
-//                                        tint = Color(0xFF4d4d4d)
-//                                    )
-//                                }
+//                            // Add Button
+//                            IconButton(
+//                                onClick = { /* Handle add action */ },
+//                                modifier = Modifier
+//                                    .height(40.dp)
+//                                    .border(1.dp, Color.Gray)
+//                            ) {
+//                                Icon(
+//                                    imageVector = Icons.Default.Add,
+//                                    contentDescription = "Add",
+//                                    tint = Color(0xFF4d4d4d)
+//                                )
 //                            }
 //                        }
-//                        HorizontalDivider(thickness = 10.dp, color = Color.White)
-//
-//
-//                        Log.d("CartScreen", "Displaying product: ${product.tensp}")
 //                    }
-//                } else {
-//                    Text("Product not found", color = Color.Red)
-//                    Log.d("CartScreen", "Product not found for Cart Item ID: ${cart.idsp}")
+//                    HorizontalDivider(thickness = 10.dp, color = Color.White)
 //                }
+//
+//
+//
+//                LaunchedEffect(destroy) {
+//                    destroy?.let {
+//                        if (it.isSuccess) {
+//                            cartViewModel.fetchCart() // Cập nhật lại giỏ hàng sau khi xóa thành công
+//                        } else {
+//                            Log.e(
+//                                "CartScreen",
+//                                "Failed to delete cart: ${it.exceptionOrNull()?.message}"
+//                            )
+//                        }
+//                    }
+//                }
+//
 //            }
+//
 //        }
 //
 //        HorizontalDivider(thickness = 1.dp, color = Color(0xFFcc2900))
@@ -534,7 +462,6 @@
 //            openDetailProducts = {},
 //            AccountViewModel(LocalContext.current),
 //            CartViewModel(LocalContext.current),
-//            ProductViewModel(),
 //            LocalContext.current
 //        )
 //    }

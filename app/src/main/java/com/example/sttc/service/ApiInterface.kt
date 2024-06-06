@@ -70,8 +70,8 @@ interface ApiInterface {
     @GET("admin/cart/{iduser}")
     fun getCart(@Path("iduser") userId: Int):  Call<CartData>
 
-    @POST("admin/cart/deletesptocart/{id}/{iduser}")
-    fun deleteSPtoCart(@Path("id") cartId: Int, @Path("iduser") userId: Int, @Body deleteRequest: DeleteRequest): Call<DeleteResponse>
+    @POST("admin/cart/deletesptocart/{id}")
+    fun deleteSPtoCart(@Path("id") cartId: Int): Call<DeleteResponse>
 
     @POST("admin/cart/addsptocart/{idsp}/{iduser}")
     fun addCart(@Header("Authorization") token: String, @Path("idsp") productId: Int, @Path("iduser") userId: Int, @Body addRequest: AddRequest): Call<AddResponse>

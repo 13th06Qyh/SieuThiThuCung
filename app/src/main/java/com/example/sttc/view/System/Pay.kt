@@ -37,6 +37,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,14 +65,19 @@ import com.example.sttc.viewmodel.AccountViewModel
 
 @Composable
 fun PayBillChoose(
-    openOTP : () -> Unit,
-    openCard : () -> Unit,
+    openOTP: () -> Unit,
+    openCard: () -> Unit,
     accountViewModel: AccountViewModel
 ) {
     val userState by accountViewModel.userInfoFlow.collectAsState(initial = null)
 
-    val checkedStateFace = remember { mutableStateOf(false) }
+    val checkedStateFace = remember { mutableStateOf(true) }
     val checkedStateCard = remember { mutableStateOf(false) }
+    LaunchedEffect(checkedStateFace.value, checkedStateCard.value) {
+        if (!checkedStateFace.value && !checkedStateCard.value) {
+            checkedStateFace.value = true
+        }
+    }
 
     userState?.let { user ->
         Column(
@@ -161,9 +167,9 @@ fun PayBillChoose(
                     onCheckedChange = {
                         checkedStateCard.value = it
                         if (it) checkedStateFace.value = false
-                        if(user.otp == null){
+                        if (user.otp == "Nope") {
                             openOTP()
-                        }else{
+                        } else {
                             openCard()
                         }
                     },
@@ -180,10 +186,10 @@ fun PayBillChoose(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Secret(
-    back : () -> Unit,
+    back: () -> Unit,
     openCard: () -> Unit,
     accountViewModel: AccountViewModel
-){
+) {
     val secret = remember { mutableStateOf("") }
     val createResult by accountViewModel.create.collectAsState(null)
     var showError by remember { mutableStateOf(false) }
@@ -305,7 +311,7 @@ fun Secret(
                 )
             }
 
-            Row(){
+            Row() {
                 if (showError) {
                     Text(
                         text = errorMessage,
@@ -358,7 +364,7 @@ fun Secret(
                 }
             }
 
-            if (showSuccess){
+            if (showSuccess) {
                 allow {
                     openCard()
                 }
@@ -482,10 +488,11 @@ fun Secret(
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Card(
-    back : () -> Unit,
+    back: () -> Unit,
     accountViewModel: AccountViewModel
 ) {
     val stk = remember { mutableStateOf("") }
@@ -891,7 +898,7 @@ fun Card(
                     ),
                 )
             }
-            if(showDialogSecret){
+            if (showDialogSecret) {
                 AlertDialog(
                     modifier = Modifier.fillMaxWidth(),
                     onDismissRequest = { /*TODO*/ },
@@ -983,6 +990,14 @@ fun Card(
 
 @Composable
 fun ShipChoose() {
+    val checkedStateReceive = remember { mutableStateOf(false) }
+    val checkedStateShip = remember { mutableStateOf(true) }
+    LaunchedEffect(checkedStateReceive.value, checkedStateShip.value) {
+        if (!checkedStateReceive.value && !checkedStateShip.value) {
+            checkedStateShip.value = true
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1035,10 +1050,13 @@ fun ShipChoose() {
                     .padding(5.dp, 10.dp)
             )
 
-            val checkedStateFace = remember { mutableStateOf(false) }
+
             Checkbox(
-                checked = checkedStateFace.value,
-                onCheckedChange = { checkedStateFace.value = it },
+                checked = checkedStateShip.value,
+                onCheckedChange = {
+                    checkedStateShip.value = it
+                    if (it) checkedStateReceive.value = false
+                },
                 modifier = Modifier
                     .size(20.dp) // Thay đổi kích thước của checkbox
                     .padding(23.dp, 0.dp, 15.dp, 0.dp)
@@ -1063,10 +1081,12 @@ fun ShipChoose() {
                     .padding(5.dp, 10.dp)
             )
 
-            val checkedStateCard = remember { mutableStateOf(false) }
             Checkbox(
-                checked = checkedStateCard.value,
-                onCheckedChange = { checkedStateCard.value = it },
+                checked = checkedStateReceive.value,
+                onCheckedChange = {
+                    checkedStateReceive.value = it
+                    if (it) checkedStateShip.value = false
+                },
                 modifier = Modifier
                     .size(20.dp) // Thay đổi kích thước của checkbox
                     .padding(23.dp, 0.dp, 15.dp, 0.dp)
@@ -1091,6 +1111,7 @@ fun PinDigitField(digit: String, onDigitChange: (String) -> Unit) {
         visualTransformation = VisualTransformation.None,
     )
 }
+
 @Preview(showBackground = true)
 @Composable
 fun PayPreview() {

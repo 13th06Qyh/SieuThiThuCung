@@ -6,13 +6,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
@@ -43,6 +46,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,6 +60,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
+import com.example.sttc.model.PayData
 import com.example.sttc.model.User
 import com.example.sttc.view.BillCancelScreen
 import com.example.sttc.view.BillHistoryScreen
@@ -81,12 +87,13 @@ import com.example.sttc.viewmodel.ProductViewModel
 @Composable
 fun HomeMenuScreen(
     accountViewModel: AccountViewModel,
-    openLogin : () -> Unit,
+    openLogin: () -> Unit,
     openLogout: () -> Unit,
+    cartViewModel: CartViewModel
 ) { //
     val navController = rememberNavController()
     var selectedProductType by remember { mutableStateOf("") }
-    val user by accountViewModel.userInfoFlow.collectAsState(null)
+    val count by cartViewModel.count.collectAsState(0)
     Column(
         modifier = Modifier.fillMaxSize(),
     )
@@ -143,14 +150,33 @@ fun HomeMenuScreen(
             IconButton(
                 onClick = {
                     navController.navigate("cart")
-                }
+                },
+                modifier = Modifier.size(52.dp)
             ) {
-                Icon(
-                    Icons.Filled.ShoppingCart,
-                    contentDescription = "Cart",
-                    modifier = Modifier.size(33.dp),
-                    tint = Color(0xFFE96B56)
-                )
+                Box {
+                    Icon(
+                        Icons.Filled.ShoppingCart,
+                        contentDescription = "Cart",
+                        modifier = Modifier.size(33.dp),
+                        tint = Color(0xFFE96B56)
+                    )
+                    if (count > 0) {
+                        // Nếu số lượng sản phẩm trong giỏ hàng lớn hơn 0, hiển thị thông báo đếm trên biểu tượng
+                        Text(
+                            text = count.toString(),
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .align(Alignment.TopEnd)
+                                .offset(2.dp, (-4).dp)
+                                .background(Color.Red, shape = CircleShape)
+                                .padding(0.dp)
+                        )
+                    }
+                }
             }
             IconButton(onClick = { navController.navigate("notification") }) {
                 Icon(
@@ -208,7 +234,7 @@ fun HomeMenuScreen(
                                 openBillShip = { navController.navigate("billShip") },
                                 openBillHistory = { navController.navigate("billHistory") },
                                 openBillCancel = { navController.navigate("billCancel") },
-                                openLogout = {openLogout()},
+                                openLogout = { openLogout() },
                                 accountViewModel = AccountViewModel(context)
                             )
                         }
@@ -295,17 +321,26 @@ fun HomeMenuScreen(
                         CartScreen(
                             back = { navController.popBackStack() },
                             openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
+                            openPayment = { selectedProducts -> navController.navigate("payments/${selectedProducts}") },
                             accountViewModel = AccountViewModel(context),
                             cartViewModel = CartViewModel(context),
                             context = context
                         )
                     }
-                    composable("payments") {
+                    // ------------payment---------------
+                    composable("payments/{selectedProducts}") { backStackEntry ->
+                        val selectedProducts =
+                            backStackEntry.arguments?.getString("selectedProducts")?.split(",")
+                                ?.map {
+                                    PayData.fromString(it)
+                                } ?: emptyList()
                         PaymentScreen(
                             back = { navController.popBackStack() },
                             openOTP = { navController.navigate("otp") },
                             openCard = { navController.navigate("card") },
-                            accountViewModel = AccountViewModel(context)
+                            accountViewModel = AccountViewModel(context),
+                            openAccount = { navController.navigate("account") },
+                            selectedProducts = selectedProducts
                         )
                     }
                     // ------------otp---------------
@@ -484,5 +519,10 @@ enum class BottomBarScreen(
 @Preview(showBackground = true)
 @Composable
 fun MenuScreenPreview() {
-    HomeMenuScreen(accountViewModel = AccountViewModel(LocalContext.current), openLogin = {}, openLogout = {})
+    HomeMenuScreen(
+        accountViewModel = AccountViewModel(LocalContext.current),
+        openLogin = {},
+        openLogout = {},
+        cartViewModel = CartViewModel(LocalContext.current)
+    )
 }

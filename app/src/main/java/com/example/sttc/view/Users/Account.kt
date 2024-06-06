@@ -1232,10 +1232,6 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
 
             getAddress(user, accountViewModel)
 
-
-
-
-
             loginResult?.let { result ->
                 result.fold(
                     onFailure = { exception ->
