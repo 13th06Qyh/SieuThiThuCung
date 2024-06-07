@@ -66,7 +66,7 @@ import coil.request.ImageRequest
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.ItemAccount
-import com.example.sttc.view.System.allow
+import com.example.sttc.view.System.Allow
 import com.example.sttc.view.System.getAddress
 import com.example.sttc.viewmodel.AccountViewModel
 

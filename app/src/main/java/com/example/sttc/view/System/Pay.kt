@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -73,6 +75,7 @@ fun PayBillChoose(
 
     val checkedStateFace = remember { mutableStateOf(true) }
     val checkedStateCard = remember { mutableStateOf(false) }
+    val pay = remember { mutableStateOf("") }
     LaunchedEffect(checkedStateFace.value, checkedStateCard.value) {
         if (!checkedStateFace.value && !checkedStateCard.value) {
             checkedStateFace.value = true
@@ -80,6 +83,7 @@ fun PayBillChoose(
     }
 
     userState?.let { user ->
+        Log.d("PayBillChoose", "User: $user")
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -168,8 +172,10 @@ fun PayBillChoose(
                         checkedStateCard.value = it
                         if (it) checkedStateFace.value = false
                         if (user.otp == "Nope") {
+                            Log.d("Checkbox", "Opening OTP screen")
                             openOTP()
                         } else {
+                            Log.d("Checkbox", "Opening Card screen")
                             openCard()
                         }
                     },
@@ -187,7 +193,6 @@ fun PayBillChoose(
 @Composable
 fun Secret(
     back: () -> Unit,
-    openCard: () -> Unit,
     accountViewModel: AccountViewModel
 ) {
     val secret = remember { mutableStateOf("") }
@@ -195,313 +200,10 @@ fun Secret(
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var showSuccess by remember { mutableStateOf(false) }
-    val userState by accountViewModel.userInfoFlow.collectAsState(initial = null)
-    userState?.let { user ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-//            .border(1.dp, color = Color(0xFFFFFFFF))
-                .padding(0.dp, 5.dp, 0.dp, 0.dp)
-                .background(
-                    Color.White
-                )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                Color(0xFFFFFFFF),
-                                Color(0xFFFFE4E4),
-                                Color(0xFFF6F2F2),
-                            ),
-                            radius = 600f
-                        )
-                    )
-                    .padding(top = 5.dp),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Icon(
-                    Icons.Default.ArrowBack, contentDescription = "Back",
-                    modifier = Modifier
-                        .size(50.dp)
-                        .padding(10.dp, 0.dp)
-                        .clickable { back() },
-                    tint = Color.Black
-                )
-
-                Text(
-                    text = "Quay lại trang trước",
-                    style = TextStyle(
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        color = Color(0xFFcc2900)
-                    ),
-                    modifier = Modifier
-                        .padding(80.dp, 10.dp)
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Filled.Create,
-                    contentDescription = "Money",
-                    tint = Color(0xFFcc2900),
-                    modifier = Modifier
-                        .size(38.dp)
-                        .padding(10.dp, 9.dp, 0.dp, 0.dp)
-                )
-                Text(
-                    text = "Tạo mật khẩu giao dịch",
-                    style = TextStyle(
-                        fontSize = 23.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                    ),
-                    modifier = Modifier
-                        .padding(8.dp, 9.dp, 0.dp, 0.dp)
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextField(
-                    modifier = Modifier
-                        .padding(10.dp, 10.dp)
-                        .fillMaxWidth()
-                        .border(1.dp, Color.Blue),
-                    colors = TextFieldDefaults.textFieldColors(
-                        disabledTextColor = Color.Gray,
-                        containerColor = Color(0xffffd6cc),
-                        focusedIndicatorColor = Color.Green,
-                        unfocusedIndicatorColor = Color(0xffe62e00),
-                        disabledIndicatorColor = Color.Gray,
-                        cursorColor = Color.Blue,
-                        errorCursorColor = Color.Red
-                    ),
-                    value = secret.value,
-                    onValueChange = { newValue ->
-                        if (newValue.length <= 6 && newValue.all { it.isDigit() }) {
-                            secret.value = newValue
-                        }
-                    },
-                    placeholder = {
-                        Text(
-                            "Tạo mật khẩu giao dịch ở đây",
-                            style = TextStyle(
-                                fontSize = 18.sp,
-                                fontStyle = FontStyle.Italic,
-                                color = Color.Gray
-                            )
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    visualTransformation = PasswordVisualTransformation(),
-                )
-            }
-
-            Row() {
-                if (showError) {
-                    Text(
-                        text = errorMessage,
-                        color = Color.Red,
-                        modifier = Modifier.padding(16.dp),
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center,
-                            fontStyle = FontStyle.Italic
-                        )
-                    )
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = {
-                        val id = user.id
-                        val otp = secret.value
-                        if (otp.isNotEmpty()) {
-                            accountViewModel.createOTP(otp, id)
-                        } else {
-                            showError = true
-                            errorMessage = "Vui lòng nhập mã!"
-
-                        }
-                    },
-                    modifier = Modifier
-
-                        .padding(0.dp),
-                    shape = RoundedCornerShape(16.dp), // Định dạng góc bo tròn của nút
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFB8E1FF), // Màu nền của nút
-                        contentColor = Color.Black // Màu chữ của nút
-                    )
-                ) {
-                    Text(
-                        text = "Tạo",
-                        style = TextStyle(
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                    )
-                }
-            }
-
-            if (showSuccess) {
-                allow {
-                    openCard()
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "**Lưu ý: ",
-                    style = TextStyle(
-                        fontSize = 20.sp,
-                        fontStyle = FontStyle.Italic,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    modifier = Modifier
-                        .padding(10.dp, 10.dp)
-                )
-
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "- Mật khẩu giao dịch phải là 6 số.",
-                    style = TextStyle(
-                        fontSize = 17.sp,
-                        fontStyle = FontStyle.Italic,
-                        color = Color.Black,
-                    ),
-                    modifier = Modifier
-                        .padding(15.dp, 0.dp)
-                )
-
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "- Mật khẩu giao dịch sẽ được sử dụng để xác nhận giao dịch của bạn.",
-                    style = TextStyle(
-                        fontSize = 17.sp,
-                        fontStyle = FontStyle.Italic,
-                        color = Color.Black,
-                    ),
-                    modifier = Modifier
-                        .padding(15.dp, 5.dp)
-                )
-
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "- Hãy chắc chắn rằng bạn luôn nhớ mật khẩu giao dịch này!",
-                    style = TextStyle(
-                        fontSize = 17.sp,
-                        fontStyle = FontStyle.Italic,
-                        color = Color.Black,
-                    ),
-                    modifier = Modifier
-                        .padding(15.dp, 0.dp)
-                )
-
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "- Vui lòng không chia sẻ mật khẩu giao dịch của bạn với người khác!",
-                    style = TextStyle(
-                        fontSize = 17.sp,
-                        fontStyle = FontStyle.Italic,
-                        color = Color.Black,
-                    ),
-                    modifier = Modifier
-                        .padding(15.dp, 5.dp)
-                )
-
-            }
-
-            DisposableEffect(Unit) {
-                onDispose {
-                    secret.value = ""
-                }
-            }
-
-            createResult?.let { result ->
-                result.fold(
-                    onSuccess = { token ->
-                        showSuccess = true
-                        Log.d("Secret", "Tạo otp thành công")
-                    },
-                    onFailure = { exception ->
-                        showError = true
-                        errorMessage = exception.message ?: "Tạo otp thất bại"
-                        Log.e("Secret", "Tạo otp thất bại: ${exception.message}")
-                    }
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun Card(
-    back: () -> Unit,
-    accountViewModel: AccountViewModel
-) {
-    val stk = remember { mutableStateOf("") }
-    var showDialogSecret by remember { mutableStateOf(false) }
-    var pinCode by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
 //            .border(1.dp, color = Color(0xFFFFFFFF))
             .padding(0.dp, 5.dp, 0.dp, 0.dp)
             .background(
@@ -536,20 +238,338 @@ fun Card(
             Text(
                 text = "Quay lại trang trước",
                 style = TextStyle(
-                    fontSize = 25.sp,
+                    fontSize = 23.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     color = Color(0xFFcc2900)
                 ),
                 modifier = Modifier
-                    .padding(80.dp, 10.dp)
+                    .padding(50.dp, 10.dp)
             )
         }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Filled.Create,
+                contentDescription = "Money",
+                tint = Color(0xFFcc2900),
+                modifier = Modifier
+                    .size(38.dp)
+                    .padding(10.dp, 9.dp, 0.dp, 0.dp)
+            )
+            Text(
+                text = "Tạo mật khẩu giao dịch",
+                style = TextStyle(
+                    fontSize = 23.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                ),
+                modifier = Modifier
+                    .padding(8.dp, 9.dp, 0.dp, 0.dp)
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextField(
+                modifier = Modifier
+                    .padding(10.dp, 10.dp)
+                    .fillMaxWidth()
+                    .border(1.dp, Color.Blue),
+                colors = TextFieldDefaults.textFieldColors(
+                    disabledTextColor = Color.Gray,
+                    containerColor = Color(0xffffd6cc),
+                    focusedIndicatorColor = Color.Green,
+                    unfocusedIndicatorColor = Color(0xffe62e00),
+                    disabledIndicatorColor = Color.Gray,
+                    cursorColor = Color.Blue,
+                    errorCursorColor = Color.Red
+                ),
+                value = secret.value,
+                onValueChange = { newValue ->
+                    if (newValue.length <= 6 && newValue.all { it.isDigit() }) {
+                        secret.value = newValue
+                    }
+                },
+                placeholder = {
+                    Text(
+                        "Tạo mật khẩu giao dịch ở đây",
+                        style = TextStyle(
+                            fontSize = 18.sp,
+                            fontStyle = FontStyle.Italic,
+                            color = Color.Gray
+                        )
+                    )
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                visualTransformation = PasswordVisualTransformation(),
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (showError) {
+                Text(
+                    text = errorMessage,
+                    color = Color.Red,
+                    modifier = Modifier.padding(16.dp),
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center,
+                        fontStyle = FontStyle.Italic
+                    )
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                onClick = {
+
+                    val otp = secret.value
+                    if (otp.isNotEmpty()) {
+                        accountViewModel.createOTP(otp)
+                    } else {
+                        showError = true
+                        errorMessage = "Vui lòng nhập mã!"
+
+                    }
+                },
+                modifier = Modifier
+
+                    .padding(0.dp),
+                shape = RoundedCornerShape(16.dp), // Định dạng góc bo tròn của nút
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFB8E1FF), // Màu nền của nút
+                    contentColor = Color.Black // Màu chữ của nút
+                )
+            ) {
+                Text(
+                    text = "Tạo",
+                    style = TextStyle(
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                )
+            }
+        }
+
+        if (showSuccess) {
+            Allow(back, showSuccess)
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "**Lưu ý: ",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier
+                    .padding(10.dp, 10.dp)
+            )
+
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "- Mật khẩu giao dịch phải là 6 số.",
+                style = TextStyle(
+                    fontSize = 17.sp,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.Black,
+                ),
+                modifier = Modifier
+                    .padding(15.dp, 0.dp)
+            )
+
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "- Mật khẩu giao dịch sẽ được sử dụng để xác nhận giao dịch của bạn.",
+                style = TextStyle(
+                    fontSize = 17.sp,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.Black,
+                ),
+                modifier = Modifier
+                    .padding(15.dp, 5.dp)
+            )
+
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "- Hãy chắc chắn rằng bạn luôn nhớ mật khẩu giao dịch này!",
+                style = TextStyle(
+                    fontSize = 17.sp,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.Black,
+                ),
+                modifier = Modifier
+                    .padding(15.dp, 0.dp)
+            )
+
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "- Vui lòng không chia sẻ mật khẩu giao dịch của bạn với người khác!",
+                style = TextStyle(
+                    fontSize = 17.sp,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.Black,
+                ),
+                modifier = Modifier
+                    .padding(15.dp, 5.dp)
+            )
+
+        }
+
+        DisposableEffect(Unit) {
+            onDispose {
+                secret.value = ""
+            }
+        }
+
+        createResult?.let { result ->
+            result.fold(
+                onSuccess = { token ->
+                    showSuccess = true
+
+                    Log.d("Secret", "Tạo otp thành công")
+                },
+                onFailure = { exception ->
+                    showError = true
+                    errorMessage = exception.message ?: "Tạo otp thất bại"
+                    Log.e("Secret", "Tạo otp thất bại: ${exception.message}")
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun Card(
+    back: () -> Unit,
+    openCart: () -> Unit
+) {
+    val stk = remember { mutableStateOf("") }
+    var showDialogSecret by remember { mutableStateOf(false) }
+    var pinCode by remember { mutableStateOf("") }
+    var bankName by remember { mutableStateOf("") }
+
+    val banks = listOf(
+        Bank("Ngân hàng Vietinbank", R.drawable.vietinbank),
+        Bank("Ngân hàng Sacombank", R.drawable.sacombank),
+        Bank("Ngân hàng Agribank", R.drawable.agribank),
+        Bank("Ngân hàng HD Bank", R.drawable.hdbank),
+        Bank("Ngân hàng BIDV", R.drawable.bidv),
+        Bank("Ngân hàng Techcombank", R.drawable.techcombank),
+        Bank("Ngân hàng TP Bank", R.drawable.tpbank),
+        Bank("Ngân hàng MB", R.drawable.mb),
+        Bank("Ngân hàng VIB", R.drawable.vib),
+        Bank("Ngân hàng MSB", R.drawable.msb),
+        Bank("Ngân hàng OCB", R.drawable.ocb),
+        Bank("Ngân hàng ACB", R.drawable.acb),
+        Bank("Ngân hàng VP Bankk", R.drawable.vpbankk)
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(0.dp, 5.dp, 0.dp, 0.dp)
+            .background(Color.White)
+    ) {
+        // Header section
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFFFFFFFF),
+                            Color(0xFFFFE4E4),
+                            Color(0xFFF6F2F2)
+                        ), radius = 600f
+                    )
+                )
+                .padding(top = 5.dp),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Icon(
+                Icons.Default.ArrowBack, contentDescription = "Back",
+                modifier = Modifier
+                    .size(50.dp)
+                    .padding(10.dp, 0.dp)
+                    .clickable { back() },
+                tint = Color.Black
+            )
+            Text(
+                text = "Quay lại trang trước",
+                style = TextStyle(
+                    fontSize = 23.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFcc2900)
+                ),
+                modifier = Modifier.padding(50.dp, 10.dp)
+            )
+        }
+
+        // Select bank section
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp, 9.dp),
+            horizontalArrangement = Arrangement.Start
         ) {
             Icon(
                 Icons.Filled.Home,
@@ -564,10 +584,9 @@ fun Card(
                 style = TextStyle(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = Color.Black
                 ),
-                modifier = Modifier
-                    .padding(8.dp, 9.dp, 0.dp, 0.dp)
+                modifier = Modifier.padding(8.dp, 9.dp)
             )
         }
 
@@ -577,7 +596,7 @@ fun Card(
             horizontalArrangement = Arrangement.Start
         ) {
             TextField(
-                value = "",
+                value = bankName,
                 onValueChange = {},
                 textStyle = TextStyle(
                     color = Color.Black,
@@ -588,7 +607,7 @@ fun Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
-                    .padding(vertical = 12.dp, horizontal = 12.dp),
+                    .padding(horizontal = 12.dp),
                 placeholder = {
                     Text(
                         text = "Ngân hàng bạn chọn sẽ hiển thị ở đây",
@@ -611,242 +630,37 @@ fun Card(
             )
         }
 
-        Row(
+        // Bank icons section
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp, 10.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(10.dp, 0.dp),
         ) {
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.vietinbank),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-
+            items(banks.size) { index ->
+                IconButton(
+                    onClick = {
+                        bankName = banks[index].name
+                    },
+                    modifier = Modifier
+                        .padding(10.dp, 10.dp)
+                        .width(100.dp)
+                        .border(1.dp, Color.Black)
                 ) {
-                Image(
-                    painter = painterResource(id = R.drawable.sacombank),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.agribank),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
+                    Image(
+                        painterResource(id = banks[index].image),
+                        contentDescription = "Bank Icon",
+                        modifier = Modifier.size(100.dp)
+                    )
+                }
             }
         }
 
+        // Account input field section
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp, 10.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.hdbank),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-
-                ) {
-                Image(
-                    painter = painterResource(id = R.drawable.bidv),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.techcombank),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp, 10.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.tpbank),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-
-                ) {
-                Image(
-                    painter = painterResource(id = R.drawable.mb),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.vib),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp, 10.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.vietcombank),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-
-                ) {
-                Image(
-                    painter = painterResource(id = R.drawable.msb),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ocb),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp, 10.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.acb),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .width(100.dp)
-                    .border(1.dp, Color.Black),
-
-                ) {
-                Image(
-                    painter = painterResource(id = R.drawable.vpbankk),
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(100.dp),
-                )
-            }
-
-            IconButton(
-                onClick = { }, modifier = Modifier
-                    .width(100.dp)
-            ) {} //Cái này để trống lam canh đều
-
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+                .padding(15.dp, 5.dp, 15.dp, 15.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -855,7 +669,7 @@ fun Card(
                 onValueChange = { stk.value = it },
                 placeholder = {
                     Text(
-                        "Nhập số tài khoản của bạn",
+                        text = "Nhập số tài khoản của bạn",
                         style = TextStyle(
                             fontSize = 18.sp,
                             fontStyle = FontStyle.Italic,
@@ -865,12 +679,12 @@ fun Card(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(15.dp, 5.dp, 15.dp, 15.dp)
                     .background(Color.White),
                 singleLine = false
             )
         }
 
+        // Transaction button section
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -879,11 +693,11 @@ fun Card(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(
-                onClick = { /* Do something! */ },
-                shape = RoundedCornerShape(2.dp), // Định dạng góc bo tròn của nút
+                onClick = { showDialogSecret = true },
+                shape = RoundedCornerShape(2.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFff5c33), // Màu nền của nút
-                    contentColor = Color.White // Màu chữ của nút
+                    containerColor = Color(0xFFff5c33),
+                    contentColor = Color.White
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -891,102 +705,91 @@ fun Card(
             ) {
                 Text(
                     text = "Giao dịch",
-                    style = TextStyle(
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    ),
+                    style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 )
             }
-            if (showDialogSecret) {
-                AlertDialog(
-                    modifier = Modifier.fillMaxWidth(),
-                    onDismissRequest = { /*TODO*/ },
-                    title = {
-                        Text(
-                            text = "Nhập Mã Giao Dịch",
-                            style = TextStyle(
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black,
-                                textAlign = TextAlign.Center
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 10.dp)
-                        )
-                    },
-                    text = {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            for (i in 0 until 6) {
-                                PinDigitField(
-                                    digit = if (pinCode.length > i) pinCode[i].toString() else "",
-                                    onDigitChange = { newDigit ->
-                                        if (newDigit.length <= 1 && newDigit.all { it.isDigit() }) {
-                                            val newPinCode = StringBuilder(pinCode).apply {
-                                                if (newDigit.isEmpty() && pinCode.isNotEmpty()) {
-                                                    deleteCharAt(lastIndex)
-                                                } else if (pinCode.length < 6) {
-                                                    append(newDigit)
-                                                }
-                                            }.toString()
-                                            pinCode = newPinCode
-                                        }
+        }
+
+        // Dialog section
+        if (showDialogSecret) {
+            AlertDialog(
+                modifier = Modifier.fillMaxWidth(),
+                onDismissRequest = { showDialogSecret = false },
+                title = {
+                    Text(
+                        text = "Nhập Mã Giao Dịch",
+                        style = TextStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp)
+                    )
+                },
+                text = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        for (i in 0 until 6) {
+                            PinDigitField(
+                                digit = if (pinCode.length > i) pinCode[i].toString() else "",
+                                onDigitChange = { newDigit ->
+                                    if (newDigit.length <= 1 && newDigit.all { it.isDigit() }) {
+                                        val newPinCode = StringBuilder(pinCode).apply {
+                                            if (newDigit.isEmpty() && pinCode.isNotEmpty()) {
+                                                deleteCharAt(lastIndex)
+                                            } else if (pinCode.length < 6) {
+                                                append(newDigit)
+                                            }
+                                        }.toString()
+                                        pinCode = newPinCode
                                     }
-                                )
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFffcc99), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
-
-                            border = BorderStroke(1.dp, Color.Red),
-                        ) {
-                            Text(
-                                "OK",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                        }
-                    },
-                    dismissButton = {
-                        Button(
-                            onClick = {
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFd9d9d9), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
-
-                            border = BorderStroke(1.dp, Color.Black),
-                        ) {
-                            Text(
-                                "Hủy",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold
-                                )
+                                }
                             )
                         }
                     }
-                )
-            }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            // Confirm button logic here
+                            showDialogSecret = false
+                            openCart()
 
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFffcc99),
+                            contentColor = Color.Black
+                        ),
+                        border = BorderStroke(1.dp, Color.Red)
+                    ) {
+                        Text("OK", style = TextStyle(fontWeight = FontWeight.Bold))
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            // Dismiss button logic here
+                            showDialogSecret = false
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFd9d9d9),
+                            contentColor = Color.Black
+                        ),
+                        border = BorderStroke(1.dp, Color.Black)
+                    ) {
+                        Text("Hủy", style = TextStyle(fontWeight = FontWeight.Bold))
+                    }
+                }
+            )
         }
     }
-
 }
+
 
 @Composable
 fun ShipChoose() {
@@ -1116,6 +919,10 @@ fun PinDigitField(digit: String, onDigitChange: (String) -> Unit) {
 @Composable
 fun PayPreview() {
     STTCTheme {
-        Secret(back = {}, openCard = {}, accountViewModel = AccountViewModel(LocalContext.current))
+//        Card(back = {}, openCart = {})
+//        Card(back = {})
+        PayBillChoose(openOTP = { /*TODO*/ }, openCard = { /*TODO*/ }, accountViewModel = AccountViewModel(
+            LocalContext.current)
+        )
     }
 }

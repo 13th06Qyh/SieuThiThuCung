@@ -51,6 +51,11 @@ import kotlinx.coroutines.delay
 import java.text.NumberFormat
 import java.util.Locale
 
+data class Bank(
+    val name: String,
+    val image: Int
+)
+
 data class ItemsBaiViet(
     val id: Int,
     val tieude: String,
@@ -117,10 +122,12 @@ fun capitalizeWords(text: String): String {
 }
 
 @Composable
-fun allow(
-    openCard: () -> Unit
+fun Allow(
+    back: () -> Unit,
+    showSuccess: Boolean
 ) {
-    var showDialogAllow by remember { mutableStateOf(false) }
+    var showDialogAllow by remember { mutableStateOf(showSuccess) }
+    var okButton by remember { mutableStateOf(false) }
     if (showDialogAllow) {
         AlertDialog(
             containerColor = Color(0xFFccf5ff),
@@ -147,7 +154,8 @@ fun allow(
                     Button(
                         onClick = {
                             showDialogAllow = false
-                            openCard()
+                            okButton = true
+                            back()
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFccffdd), // Màu nền của nút
@@ -515,7 +523,7 @@ fun SuggestToday(
 @Composable
 fun TestAll() {
     STTCTheme {
-        allow(openCard = {})
+        Allow(back = {}, true)
     }
 }
 

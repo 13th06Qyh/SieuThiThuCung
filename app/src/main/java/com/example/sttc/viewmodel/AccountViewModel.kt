@@ -281,14 +281,21 @@ class AccountViewModel(context: Context) : ViewModel() {
         })
     }
 
-    fun createOTP(otp: String, id: Int) {
+    fun getUserIdFromSharedPreferences(): Int? {
+        val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val idUser = sharedPreferences.getInt("iduser", -1)
+        return if (idUser == -1) null else idUser
+    }
+
+    fun createOTP(otp: String) {
         val token = getTokenFromSharedPreferences()
         if (token == null) {
             _create.value = Result.failure(Exception("No token found"))
             return
         }
-        val updateOTPRequest = UpdateOTPRequest(otp, id)
-        apiService.createOTP("Bearer $token", id, updateOTPRequest).enqueue(object : Callback<UpdateOTPResponse> {
+        val iduser = getUserIdFromSharedPreferences() ?: return
+        val updateOTPRequest = UpdateOTPRequest(otp)
+        apiService.createOTP("Bearer $token", iduser, updateOTPRequest).enqueue(object : Callback<UpdateOTPResponse> {
             override fun onResponse(call: Call<UpdateOTPResponse>, response: Response<UpdateOTPResponse>) {
                 if (response.isSuccessful) {
                     response.body()?.let { updatedResponse ->

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -82,6 +83,7 @@ fun CartScreen(
     val checkOnlyStates = remember { mutableStateListOf<MutableState<Boolean>>() }
     val selectedItemsPrice = remember { mutableStateOf(0) }
     val quantities = remember { mutableStateListOf<MutableState<Int>>() }
+    val isAnySelected = remember { mutableStateOf(false) }
     var openDialogDeleteCart by remember { mutableStateOf(false) }
 
     fun calculateTotalPrice() {
@@ -92,6 +94,10 @@ fun CartScreen(
             }
             .sum()
         selectedItemsPrice.value = totalPrice
+    }
+
+    fun updateIsAnySelected() {
+        isAnySelected.value = checkOnlyStates.any { it.value }
     }
 
     LaunchedEffect(users) {
@@ -111,13 +117,16 @@ fun CartScreen(
             quantities.add(mutableStateOf(1))
         }
         calculateTotalPrice()
+        updateIsAnySelected()
     }
     LaunchedEffect(checkOnlyStates, quantities) {
         calculateTotalPrice()
+        updateIsAnySelected()
     }
     LaunchedEffect(checkAll.value) {
         checkOnlyStates.forEach { it.value = checkAll.value }
         calculateTotalPrice()
+        updateIsAnySelected()
     }
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -232,6 +241,7 @@ fun CartScreen(
                                 if (checkOnlyStates.all { state -> state.value }) checkAll.value =
                                     true
                                 calculateTotalPrice()
+                                updateIsAnySelected()
                             },
                             modifier = Modifier
                                 .size(20.dp) // Thay đổi kích thước của checkbox
@@ -375,14 +385,21 @@ fun CartScreen(
                             Row(
                                 modifier = Modifier
                                     .width(60.dp)
-                                    .height(45.dp)
+                                    .height(48.dp)
                                     .border(1.dp, Color.Gray),
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = quantity.toString(),
-                                    style = TextStyle(
+                                BasicTextField(
+                                    value = quantity.toString(),
+                                    onValueChange = {
+                                        val newQuantity = it.toIntOrNull() ?: quantity
+                                        quantity =
+                                            if (newQuantity < 1) 1 else if (newQuantity > product.soluongkho.toInt()) product.soluongkho.toInt() else newQuantity
+                                        quantityState.value = quantity
+                                        calculateTotalPrice()
+                                    },
+                                    textStyle = TextStyle(
                                         fontSize = 20.sp,
                                         color = Color.Black,
                                         textAlign = TextAlign.Center
@@ -454,6 +471,7 @@ fun CartScreen(
                         checkAll.value = it
                         checkOnlyStates.forEach { state -> state.value = it }
                         calculateTotalPrice()
+                        updateIsAnySelected()
                     },
                     modifier = Modifier
                         .size(20.dp),
@@ -494,23 +512,30 @@ fun CartScreen(
                 Button(
                     shape = RectangleShape,
                     onClick = {
-                        val selectedProducts = carts
-                            .filterIndexed { index, _ -> checkOnlyStates[index].value }
-                            .mapIndexed { index, cart ->
+                        updateIsAnySelected()
+                        val selectedProducts = carts.mapIndexedNotNull { index, cart ->
+                            val checkOnlyState = checkOnlyStates.getOrNull(index)
+                            val quantityState = quantities.getOrNull(index)
+                            if (checkOnlyState != null && checkOnlyState.value) {
+                                val quantity = quantityState?.value ?: 1
                                 PayData(
                                     id = cart.sanpham.maSP,
                                     image = cart.image,
                                     name = cart.sanpham.tensp,
+                                    oneprice = cart.sanpham.buyprice.toInt(),
                                     tag = cart.tagname,
-                                    price = cart.sanpham.buyprice.toInt(),
-                                    quantity = quantities[index].value  // Cân chỉnh số lượng khi cần
+                                    quantity = quantity // Sử dụng quantity state được xác định
                                 )
+                            } else {
+                                null
                             }
+                        }
                         openPayment(selectedProducts)
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Red,
                     ),
+                    enabled = isAnySelected.value,
                     modifier = Modifier.height(63.dp)
                 ) {
                     Text(

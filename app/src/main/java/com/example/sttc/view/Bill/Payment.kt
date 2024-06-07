@@ -1,5 +1,7 @@
 package com.example.sttc.view
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,14 +18,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -54,15 +53,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.model.PayData
-import com.example.sttc.model.User
 import com.example.sttc.ui.theme.STTCTheme
-import com.example.sttc.view.System.BillProduct
 import com.example.sttc.view.System.PayBillChoose
-import com.example.sttc.view.System.Product
 import com.example.sttc.view.System.ShipChoose
 import com.example.sttc.view.System.formatNumber
 import com.example.sttc.view.System.getLocation
@@ -71,12 +65,14 @@ import com.example.sttc.viewmodel.AccountViewModel
 @Composable
 fun PaymentScreen(
     back: () -> Unit,
+    context: Context,
     openOTP: () -> Unit,
     openCard: () -> Unit,
     accountViewModel: AccountViewModel,
     openAccount: () -> Unit,
     selectedProducts: List<PayData>
 ) {
+    Log.d("PaymentScreen", selectedProducts.toString())
     val scrollState = rememberScrollState()
     val userState by accountViewModel.userInfoFlow.collectAsState(initial = null)
     Box(
@@ -95,7 +91,7 @@ fun PaymentScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TitlePayment()
+            TitlePayment(back)
             LazyColumn(
                 modifier = Modifier.weight(1f)
             ) {
@@ -103,26 +99,13 @@ fun PaymentScreen(
                     LocationPayment(accountViewModel, openAccount)
                     ShipChoose()
                     PayBillChoose(openOTP, openCard, accountViewModel)
-                    val items = listOf(
-                        BillProduct(
-                            Product(R.drawable.rs1, "Tag A", "Product A", 10000),
-                            com.example.sttc.view.System.Bill(1)
-                        ),
-                        BillProduct(
-                            Product(R.drawable.rs1, "Tag A", "Product A", 10000),
-                            com.example.sttc.view.System.Bill(1)
-                        ),
-                        BillProduct(
-                            Product(R.drawable.rs1, "Tag A", "Product A", 10000),
-                            com.example.sttc.view.System.Bill(1)
-                        ),
-                    )
+
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(5.dp, 0.dp)
                     ) {
-                        for (item in items) {
+                        for (item in selectedProducts) {
                             Column(
                                 modifier = Modifier
                                     .padding(0.dp, 5.dp, 0.dp, 0.dp)
@@ -141,15 +124,27 @@ fun PaymentScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceEvenly
                                 ) {
-
-                                    Image(
-                                        painter = painterResource(id = item.product.imageResId),
-                                        contentDescription = "Image",
-                                        modifier = Modifier
-                                            .size(100.dp)
-                                            .padding(5.dp, 5.dp)
-                                            .border(0.5.dp, color = Color.Black)
+                                    val productImages = item.image
+                                    val fileName = productImages.substringAfterLast("/").substringBeforeLast(".")
+                                    val resourceId = context.resources.getIdentifier(
+                                        fileName,
+                                        "drawable",
+                                        context.packageName
                                     )
+                                    val a = context.resources.getResourceName(resourceId)
+                                    val b = a.substringAfter('/')
+                                    if (b == fileName) {
+                                        Image(
+                                            painter = painterResource(id = resourceId),
+                                            contentDescription = "Image",
+                                            modifier = Modifier
+                                                .size(100.dp)
+                                                .padding(5.dp, 5.dp)
+                                                .border(0.5.dp, color = Color.Black)
+                                        )
+                                    }else{
+                                        Text(text = "Image not found")
+                                    }
 
                                     Column(
                                         modifier = Modifier
@@ -158,7 +153,7 @@ fun PaymentScreen(
                                             .padding(5.dp, 10.dp),
                                     ) {
                                         Text(
-                                            text = item.product.productName,
+                                            text = item.name,
                                             style = TextStyle(
                                                 fontSize = 18.sp,
                                                 fontWeight = FontWeight.Bold,
@@ -167,7 +162,7 @@ fun PaymentScreen(
                                         )
                                         Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
                                         Text(
-                                            text = item.product.tagName,
+                                            text = item.tag,
                                             style = TextStyle(
                                                 fontSize = 13.sp,
                                                 fontStyle = FontStyle.Italic,
@@ -175,7 +170,7 @@ fun PaymentScreen(
                                             )
                                         )
                                         Text(
-                                            "x" + item.bill.soluongmua.toString(),
+                                            "x" + item.quantity,
                                             style = TextStyle(
                                                 fontSize = 14.sp,
                                                 color = Color.Black,
@@ -183,8 +178,9 @@ fun PaymentScreen(
                                             ),
                                             modifier = Modifier.fillMaxWidth()
                                         )
+                                        val totalone = item.quantity * item.oneprice
                                         Text(
-                                            formatNumber(item.product.productPrice) + "đ",
+                                            formatNumber(totalone) + "đ",
                                             style = TextStyle(
                                                 fontSize = 15.sp,
                                                 fontWeight = FontWeight.Bold,
@@ -203,13 +199,15 @@ fun PaymentScreen(
                 }
             }
             HorizontalDivider(thickness = 1.dp, color = Color(0xFF000000))
-            SuccessPayment()
+            SuccessPayment(selectedProducts)
         }
     }
 }
 
 @Composable
-fun TitlePayment() {
+fun TitlePayment(
+    back: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -231,7 +229,7 @@ fun TitlePayment() {
             modifier = Modifier
                 .size(50.dp)
                 .padding(10.dp, 0.dp)
-                .clickable { /*TODO*/ },
+                .clickable { back() },
             tint = Color.Black
         )
 
@@ -400,7 +398,10 @@ fun LocationPayment(
 }
 
 @Composable
-fun SuccessPayment() {
+fun SuccessPayment(
+    selectedProducts: List<PayData>
+) {
+    val total = selectedProducts.sumOf { it.oneprice * it.quantity }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -419,7 +420,7 @@ fun SuccessPayment() {
             ),
         )
         Text(
-            text = formatNumber(1000000) + "đ",
+            text = formatNumber(total) + "đ",
             style = TextStyle(
                 fontSize = 16.sp,
                 color = Color.Red,
@@ -456,6 +457,7 @@ fun PaymentPreview() {
     STTCTheme {
         PaymentScreen(
             back = { },
+            context = LocalContext.current,
             openOTP = { },
             openCard = { },
             accountViewModel = AccountViewModel(
@@ -467,8 +469,8 @@ fun PaymentPreview() {
                     1,
                     "image",
                     "name",
-                    "tag",
                     10000,
+                    "tag",
                     1
                 )
             )

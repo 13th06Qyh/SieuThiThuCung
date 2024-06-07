@@ -82,6 +82,7 @@ import com.example.sttc.view.Users.LoginForm
 import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.CartViewModel
 import com.example.sttc.viewmodel.ProductViewModel
+import com.example.sttc.viewmodel.SharedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,11 +90,13 @@ fun HomeMenuScreen(
     accountViewModel: AccountViewModel,
     openLogin: () -> Unit,
     openLogout: () -> Unit,
-    cartViewModel: CartViewModel
+    cartViewModel: CartViewModel,
+    sharedViewModel: SharedViewModel
 ) { //
     val navController = rememberNavController()
     var selectedProductType by remember { mutableStateOf("") }
     val count by cartViewModel.count.collectAsState(0)
+    val user by accountViewModel.userInfoFlow.collectAsState(null)
     Column(
         modifier = Modifier.fillMaxSize(),
     )
@@ -149,7 +152,13 @@ fun HomeMenuScreen(
 
             IconButton(
                 onClick = {
-                    navController.navigate("cart")
+                    user?.let { user ->
+                        if (user.id == 0) {
+                            openLogin()
+                        } else {
+                            navController.navigate("cart")
+                        }
+                    }
                 },
                 modifier = Modifier.size(52.dp)
             ) {
@@ -321,33 +330,32 @@ fun HomeMenuScreen(
                         CartScreen(
                             back = { navController.popBackStack() },
                             openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
-                            openPayment = { selectedProducts -> navController.navigate("payments/${selectedProducts}") },
+                            openPayment = { selectedProducts ->
+                                sharedViewModel.setSelectedProducts(selectedProducts)
+                                navController.navigate("payments")
+                            },
                             accountViewModel = AccountViewModel(context),
                             cartViewModel = CartViewModel(context),
                             context = context
                         )
                     }
                     // ------------payment---------------
-                    composable("payments/{selectedProducts}") { backStackEntry ->
-                        val selectedProducts =
-                            backStackEntry.arguments?.getString("selectedProducts")?.split(",")
-                                ?.map {
-                                    PayData.fromString(it)
-                                } ?: emptyList()
+                    composable("payments") {
+                        val selectedProducts by sharedViewModel.selectedProducts.collectAsState(emptyList())
                         PaymentScreen(
                             back = { navController.popBackStack() },
+                            context = context,
                             openOTP = { navController.navigate("otp") },
                             openCard = { navController.navigate("card") },
                             accountViewModel = AccountViewModel(context),
                             openAccount = { navController.navigate("account") },
-                            selectedProducts = selectedProducts
+                            selectedProducts = selectedProducts,
                         )
                     }
                     // ------------otp---------------
                     composable("otp") {
                         Secret(
                             back = { navController.popBackStack() },
-                            openCard = { navController.navigate("card") },
                             accountViewModel = AccountViewModel(context)
                         )
                     }
@@ -355,7 +363,7 @@ fun HomeMenuScreen(
                     composable("card") {
                         Card(
                             back = { navController.popBackStack() },
-                            accountViewModel = AccountViewModel(context)
+                            openCart = { navController.navigate("cart") }
                         )
                     }
                     // ------------notification---------------
@@ -523,6 +531,7 @@ fun MenuScreenPreview() {
         accountViewModel = AccountViewModel(LocalContext.current),
         openLogin = {},
         openLogout = {},
-        cartViewModel = CartViewModel(LocalContext.current)
+        cartViewModel = CartViewModel(LocalContext.current),
+        sharedViewModel = SharedViewModel()
     )
 }

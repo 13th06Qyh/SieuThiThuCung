@@ -18,22 +18,21 @@ data class BillData(
 )
 
 data class AddBillRequest(
-    val iduser: Int,
     val diachi: String,
     val status: String,
     val ship: String,
     val pay: String,
     val info: String,
     val situation: String,
-    val carts: Carts
+    val carts: PayData
 )
 
 data class AddBillResponse(
     val token: String,
-    val bill: Bill
+    val bills: Bill
 )
 
 data class ErrorAddBillResponse(
     val message: String,
-    val errors: String
+    val error: String
 )

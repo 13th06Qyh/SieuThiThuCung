@@ -76,6 +76,6 @@ interface ApiInterface {
     @POST("admin/cart/addsptocart/{idsp}/{iduser}")
     fun addCart(@Header("Authorization") token: String, @Path("idsp") productId: Int, @Path("iduser") userId: Int, @Body addRequest: AddRequest): Call<AddResponse>
 
-    @POST("admin/bill/buy")
-    fun buy(@Body addBillRequest: AddBillRequest): Call<AddBillResponse>
+    @POST("admin/bill/buy/{iduser}")
+    fun buy(@Path("iduser") userId: Int, @Body addBillRequest: AddBillRequest): Call<AddBillResponse>
 }
