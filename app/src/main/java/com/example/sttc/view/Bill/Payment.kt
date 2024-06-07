@@ -34,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,11 +57,14 @@ import androidx.compose.ui.unit.sp
 import com.example.sttc.R
 import com.example.sttc.model.PayData
 import com.example.sttc.ui.theme.STTCTheme
+import com.example.sttc.view.System.BankData
 import com.example.sttc.view.System.PayBillChoose
+import com.example.sttc.view.System.PinDigitField
 import com.example.sttc.view.System.ShipChoose
 import com.example.sttc.view.System.formatNumber
 import com.example.sttc.view.System.getLocation
 import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.SharedViewModel
 
 @Composable
 fun PaymentScreen(
@@ -70,7 +74,8 @@ fun PaymentScreen(
     openCard: () -> Unit,
     accountViewModel: AccountViewModel,
     openAccount: () -> Unit,
-    selectedProducts: List<PayData>
+    selectedProducts: List<PayData>,
+    sharedViewModel: SharedViewModel
 ) {
     Log.d("PaymentScreen", selectedProducts.toString())
     val scrollState = rememberScrollState()
@@ -96,9 +101,9 @@ fun PaymentScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 item {
-                    LocationPayment(accountViewModel, openAccount)
+                    LocationPayment(accountViewModel, openAccount, sharedViewModel)
                     ShipChoose()
-                    PayBillChoose(openOTP, openCard, accountViewModel)
+                    PayBillChoose(openOTP, openCard, accountViewModel, sharedViewModel)
 
                     Column(
                         modifier = Modifier
@@ -199,7 +204,7 @@ fun PaymentScreen(
                 }
             }
             HorizontalDivider(thickness = 1.dp, color = Color(0xFF000000))
-            SuccessPayment(selectedProducts)
+            SuccessPayment(selectedProducts, accountViewModel)
         }
     }
 }
@@ -250,7 +255,8 @@ fun TitlePayment(
 @Composable
 fun LocationPayment(
     accountViewModel: AccountViewModel,
-    openAccount: () -> Unit
+    openAccount: () -> Unit,
+    sharedViewModel: SharedViewModel
 ) {
     val users by accountViewModel.userInfoFlow.collectAsState(null)
     var showDialogAddress by remember { mutableStateOf(false) }
@@ -258,7 +264,14 @@ fun LocationPayment(
     users?.let { user ->
         val checkedStateDefautl = remember { mutableStateOf(user.diachi != "Chưa có địa chỉ") }
         val checkedStateOther = remember { mutableStateOf(user.diachi == "Chưa có địa chỉ") }
-        getLocation(checkedStateOther, checkedStateDefautl)
+
+        LaunchedEffect(checkedStateDefautl.value, checkedStateOther.value) {
+            if (!checkedStateDefautl.value && !checkedStateOther.value) {
+                checkedStateOther.value = true
+            }
+        }
+
+        getLocation(checkedStateOther, checkedStateDefautl, sharedViewModel)
         Column(
             modifier = Modifier.background(Color.White)
         ) {
@@ -399,9 +412,16 @@ fun LocationPayment(
 
 @Composable
 fun SuccessPayment(
-    selectedProducts: List<PayData>
+    selectedProducts: List<PayData>,
+    accountViewModel: AccountViewModel
 ) {
     val total = selectedProducts.sumOf { it.oneprice * it.quantity }
+    var showDialogSecret by remember { mutableStateOf(false) }
+    var pinCode by remember { mutableStateOf("") }
+    val userState by accountViewModel.userInfoFlow.collectAsState(initial = null)
+    var showErrorOTP by remember { mutableStateOf(false) }
+    var errorMessageOTP by remember { mutableStateOf("") }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -431,7 +451,7 @@ fun SuccessPayment(
 
         Button(
             shape = RectangleShape,
-            onClick = { /*TODO: Add your action here*/ },
+            onClick = { showDialogSecret = true },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Red,
             ),
@@ -445,6 +465,113 @@ fun SuccessPayment(
                     color = Color.White
                 ),
             ) // Change the color of the text
+        }
+
+        // Dialog section
+        if (showDialogSecret) {
+            AlertDialog(
+                modifier = Modifier.fillMaxWidth(),
+                onDismissRequest = { showDialogSecret = false },
+                title = {
+                    Text(
+                        text = "Nhập Mã Giao Dịch",
+                        style = TextStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp)
+                    )
+                },
+                text = {
+                    Column{
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            for (i in 0 until 6) {
+                                PinDigitField(
+                                    digit = if (pinCode.length > i) pinCode[i].toString() else "",
+                                    onDigitChange = { newDigit ->
+                                        if (newDigit.length <= 1 && newDigit.all { it.isDigit() }) {
+                                            val newPinCode = StringBuilder(pinCode).apply {
+                                                if (newDigit.isEmpty() && pinCode.isNotEmpty()) {
+                                                    deleteCharAt(lastIndex)
+                                                } else if (pinCode.length < 6) {
+                                                    append(newDigit)
+                                                }
+                                            }.toString()
+                                            pinCode = newPinCode
+                                        }
+                                    }
+                                )
+                            }
+                        }
+
+                        if(showErrorOTP)
+                        {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 10.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Mã OTP không đúng!",
+                                    style = TextStyle(
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Red,
+                                        textAlign = TextAlign.Center
+                                    )
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            userState?.let { user ->
+                                if (pinCode == user.otp) {
+                                    showErrorOTP = false
+                                    showDialogSecret = false
+
+                                } else {
+                                    showErrorOTP = true
+                                    errorMessageOTP = "Mã OTP không đúng"
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFffcc99),
+                            contentColor = Color.Black
+                        ),
+                        border = BorderStroke(1.dp, Color.Red)
+                    ) {
+                        Text("OK", style = TextStyle(fontWeight = FontWeight.Bold))
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            // Dismiss button logic here
+                            showDialogSecret = false
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFd9d9d9),
+                            contentColor = Color.Black
+                        ),
+                        border = BorderStroke(1.dp, Color.Black)
+                    ) {
+                        Text("Hủy", style = TextStyle(fontWeight = FontWeight.Bold))
+                    }
+                }
+            )
         }
     }
 
@@ -473,7 +600,8 @@ fun PaymentPreview() {
                     "tag",
                     1
                 )
-            )
+            ),
+            sharedViewModel = SharedViewModel(LocalContext.current)
         )
     }
 }

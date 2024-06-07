@@ -364,6 +364,9 @@ class AccountViewModel(context: Context) : ViewModel() {
         with(sharedPreferences.edit()) {
             remove("token")
             remove("user")
+            remove("iduser")
+            remove("bankdata")
+            remove("otheraddress")
             apply()
         }
     }

@@ -56,6 +56,15 @@ data class Bank(
     val image: Int
 )
 
+data class BankData(
+    val bankName: String,
+    val accountNumber: String
+)
+
+data class OtherAddress(
+    val address: String
+)
+
 data class ItemsBaiViet(
     val id: Int,
     val tieude: String,

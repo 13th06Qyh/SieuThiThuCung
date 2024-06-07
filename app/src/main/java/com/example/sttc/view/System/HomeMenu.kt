@@ -342,6 +342,7 @@ fun HomeMenuScreen(
                     // ------------payment---------------
                     composable("payments") {
                         val selectedProducts by sharedViewModel.selectedProducts.collectAsState(emptyList())
+
                         PaymentScreen(
                             back = { navController.popBackStack() },
                             context = context,
@@ -350,6 +351,7 @@ fun HomeMenuScreen(
                             accountViewModel = AccountViewModel(context),
                             openAccount = { navController.navigate("account") },
                             selectedProducts = selectedProducts,
+                            sharedViewModel = SharedViewModel(context)
                         )
                     }
                     // ------------otp---------------
@@ -363,7 +365,8 @@ fun HomeMenuScreen(
                     composable("card") {
                         Card(
                             back = { navController.popBackStack() },
-                            openCart = { navController.navigate("cart") }
+                            openCart = { navController.navigate("cart") },
+                            sharedViewModel = SharedViewModel(context)
                         )
                     }
                     // ------------notification---------------
@@ -532,6 +535,6 @@ fun MenuScreenPreview() {
         openLogin = {},
         openLogout = {},
         cartViewModel = CartViewModel(LocalContext.current),
-        sharedViewModel = SharedViewModel()
+        sharedViewModel = SharedViewModel(LocalContext.current)
     )
 }

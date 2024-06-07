@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.model.User
 import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.SharedViewModel
 
 data class Province(val name: String, val cities: List<City>)
 data class City(val name: String, val wards: List<Ward>)
@@ -1016,7 +1017,8 @@ fun getAddress(
 @Composable
 fun getLocation(
     checkedStateOther: MutableState<Boolean>,
-    checkedStateDefautl: MutableState<Boolean>
+    checkedStateDefautl: MutableState<Boolean>,
+    sharedViewModel: SharedViewModel
 ) {
     var newAddress by remember { mutableStateOf("") }
     var showErrorAddress by remember { mutableStateOf(false) }
@@ -1317,7 +1319,9 @@ fun getLocation(
 @Preview(showBackground = true)
 @Composable
 fun ProPreview() {
-    getLocation(remember { mutableStateOf(false) }, remember { mutableStateOf(false) })
+    getLocation(remember { mutableStateOf(false) }, remember { mutableStateOf(false) }, SharedViewModel(
+        LocalContext.current)
+    )
 }
 
 

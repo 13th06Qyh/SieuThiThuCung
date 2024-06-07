@@ -18,9 +18,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Home
@@ -62,24 +64,35 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
+import com.example.sttc.model.PayData
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.SharedViewModel
 
 @Composable
 fun PayBillChoose(
     openOTP: () -> Unit,
     openCard: () -> Unit,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
+    sharedViewModel: SharedViewModel
 ) {
     val userState by accountViewModel.userInfoFlow.collectAsState(initial = null)
 
     val checkedStateFace = remember { mutableStateOf(true) }
     val checkedStateCard = remember { mutableStateOf(false) }
-    val pay = remember { mutableStateOf("") }
+
+    val bankDataState by sharedViewModel.bankDataInfoFlow.collectAsState(null)
+    Log.d("BankData", "BankData: $bankDataState")
+    var pay by remember { mutableStateOf("Chưa có thẻ ngân hàng") }
+
     LaunchedEffect(checkedStateFace.value, checkedStateCard.value) {
         if (!checkedStateFace.value && !checkedStateCard.value) {
             checkedStateFace.value = true
         }
+    }
+
+    bankDataState?.let { bankData ->
+        pay = bankData.bankName + " - " + bankData.accountNumber
     }
 
     userState?.let { user ->
@@ -169,21 +182,62 @@ fun PayBillChoose(
                 Checkbox(
                     checked = checkedStateCard.value,
                     onCheckedChange = {
-                        checkedStateCard.value = it
-                        if (it) checkedStateFace.value = false
-                        if (user.otp == "Nope") {
-                            Log.d("Checkbox", "Opening OTP screen")
-                            openOTP()
-                        } else {
+                        if(bankDataState == null) {
                             Log.d("Checkbox", "Opening Card screen")
                             openCard()
+                        }else {
+                            checkedStateCard.value = it
+                            if (it) checkedStateFace.value = false
                         }
                     },
                     modifier = Modifier
                         .size(20.dp) // Thay đổi kích thước của checkbox
-                        .padding(23.dp, 0.dp, 15.dp, 0.dp)
+                        .padding(23.dp, 10.dp, 15.dp, 0.dp)
                 )
 
+            }
+
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(40.dp, 0.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = pay,
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                    ),
+                    modifier = Modifier
+                        .padding(7.dp, 10.dp)
+                        .width(250.dp)
+                )
+
+                IconButton(
+                    onClick = {
+                        if (user.otp == "Nope") {
+                            Log.d("Button", "Opening OTP screen")
+                            openOTP()
+                        } else {
+                            Log.d("Button", "Opening Card screen")
+                            openCard()
+                        }
+                    },
+                    modifier = Modifier.padding(2.dp, 0.dp, 15.dp, 0.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "AddBank",
+                        tint = Color.Red,
+                        modifier = Modifier
+                            .size(22.dp)
+                            .border(1.dp, color = Color.Red, shape = CircleShape)
+                    )
+                }
             }
         }
     }
@@ -500,11 +554,10 @@ fun Secret(
 @Composable
 fun Card(
     back: () -> Unit,
-    openCart: () -> Unit
+    openCart: () -> Unit,
+    sharedViewModel: SharedViewModel
 ) {
     val stk = remember { mutableStateOf("") }
-    var showDialogSecret by remember { mutableStateOf(false) }
-    var pinCode by remember { mutableStateOf("") }
     var bankName by remember { mutableStateOf("") }
 
     val banks = listOf(
@@ -666,7 +719,11 @@ fun Card(
         ) {
             OutlinedTextField(
                 value = stk.value,
-                onValueChange = { stk.value = it },
+                onValueChange = { newValue ->
+                    if (newValue.all { it.isDigit() }) {
+                        stk.value = newValue
+                    }
+                },
                 placeholder = {
                     Text(
                         text = "Nhập số tài khoản của bạn",
@@ -693,7 +750,11 @@ fun Card(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(
-                onClick = { showDialogSecret = true },
+                onClick = {
+                    sharedViewModel.setSelectedBankData(BankData(bankName, stk.value))
+                    Log.d("Card", "BankName: $bankName - STK: ${stk.value}")
+                    back()
+                },
                 shape = RoundedCornerShape(2.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFff5c33),
@@ -708,84 +769,6 @@ fun Card(
                     style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 )
             }
-        }
-
-        // Dialog section
-        if (showDialogSecret) {
-            AlertDialog(
-                modifier = Modifier.fillMaxWidth(),
-                onDismissRequest = { showDialogSecret = false },
-                title = {
-                    Text(
-                        text = "Nhập Mã Giao Dịch",
-                        style = TextStyle(
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp)
-                    )
-                },
-                text = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        for (i in 0 until 6) {
-                            PinDigitField(
-                                digit = if (pinCode.length > i) pinCode[i].toString() else "",
-                                onDigitChange = { newDigit ->
-                                    if (newDigit.length <= 1 && newDigit.all { it.isDigit() }) {
-                                        val newPinCode = StringBuilder(pinCode).apply {
-                                            if (newDigit.isEmpty() && pinCode.isNotEmpty()) {
-                                                deleteCharAt(lastIndex)
-                                            } else if (pinCode.length < 6) {
-                                                append(newDigit)
-                                            }
-                                        }.toString()
-                                        pinCode = newPinCode
-                                    }
-                                }
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            // Confirm button logic here
-                            showDialogSecret = false
-                            openCart()
-
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFffcc99),
-                            contentColor = Color.Black
-                        ),
-                        border = BorderStroke(1.dp, Color.Red)
-                    ) {
-                        Text("OK", style = TextStyle(fontWeight = FontWeight.Bold))
-                    }
-                },
-                dismissButton = {
-                    Button(
-                        onClick = {
-                            // Dismiss button logic here
-                            showDialogSecret = false
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFd9d9d9),
-                            contentColor = Color.Black
-                        ),
-                        border = BorderStroke(1.dp, Color.Black)
-                    ) {
-                        Text("Hủy", style = TextStyle(fontWeight = FontWeight.Bold))
-                    }
-                }
-            )
         }
     }
 }
@@ -921,8 +904,13 @@ fun PayPreview() {
     STTCTheme {
 //        Card(back = {}, openCart = {})
 //        Card(back = {})
-        PayBillChoose(openOTP = { /*TODO*/ }, openCard = { /*TODO*/ }, accountViewModel = AccountViewModel(
-            LocalContext.current)
+        PayBillChoose(
+            openOTP = { /*TODO*/ },
+            openCard = { /*TODO*/ },
+            accountViewModel = AccountViewModel(
+                LocalContext.current
+            ),
+            sharedViewModel = SharedViewModel(LocalContext.current)
         )
     }
 }

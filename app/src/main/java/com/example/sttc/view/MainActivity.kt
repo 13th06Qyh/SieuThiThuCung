@@ -56,7 +56,7 @@ fun App(
                     navController.navigate("login")
                 },
                 cartViewModel = CartViewModel(context),
-                sharedViewModel = SharedViewModel()
+                sharedViewModel = SharedViewModel(context)
 
             )
         }
