@@ -13,5 +13,7 @@ data class Blogs(
 data class BlogsData(
     val blogs : List<Blogs> ,
     val animals: List<Animal>,
-    val blogDetail : List<Blogs>
+    val blogDetail : List<Blogs> ,
+    val comments : List<Comments>,
+    val users : List<User>
 )

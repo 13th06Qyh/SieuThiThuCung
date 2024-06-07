@@ -128,13 +128,14 @@ fun ListBlogScreen(
                                 )
                             )
                             Spacer(modifier = Modifier.height(4.dp))
-//                            val isImagesFetched = remember { mutableStateOf(false) }
-//                            if (!isImagesFetched.value) {
-//                                blogsViewModel.fetchImages(blog.maBlog)
-//                                isImagesFetched.value = true
-//                            }
-                            blogsViewModel.fetchImages(blog.maBlog)
+                            LaunchedEffect(key1 = blog.maBlog) {
+                                if (imagesMap[blog.maBlog].isNullOrEmpty()) {
+                                    blogsViewModel.fetchImages(blog.maBlog)
+                                }
+                            }
+
                             val blogImages = imagesMap[blog.maBlog].orEmpty()
+//                            Log.e("anh imageMap", "$blogImages")
                             if (blogImages.isNotEmpty()) {
                                 val image = blogImages.first()
                                 val imageUrl = image.image

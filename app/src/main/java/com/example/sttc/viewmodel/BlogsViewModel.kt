@@ -20,10 +20,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class BlogsViewModel : ViewModel() {
-    private val _blog = MutableLiveData<List<Blogs>>()
-    val blogs = _blog.asFlow()
-    private val _imagesBlogs = MutableLiveData<Map<Int, List<ImageBlogs>>>()
-    val imagesBlogs = _imagesBlogs.asFlow()
+    private val _blog = MutableStateFlow<List<Blogs>>(emptyList())
+    val blogs: StateFlow<List<Blogs>> = _blog
+
+    private val _imagesBlogs = MutableStateFlow<Map<Int, List<ImageBlogs>>>(emptyMap())
+    val imagesBlogs: StateFlow<Map<Int, List<ImageBlogs>>> = _imagesBlogs
 
     init {
         fetchBlogs()
@@ -39,7 +40,7 @@ class BlogsViewModel : ViewModel() {
                         if (response.isSuccessful) {
 
                             val blogData = response.body()
-                            _blog.value = blogData?.blogs
+                            _blog.value = response.body()?.blogs.orEmpty()
 
                             Log.e("BlogData fetchBlogs ", blogData.toString())
 
@@ -105,7 +106,7 @@ class BlogsViewModel : ViewModel() {
                     ) {
                         if (response.isSuccessful) {
                             val blogData = response.body()
-                            _blog.value = blogData?.blogs
+                            _blog.value = response.body()?.blogs.orEmpty()
                             Log.e("getBlogDetailById", blogData.toString())
                         } else {
                             if (response.code() == 429) {

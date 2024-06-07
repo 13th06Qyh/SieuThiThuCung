@@ -1,5 +1,6 @@
 package com.example.sttc.view
 
+import CommentsViewModel
 import android.content.Context
 import android.util.Log
 import android.webkit.WebView
@@ -63,14 +64,13 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.Blogs.Avatar
-import com.example.sttc.view.System.ItemsCmt
 import com.example.sttc.viewmodel.BlogsViewModel
-import androidx.compose.ui.viewinterop.AndroidView
 
 @Composable
 fun DetailBlogsScreen(
     back: () -> Unit,
     blogsViewModel: BlogsViewModel,
+    commentViewModel: CommentsViewModel,
     context: Context,
     blogId: Int
 ) {
@@ -82,6 +82,7 @@ fun DetailBlogsScreen(
             .background(Color(0xFFf2f2f2))
             .verticalScroll(scrollState),
     ) {
+
         NavagationTop(back)
         HorizontalDivider(color = Color(0xFFcccccc), thickness = 1.dp)
         ContentBlogs(blogsViewModel, blogId, context)
@@ -91,7 +92,7 @@ fun DetailBlogsScreen(
             modifier = Modifier.padding(0.dp, 10.dp)
         )
         TitleCmt()
-        ShowCmt()
+        ShowCmt(commentViewModel, blogId)
     }
 
 }
@@ -283,22 +284,18 @@ fun TitleCmt() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowCmt() {
+fun ShowCmt(
+    commentsViewModel: CommentsViewModel,
+    blogId: Int
+) {
+    commentsViewModel.fetchComments(blogId)
+    val cmt by commentsViewModel.comments.collectAsState(initial = emptyList())
+    Log.e("ShowCmt", "Comments: $cmt")
     //dialog
     var openDialogDelete by remember { mutableStateOf(false) }
     var openDialogBuild by remember { mutableStateOf(false) }
-
-    val itemsCmt = listOf(
-        ItemsCmt(1, "Nguyen Anh Thu", "Nội dung bài viết 1"),
-        ItemsCmt(2, "Pham Nhu Quynh", "Nội dung bài viết 2"),
-        ItemsCmt(3, "Nguyen Van A", "Nội dung bài viết 3"),
-        ItemsCmt(4, "Pham Nhu Quynh", "Nội dung bài viết 4"),
-        ItemsCmt(5, "Pham Nhu Quynh", "Nội dung bài viết 5"),
-        ItemsCmt(6, "Nguyen Anh Thu", "Nội dung bài viết 5"),
-    )
     var selectedTaskCmt by remember { mutableStateOf("") }
     var newCmt by remember { mutableStateOf("") }
-    val rows = itemsCmt.chunked(2)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -308,7 +305,7 @@ fun ShowCmt() {
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            rows.forEach { rowItems ->
+            cmt.forEach { rowItems ->
                 Surface(
                     color = Color.White,
                     shape = RoundedCornerShape(8.dp),
@@ -316,103 +313,103 @@ fun ShowCmt() {
                         .fillMaxWidth()
                         .padding(10.dp, 5.dp)
                 ) {
-                    for (item in rowItems) {
-                        Row(
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFd9d9d9))
+                            .border(
+                                width = 2.dp,
+                                color = Color.Black,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                    ) {
+
+                        Column(
                             modifier = Modifier
+                                .padding(start = 4.dp)
                                 .fillMaxWidth()
-                                .background(Color(0xFFd9d9d9))
-                                .border(
-                                    width = 2.dp,
-                                    color = Color.Black,
-                                    shape = RoundedCornerShape(8.dp)
-                                )
                         ) {
-
-                            Column(
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .padding(start = 4.dp)
                                     .fillMaxWidth()
+                                    .background(Color(0xFFd9d9d9))
+                                    .padding(horizontal = 8.dp, vertical = 1.dp)
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
+                                Surface(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(Color(0xFFd9d9d9))
-                                        .padding(horizontal = 8.dp, vertical = 1.dp)
-                                ) {
-                                    Surface(
-                                        modifier = Modifier
-                                            .border(
-                                                BorderStroke(2.dp, Color.Black),
-                                                shape = CircleShape
-                                            )
-                                            .clip(shape = CircleShape)
+                                        .border(
+                                            BorderStroke(2.dp, Color.Black),
+                                            shape = CircleShape
+                                        )
+                                        .clip(shape = CircleShape)
 
-                                    ) {
-                                        Image(
-                                            painter = painterResource(R.drawable.user),
-                                            contentDescription = "avatar",
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier
-                                                .size(30.dp)
-                                                .clip(CircleShape)
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.user),
+                                        contentDescription = "avatar",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .size(30.dp)
+                                            .clip(CircleShape)
+                                    )
+                                }
+                                Text(
+                                    text = rowItems.username,
+                                    style = TextStyle(fontSize = 18.sp),
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(start = 5.dp)
+                                )
+
+                                Text(text = "1 giờ trước", style = TextStyle(fontSize = 14.sp))
+
+                                Row(
+                                    modifier = Modifier,
+                                    horizontalArrangement = Arrangement.End,
+                                ) {
+                                    IconButton(onClick = { openDialogDelete = true }) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = "DeleteCmt",
+                                            tint = Color.Gray,
+                                            modifier = Modifier.padding(end = 5.dp)
                                         )
                                     }
-                                    Text(
-                                        text = item.nameUser,
-                                        style = TextStyle(fontSize = 18.sp),
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(start = 5.dp)
-                                    )
-
-                                    Text(text = "1 giờ trước", style = TextStyle(fontSize = 14.sp))
-
-                                    Row(
-                                        modifier = Modifier,
-                                        horizontalArrangement = Arrangement.End,
-                                    ) {
-                                        IconButton(onClick = { openDialogDelete = true }) {
-                                            Icon(
-                                                Icons.Default.Delete,
-                                                contentDescription = "DeleteCmt",
-                                                tint = Color.Gray,
-                                                modifier = Modifier.padding(end = 5.dp)
-                                            )
-                                        }
-                                        IconButton(onClick = {
-                                            openDialogBuild = true
-                                            selectedTaskCmt = item.cmt
-                                        }) {
-                                            Icon(
-                                                Icons.Default.Create,
-                                                contentDescription = "EditCmt",
-                                                tint = Color.Gray
-                                            )
-                                        }
+                                    IconButton(onClick = {
+                                        openDialogBuild = true
+                                        selectedTaskCmt = rowItems.noidungbl
+                                    }) {
+                                        Icon(
+                                            Icons.Default.Create,
+                                            contentDescription = "EditCmt",
+                                            tint = Color.Gray
+                                        )
                                     }
                                 }
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(Color(0xFFf1f4fe))
-                                        .padding(horizontal = 8.dp, vertical = 1.dp)
-                                ) {
-                                    Text(
-                                        text = item.cmt,
-                                        style = TextStyle(fontSize = 18.sp),
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(top = 10.dp, bottom = 25.dp)
-                                    )
-                                }
                             }
-
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFFf1f4fe))
+                                    .padding(horizontal = 8.dp, vertical = 1.dp)
+                            ) {
+                                Text(
+                                    text = rowItems.noidungbl,
+                                    style = TextStyle(fontSize = 18.sp),
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(top = 10.dp, bottom = 25.dp)
+                                )
+                            }
                         }
+
                     }
+
                     if (openDialogDelete) {
                         AlertDialog(
                             containerColor = Color(0xFFfffff5),
@@ -500,7 +497,8 @@ fun ShowCmt() {
                             confirmButton = {
                                 Button(
                                     onClick = {
-                                        itemsCmt[0].cmt = newCmt
+
+                                        cmt[0].noidungbl = newCmt
                                         openDialogBuild = false
                                     },
                                     colors = ButtonDefaults.buttonColors(
@@ -552,6 +550,7 @@ fun PreviewDetailBlogsScreen() {
         DetailBlogsScreen(
             back = {},
             blogsViewModel = BlogsViewModel(),
+            commentViewModel = CommentsViewModel(),
             context = LocalContext.current,
             0
         )

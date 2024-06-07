@@ -1,4 +1,5 @@
 package com.example.sttc.view
+
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -39,11 +40,11 @@ import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.SuggestTodayopen
 import com.example.sttc.viewmodel.ProductViewModel
 
-
+//InforBillHistoryShipScreen : chi tiết đơn hàng đã mua - trạng thái đã giao
 @Composable
 fun InforBillHistoryShipScreen(
-    back : () -> Unit,
-    openDetailProducts: (id:Int) -> Unit,
+    back: () -> Unit,
+    openDetailProducts: (id: Int) -> Unit,
     productViewModel: ProductViewModel,
     context: Context
 ) {
@@ -57,16 +58,15 @@ fun InforBillHistoryShipScreen(
             .verticalScroll(scrollState)
 
     ) {
-        Column (
+        Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
 //            TopIconInforBill()
             TitleInforBill(back)
             BillSuccess()
             ContentInforBill()
-            SuccessPay()
             PayBill()
             LocationReceive()
             Row(
@@ -97,35 +97,40 @@ fun InforBillHistoryShipScreen(
                     color = Color.Gray
                 )
             }
-            SuggestTodayopen(openDetailProducts, productViewModel, context, selectedOption.value, selectedAnimal)
+            SuggestTodayopen(
+                openDetailProducts,
+                productViewModel,
+                context,
+                selectedOption.value,
+                selectedAnimal
+            )
         }
     }
 
 }
 
 @Composable
-fun BillSuccess(){
-    Column (
+fun BillSuccess() {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(
                 Color(0xFF0a2929)
             )
     ) {
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
                     Color(0xFFccffff)
                 )
-                .padding(5.dp, 20.dp, 0.dp, 20.dp)
-            ,
+                .padding(5.dp, 20.dp, 0.dp, 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween
-        ){
-            Column (
+        ) {
+            Column(
                 modifier = Modifier
                     .width(270.dp)
-            ){
+            ) {
                 Text(
                     text = "Đơn hàng đã hoàn thành",
                     style = TextStyle(
@@ -285,46 +290,52 @@ fun BillSuccess(){
 }
 
 @Composable
-fun SuccessPay(){
-    Column {
-        HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
-        Row (
+fun SuccessPay() {
+    HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+//                        .border(1.dp, color = Color(0xFFcc2900))
+            .background(
+                Color.White
+            ),
+        horizontalArrangement = Arrangement.End
+
+    ) {
+        Button(
+            onClick = { /* Do something! */ },
+            shape = RoundedCornerShape(2.dp), // Định dạng góc bo tròn của nút
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFcc2900), // Màu nền của nút
+                contentColor = Color.White // Màu chữ của nút
+            ),
             modifier = Modifier
                 .fillMaxWidth()
-//                        .border(1.dp, color = Color(0xFFcc2900))
-                .background(
-                    Color.White
-                ),
-            horizontalArrangement = Arrangement.End
-
+                .padding(7.dp, 5.dp)
         ) {
-            Button(
-                onClick = { /* Do something! */ },
-                shape = RoundedCornerShape(2.dp), // Định dạng góc bo tròn của nút
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFcc2900), // Màu nền của nút
-                    contentColor = Color.White // Màu chữ của nút
+            Text(
+                text = "Mua lại",
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 ),
-                modifier = Modifier.fillMaxWidth()
-                    .padding(7.dp, 5.dp)
-            ) {
-                Text(text = "Mua lại",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    ),
-                )
-            }
+            )
         }
     }
+
 }
 
 @Preview(showBackground = true)
 @Composable
 fun InforBillHistoryScreenPreview() {
     STTCTheme {
-        InforBillHistoryShipScreen(back = {}, openDetailProducts = {}, ProductViewModel(), LocalContext.current)
+        InforBillHistoryShipScreen(
+            back = {},
+            openDetailProducts = {},
+            ProductViewModel(),
+            LocalContext.current
+        )
 //        MyApp()
 //        SignUpForm(navController = rememberNavController(), authController = AuthController())
     }

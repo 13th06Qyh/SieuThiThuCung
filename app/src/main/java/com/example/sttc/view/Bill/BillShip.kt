@@ -46,6 +46,7 @@ import com.example.sttc.view.System.Product
 import com.example.sttc.view.System.formatNumber
 import com.example.sttc.viewmodel.ProductViewModel
 
+//BillShipScreen : nơi hiển thị đơn trong trạng thái đang giao
 @Composable
 fun BillShipScreen(
     openDetailBillShip: () -> Unit,

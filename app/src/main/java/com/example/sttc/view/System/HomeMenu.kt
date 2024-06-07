@@ -1,5 +1,8 @@
 package com.example.sttc.view.System
 
+import CommentsViewModel
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,6 +30,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,16 +65,22 @@ import com.example.sttc.view.DetailBlogsScreen
 import com.example.sttc.view.HomeScreen
 import com.example.sttc.view.InforBillHistoryShipScreen
 import com.example.sttc.view.InforBillShipScreen
+import com.example.sttc.view.PaymentScreen
 import com.example.sttc.view.Products.DetailProductsScreen
 import com.example.sttc.view.Products.ListProductScreen
 import com.example.sttc.view.Products.ProductScreens
 import com.example.sttc.view.Users.AccountScreen
+import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.BlogsViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeMenuScreen() { //
+fun HomeMenuScreen(
+    accountViewModel: AccountViewModel,
+    openLogin : () -> Unit,
+    openLogout: () -> Unit
+) { //
     val navController = rememberNavController()
     var selectedProductType by remember { mutableStateOf("") }
     var selectBlogType by remember { mutableStateOf("") }
@@ -179,11 +189,25 @@ fun HomeMenuScreen() { //
                         )
                     }
                     composable("account") {
-                        AccountScreen(
-                            openBillShip = { navController.navigate("billShip") },
-                            openBillHistory = { navController.navigate("billHistory") },
-                            openBillCancel = { navController.navigate("billCancel") },
-                        )
+                        val context = LocalContext.current
+                        val token = accountViewModel.getTokenFromSharedPreferences()
+                        Log.d("token", token.toString())
+                        if (token == null) {
+                            // Nếu không, điều hướng người dùng đến màn hình đăng nhập
+                            LaunchedEffect(Unit) {
+                                openLogin()
+                            }
+                        } else {
+                            // Nếu có token, hiển thị màn hình tài khoản
+                            AccountScreen(
+                                openBillShip = { navController.navigate("billShip") },
+                                openBillHistory = { navController.navigate("billHistory") },
+                                openBillCancel = { navController.navigate("billCancel") },
+                                openLogout = {openLogout()},
+                                accountViewModel = AccountViewModel(context)
+                            )
+                        }
+
                     }
                     // ------------sanPham---------------
                     composable("listProducts") {
@@ -194,19 +218,10 @@ fun HomeMenuScreen() { //
                             context = LocalContext.current
                         )
                     }
-//                    composable("detailProducts") {
-//                        DetailProductsScreen(
-//                            back = { navController.popBackStack() },
-//                            openCart = { navController.navigate("cart") },
-//                            openDetailProducts = { navController.navigate("detailProducts") },
-//                            productViewModel = ProductViewModel(),//cai nay la hien cai khuc suggesttoday phia duoi, chu khong phai la noi dung chi tiet cua sanpham
-//                            context = LocalContext.current,
-//                            productId = 0
-//                        )
-//                    }
 
                     composable("detailProducts/{productId}") { backStackEntry ->
-                        val productId = backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
+                        val productId =
+                            backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
                         DetailProductsScreen(
                             back = { navController.popBackStack() },
                             openCart = { navController.navigate("cart") },
@@ -231,13 +246,19 @@ fun HomeMenuScreen() { //
                         DetailBlogsScreen(
                             back = { navController.popBackStack() },
                             blogsViewModel = BlogsViewModel() ,
+                            commentViewModel = CommentsViewModel(),
                             context = LocalContext.current ,
                             blogId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
                         )
                     }
                     composable("detailComments") {
+                        val context = LocalContext.current
                         DetailCommentScreen(
-                            back = { navController.popBackStack() },
+                            back = {navController.popBackStack() },
+                            commentViewModel = CommentsViewModel(),
+                            accountViewModel = AccountViewModel(context) ,
+                            blogId = 0
+
                         )
                     }
                     // ------------bill---------------
@@ -276,7 +297,35 @@ fun HomeMenuScreen() { //
                     }
                     // ------------cart---------------
                     composable("cart") {
-                        CartScreen(back = { navController.popBackStack() })
+                        CartScreen(
+                            back = { navController.popBackStack() }
+                        )
+                    }
+                    composable("payments") {
+                        val context = LocalContext.current
+                        PaymentScreen(
+                            back = { navController.popBackStack() },
+                            openOTP = { navController.navigate("otp") },
+                            openCard = { navController.navigate("card") },
+                            accountViewModel = AccountViewModel(context)
+                        )
+                    }
+                    // ------------otp---------------
+                    composable("otp") {
+                        val context = LocalContext.current
+                        Secret(
+                            back = { navController.popBackStack() },
+                            openCard = { navController.navigate("card") },
+                            accountViewModel = AccountViewModel(context)
+                        )
+                    }
+                    // ------------card---------------
+                    composable("card") {
+                        val context = LocalContext.current
+                        Card(
+                            back = { navController.popBackStack() },
+                            accountViewModel = AccountViewModel(context)
+                        )
                     }
                     // ------------notification---------------
                     composable("notification") {
@@ -439,5 +488,5 @@ enum class BottomBarScreen(
 @Preview(showBackground = true)
 @Composable
 fun MenuScreenPreview() {
-    HomeMenuScreen()
+    HomeMenuScreen(accountViewModel = AccountViewModel(LocalContext.current), openLogin = {}, openLogout = {})
 }

@@ -1,9 +1,9 @@
 package com.example.sttc.model
 
 data class ImageSP(
-    val created_at: String,
+    val maISP: Int,
     val idsp: Int,
     val image: String,
-    val maISP: Int,
+    val created_at: String,
     val updated_at: String
 )

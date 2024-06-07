@@ -44,7 +44,7 @@ import com.example.sttc.view.System.BillProduct
 import com.example.sttc.view.System.Product
 import com.example.sttc.view.System.formatNumber
 import com.example.sttc.viewmodel.ProductViewModel
-
+// BillHistoryScreen : những đơn hàng đã mua- trạng thái đã giao  (lịc sử mua hàng )
 @Composable
 fun BillHistoryScreen(
     openDetailBillHistory: () -> Unit,

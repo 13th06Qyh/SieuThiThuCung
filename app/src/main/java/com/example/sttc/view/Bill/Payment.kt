@@ -16,16 +16,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -33,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -44,13 +50,25 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
+import com.example.sttc.model.User
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.BillProduct
+import com.example.sttc.view.System.PayBillChoose
 import com.example.sttc.view.System.Product
+import com.example.sttc.view.System.ShipChoose
 import com.example.sttc.view.System.formatNumber
+import com.example.sttc.view.System.getLocation
+import com.example.sttc.viewmodel.AccountViewModel
 
 @Composable
-fun PaymentScreen(navController: NavController) {
+fun PaymentScreen(
+    back : () -> Unit,
+    openOTP : () -> Unit,
+    openCard : () -> Unit,
+    accountViewModel: AccountViewModel
+) {
+    val scrollState = rememberScrollState()
+    val userState by accountViewModel.userInfoFlow.collectAsState(initial = null)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -63,100 +81,118 @@ fun PaymentScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFffcccc)),
+                .background(Color(0xFFffcccc))
+            ,
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TitlePayment()
-            LocationPayment()
-            val items = listOf(
-                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.System.Bill(1)),
-                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.System.Bill(1)),
-                BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.System.Bill(1)),
-            )
             LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(5.dp, 0.dp)
+                modifier = Modifier.weight(1f)
             ) {
-                items(items) { item ->
-
-
-                    Column(
-                        modifier = Modifier
-                            .padding(0.dp, 5.dp, 0.dp, 0.dp)
-                            .border(1.dp, color = Color(0xFFFFFFFF))
-                            .fillMaxWidth()
-                            .background(
-                                Color.White
-                            ),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row(
+                item {
+                    LocationPayment()
+                    ShipChoose()
+                    PayBillChoose(openOTP, openCard, accountViewModel)
+                val items = listOf(
+                    BillProduct(
+                        Product(R.drawable.rs1, "Tag A", "Product A", 10000),
+                        com.example.sttc.view.System.Bill(1)
+                    ),
+                    BillProduct(
+                        Product(R.drawable.rs1, "Tag A", "Product A", 10000),
+                        com.example.sttc.view.System.Bill(1)
+                    ),
+                    BillProduct(
+                        Product(R.drawable.rs1, "Tag A", "Product A", 10000),
+                        com.example.sttc.view.System.Bill(1)
+                    ),
+                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp, 0.dp)
+                ) {
+                    for (item in items) {
+                        Column(
                             modifier = Modifier
-                                .padding(5.dp, 8.dp)
-                                .clickable { /* Do something! */ },
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                                .padding(0.dp, 5.dp, 0.dp, 0.dp)
+                                .border(1.dp, color = Color(0xFFFFFFFF))
+                                .fillMaxWidth()
+                                .background(
+                                    Color.White
+                                ),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Image(
-                                painter = painterResource(id = item.product.imageResId),
-                                contentDescription = "Image",
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .padding(5.dp, 5.dp)
-                                    .border(0.5.dp, color = Color.Black)
-                            )
 
-                            Column(
+                            Row(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(100.dp)
-                                    .padding(5.dp, 10.dp),
+                                    .padding(5.dp, 8.dp)
+                                    .clickable { /* Do something! */ },
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
-                                Text(
-                                    text = item.product.productName,
-                                    style = TextStyle(
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.Black
+
+                                Image(
+                                    painter = painterResource(id = item.product.imageResId),
+                                    contentDescription = "Image",
+                                    modifier = Modifier
+                                        .size(100.dp)
+                                        .padding(5.dp, 5.dp)
+                                        .border(0.5.dp, color = Color.Black)
+                                )
+
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(100.dp)
+                                        .padding(5.dp, 10.dp),
+                                ) {
+                                    Text(
+                                        text = item.product.productName,
+                                        style = TextStyle(
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.Black
+                                        )
                                     )
-                                )
-                                Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
-                                Text(
-                                    text = item.product.tagName,
-                                    style = TextStyle(
-                                        fontSize = 13.sp,
-                                        fontStyle = FontStyle.Italic,
-                                        color = Color.Black,
+                                    Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
+                                    Text(
+                                        text = item.product.tagName,
+                                        style = TextStyle(
+                                            fontSize = 13.sp,
+                                            fontStyle = FontStyle.Italic,
+                                            color = Color.Black,
+                                        )
                                     )
-                                )
-                                Text(
-                                    "x" + item.bill.soluongmua.toString(),
-                                    style = TextStyle(
-                                        fontSize = 14.sp,
-                                        color = Color.Black,
-                                        textAlign = TextAlign.End
-                                    ),
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                                Text(
-                                    formatNumber(item.product.productPrice) + "đ",
-                                    style = TextStyle(
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFFcc2900),
-                                        textAlign = TextAlign.End
-                                    ),
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                                    Text(
+                                        "x" + item.bill.soluongmua.toString(),
+                                        style = TextStyle(
+                                            fontSize = 14.sp,
+                                            color = Color.Black,
+                                            textAlign = TextAlign.End
+                                        ),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    Text(
+                                        formatNumber(item.product.productPrice) + "đ",
+                                        style = TextStyle(
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFcc2900),
+                                            textAlign = TextAlign.End
+                                        ),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
                             }
+
                         }
                     }
                 }
+
             }
-            PayBill()
+            }
             HorizontalDivider(thickness = 1.dp, color = Color(0xFF000000))
             SuccessPayment()
         }
@@ -207,7 +243,8 @@ fun TitlePayment() {
 @Composable
 fun LocationPayment() {
     val location = remember { mutableStateOf("") }
-    Column (
+    getLocation()
+    Column(
         modifier = Modifier.background(Color.White)
     ) {
         Row(
@@ -224,7 +261,7 @@ fun LocationPayment() {
                 modifier = Modifier.size(30.dp)
             )
             Text(
-                text = "Địa chỉ giao hàng",
+                text = "Địa chỉ mặc định",
                 style = TextStyle(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
@@ -232,20 +269,18 @@ fun LocationPayment() {
                 ),
                 modifier = Modifier.padding(10.dp, 10.dp)
             )
+            val checkedStateDefautl = remember { mutableStateOf(false) }
+            Checkbox(
+                checked = checkedStateDefautl.value,
+                onCheckedChange = { checkedStateDefautl.value = it },
+                modifier = Modifier
+                    .size(20.dp) // Thay đổi kích thước của checkbox
+                    .padding(145.dp, 0.dp, 15.dp, 0.dp)
+            )
         }
         OutlinedTextField(
             value = location.value,
-            onValueChange = { location.value = it },
-            placeholder = {
-                Text(
-                    "Nhập địa chỉ chi tiết tại đây!",
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        fontStyle = FontStyle.Italic,
-                        color = Color.Gray
-                    )
-                )
-            },
+            onValueChange = { },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(15.dp, 5.dp, 20.dp, 15.dp)
@@ -293,7 +328,7 @@ fun SuccessPayment() {
             modifier = Modifier.height(55.dp)
         ) {
             Text(
-                text = "Mua hàng",
+                text = "Thanh toán",
                 style = TextStyle(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
@@ -306,11 +341,11 @@ fun SuccessPayment() {
 }
 
 
-
 @Preview(showBackground = true)
 @Composable
 fun PaymentPreview() {
     STTCTheme {
-        PaymentScreen(rememberNavController())
+        PaymentScreen(back = { }, openOTP = { }, openCard = { }, accountViewModel = AccountViewModel(
+            LocalContext.current))
     }
 }
