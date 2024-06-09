@@ -124,9 +124,9 @@ fun InforBillShipScreen(
                     .padding(10.dp, 10.dp)
             )
         }
-        if (billDetail.isNotEmpty()) {
-            Bill(item = billDetail[0])
-        }
+//        if (billDetail.isNotEmpty()) {
+//            Bill(item = billDetail[0])
+//        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
