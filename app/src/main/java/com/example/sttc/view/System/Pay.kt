@@ -749,7 +749,7 @@ fun Card(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(
+            Button( // Tạo nút giao dịch
                 onClick = {
                     sharedViewModel.setSelectedBankData(BankData(bankName, stk.value))
                     Log.d("Card", "BankName: $bankName - STK: ${stk.value}")
