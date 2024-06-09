@@ -112,6 +112,7 @@ fun SearchScreen(
                     IconButton(
                         onClick = {
                             sharedViewModel.setSelectedKeyword(Keyword(searchHistory[index]))
+                            sharedViewModel.search()
                         },
                         modifier = Modifier
                             .background(Color.White)

@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -27,6 +29,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -51,6 +54,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -143,7 +147,9 @@ fun HomeMenuScreen(
                     onQueryChange = { query = it },
                     onSearch = { newQuery ->
                         query = newQuery
-                        sharedViewModel.setSelectedKeyword(Keyword(query))
+                        if (query != "") {
+                            sharedViewModel.setSelectedKeyword(Keyword(query))
+                        }
                         navController.navigate("search")
                     },
                     active = active,
@@ -163,42 +169,8 @@ fun HomeMenuScreen(
                             imageVector = Icons.Filled.Search,
                             contentDescription = "Search"
                         )
-                    },
-                    trailingIcon = {
-                        if (query.isNotEmpty()) {
-                            Icon(
-                                imageVector = Icons.Filled.Close,
-                                contentDescription = "Clear",
-                                modifier = Modifier.clickable {
-                                    query = ""
-                                }
-                            )
-                        }
                     }
                 ) {
-                    searchHistory.takeLast(5).forEach { item ->
-                        ListItem(
-                            modifier = Modifier.clickable {
-                                query = item
-                                sharedViewModel.setSelectedKeyword(Keyword(query))
-                            },
-                            headlineContent = {
-                                Text(
-                                    text = item,
-                                    modifier = Modifier.padding(8.dp).height(100.dp),
-                                    style = TextStyle(
-                                        fontSize = 18.sp
-                                    ),
-                                )
-                            },
-                            leadingContent = {
-                                Icon(
-                                    painter = painterResource(R.drawable.history),
-                                    contentDescription = "SearchHistory"
-                                )
-                            }
-                        )
-                    }
                 }
             }
 
@@ -248,6 +220,7 @@ fun HomeMenuScreen(
                 )
             }
         }
+
         Scaffold(
             topBar = {},
             bottomBar = {
