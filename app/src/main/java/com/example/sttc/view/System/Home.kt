@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
+import com.example.sttc.view.System.SuggestToday
 import com.example.sttc.view.System.formatNumber
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -204,7 +205,7 @@ fun HomeScreen(
                 )
             }
 
-            SuggestTodayopen(openDetailProducts, productViewModel, context, selectedOption.value, selectedAnimal)
+            SuggestToday(openDetailProducts, productViewModel, context, selectedOption.value, selectedAnimal)
         }
     }
 }

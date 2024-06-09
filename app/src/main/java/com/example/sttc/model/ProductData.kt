@@ -8,9 +8,18 @@ data class ProductData(
     val provides: List<Provide>
 )
 
-data class UserData(
-    val users: List<User>
+data class Search(
+    val sanpham: Sanpham,
+    val proname: String,
+    val tagname: String,
+    val image: String
 )
+data class SearchData(
+    val productCount: Int,
+    val sanphams: List<Search>
+)
+
+
 
 
 

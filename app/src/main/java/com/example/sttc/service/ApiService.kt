@@ -6,6 +6,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
@@ -15,6 +16,9 @@ object ApiService {
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         })
+        .connectTimeout(30, TimeUnit.SECONDS)//Set the connection timeout
+        .readTimeout(30, TimeUnit.SECONDS)//Set the read timeout
+        .writeTimeout(30, TimeUnit.SECONDS)//Set the read timeout
         .build()
 
     private const val BASE_URL = "http://192.168.1.8:8000/api/"

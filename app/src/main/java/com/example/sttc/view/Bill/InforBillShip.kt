@@ -60,6 +60,8 @@ import com.example.sttc.view.System.Product
 import com.example.sttc.view.System.SuggestTodayopen
 import com.example.sttc.view.System.formatNumber
 import com.example.sttc.viewmodel.BillViewModel
+import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.CartViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 
 //InforBillShipScreen : chi tiết đơn hàng đã mua ( trạng thái đang giao )
@@ -82,7 +84,64 @@ fun InforBillShipScreen(
     val imagesMap by productViewModel.images.collectAsState(emptyMap())
     val productImages = remember { mutableStateOf<List<ImageSP>>(emptyList()) }
 
+    context: Context,
+    openCart: () -> Unit,
+    cartViewModel: CartViewModel,
+    accountViewModel: AccountViewModel,
+    id: Int,
 
+    ) {
+    val scrollState = rememberScrollState()
+    val selectedOption = remember { mutableStateOf("") }
+    val selectedAnimal = 0
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFf2f2f2))
+            .verticalScroll(scrollState)
+
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+//            TopIconInforBill()
+            TitleInforBill(back)
+            Bill()
+            ContentInforBill(openCart, cartViewModel, productViewModel, accountViewModel, id)
+            PayBill()
+            LocationReceive()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                HorizontalDivider(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(0.dp, 10.dp),  // Take up half the space
+                    thickness = 1.2.dp,
+                    color = Color.Gray
+                )
+                Text(
+                    text = "Có thể bạn quan tâm",
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontStyle = FontStyle.Italic,
+                        color = Color.Black,
+                    ),
+                    modifier = Modifier.padding(10.dp, 0.dp, 10.dp, 10.dp)
+                )
+                HorizontalDivider(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(0.dp, 10.dp),  // Take up half the space
+                    thickness = 1.2.dp,
+                    color = Color.Gray
+                )
+            }
+            SuggestTodayopen(openDetailProducts, productViewModel, context, selectedOption.value, selectedAnimal)
+        }
 
     Log.e("BillId", billId.toString())
     Log.e("listBillDetail", billDetail.toString())
@@ -553,6 +612,25 @@ fun Bill(
 
 @Composable
 fun ContentInforBill(
+    openCart: () -> Unit,
+    cartViewModel: CartViewModel,
+    productViewModel: ProductViewModel,
+    accountViewModel: AccountViewModel,
+    id: Int,
+) {
+    val items = listOf(
+        BillProduct(
+            Product(
+                R.drawable.rs1,
+                "Tag A",
+                "Product A",
+                10000
+            ),
+            com.example.sttc.view.System.Bill(1)
+        ),
+    )
+
+fun ContentInforBill(
     item: billDetail,
     imagesMap: Map<Int, List<ImageSP>>,
     productViewModel: ProductViewModel,
@@ -669,7 +747,11 @@ fun ContentInforBill(
                 }
             }
 
-            SuccessPay()
+            SuccessPay(openCart,
+                cartViewModel,
+                productViewModel,
+                accountViewModel,
+                id)
         }
 
         HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
@@ -890,6 +972,7 @@ fun InforBillShipScreenPreview() {
             LocalContext.current,
             0
         )
+        InforBillShipScreen(back = {}, openDetailProducts = {}, ProductViewModel(), LocalContext.current, {}, CartViewModel(LocalContext.current), AccountViewModel(LocalContext.current), 1)
 //        MyApp()
 //        SignUpForm(navController = rememberNavController(), authController = AuthController())
     }

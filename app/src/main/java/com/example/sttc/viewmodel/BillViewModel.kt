@@ -1,5 +1,6 @@
 package com.example.sttc.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -15,6 +16,8 @@ import com.example.sttc.model.Carts
 import com.example.sttc.model.ErrorAddResponse
 import com.example.sttc.model.billDetail
 import com.example.sttc.model.billShow
+import com.example.sttc.model.ErrorAddBillResponse
+import com.example.sttc.model.PayData
 import com.example.sttc.service.ApiService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
@@ -27,7 +30,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.await
 
-class BillViewModel : ViewModel() {
+class BillViewModel(context: Context) : ViewModel() {
 
     private val _bill = MutableLiveData<List<Bill>>()
     val cart = _bill.asFlow()
@@ -44,6 +47,7 @@ class BillViewModel : ViewModel() {
     val buy = _buy.asFlow()
 
     private var lastFetchTime: Long = 0
+    private val context = context
 
     init {
         fetchBill()
@@ -70,6 +74,22 @@ class BillViewModel : ViewModel() {
                 call: Call<AddBillResponse>,
                 response: Response<AddBillResponse>
             ) {
+    fun getUserIdFromSharedPreferences(): Int? {
+        val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val idUser = sharedPreferences.getInt("iduser", -1)
+        return if (idUser == -1) null else idUser
+    }
+
+    fun buy(otp: String, diachi: String, status: String, ship: String, pay: String, info: String, carts: List<PayData>) {
+        val token = getTokenFromSharedPreferences()
+        if (token == null) {
+            _buy.value = Result.failure(Exception("No token found"))
+            return
+        }
+        val iduser = getUserIdFromSharedPreferences() ?: return
+        val addBillRequest = AddBillRequest(otp, diachi, status, ship, pay, info, carts)
+        ApiService.apiService.buy(iduser, addBillRequest).enqueue(object : Callback<AddBillResponse> {
+            override fun onResponse(call: Call<AddBillResponse>, response: Response<AddBillResponse>) {
                 if (response.isSuccessful) {
                     response.body()?.let {
                         _buy.value = Result.success(it.token)
@@ -81,14 +101,14 @@ class BillViewModel : ViewModel() {
                     Log.e("API BillAdd Error", "Error body: $errorBody")
                     val errorResponse = try {
                         if (!errorBody.isNullOrEmpty()) {
-                            Gson().fromJson(errorBody, ErrorAddResponse::class.java)
+                            Gson().fromJson(errorBody, ErrorAddBillResponse::class.java)
                         } else {
-                            ErrorAddResponse("BillAdd failed", "Unknown error")
+                            ErrorAddBillResponse("BillAdd failed", "Unknown error")
                         }
                     } catch (e: JsonSyntaxException) {
-                        ErrorAddResponse("BillAdd failed", "Malformed error response")
+                        ErrorAddBillResponse("BillAdd failed", "Malformed error response")
                     }
-                    _buy.value = Result.failure(Exception(errorResponse.errors))
+                    _buy.value = Result.failure(Exception(errorResponse.error))
                 }
             }
 
@@ -98,6 +118,10 @@ class BillViewModel : ViewModel() {
         })
     }
 
+    private fun getTokenFromSharedPreferences(): String? {
+        val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        return sharedPreferences.getString("token", null)
+    }
     fun fetchBillCancel(idUser: Int) {
         viewModelScope.launch {
             try {

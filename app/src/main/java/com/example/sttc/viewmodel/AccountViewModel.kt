@@ -306,31 +306,34 @@ class AccountViewModel(context: Context) : ViewModel() {
             })
     }
 
-    fun createOTP(otp: String, id: Int) {
+    fun getUserIdFromSharedPreferences(): Int? {
+        val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val idUser = sharedPreferences.getInt("iduser", -1)
+        return if (idUser == -1) null else idUser
+    }
+
+    fun createOTP(otp: String) {
         val token = getTokenFromSharedPreferences()
         if (token == null) {
             _create.value = Result.failure(Exception("No token found"))
             return
         }
-        val updateOTPRequest = UpdateOTPRequest(otp, id)
-        apiService.createOTP("Bearer $token", id, updateOTPRequest)
-            .enqueue(object : Callback<UpdateOTPResponse> {
-                override fun onResponse(
-                    call: Call<UpdateOTPResponse>,
-                    response: Response<UpdateOTPResponse>
-                ) {
-                    if (response.isSuccessful) {
-                        response.body()?.let { updatedResponse ->
-                            val user = updatedResponse.user
-                            saveUserInfoToSharedPreferences(token, user)
-                            updateUserInfo(user)
-                            _create.value = Result.success(token)
-                        } ?: run {
-                            _create.value = Result.failure(Exception("No user found"))
-                        }
-                    } else {
-                        val errorBody = response.errorBody()?.string()
-                        Log.e("API CreateOTP Error", "Error body: $errorBody")
+        val iduser = getUserIdFromSharedPreferences() ?: return
+        val updateOTPRequest = UpdateOTPRequest(otp)
+        apiService.createOTP("Bearer $token", iduser, updateOTPRequest).enqueue(object : Callback<UpdateOTPResponse> {
+            override fun onResponse(call: Call<UpdateOTPResponse>, response: Response<UpdateOTPResponse>) {
+                if (response.isSuccessful) {
+                    response.body()?.let { updatedResponse ->
+                        val user = updatedResponse.user
+                        saveUserInfoToSharedPreferences(token, user)
+                        updateUserInfo(user)
+                        _create.value = Result.success(token)
+                    } ?: run {
+                        _create.value = Result.failure(Exception("No user found"))
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("API CreateOTP Error", "Error body: $errorBody")
 
                         // Parse JSON error body
                         val errorMessage = try {
@@ -371,6 +374,7 @@ class AccountViewModel(context: Context) : ViewModel() {
             putString("token", token)
             putString("user", Gson().toJson(user))
             putInt("userId", user.id)// Convert user object to JSON string
+            putInt("iduser", user.id) // Lưu iduser vào SharedPreferences
             apply()
         }
     }
@@ -391,6 +395,12 @@ class AccountViewModel(context: Context) : ViewModel() {
         with(sharedPreferences.edit()) {
             remove("token")
             remove("user")
+            remove("iduser")
+            remove("bankdata")
+            remove("otheraddress")
+            remove("now")
+            remove("check")
+            remove("keyword")
             apply()
         }
     }

@@ -82,8 +82,7 @@ data class UpdatePassResponse(
 )
 
 data class UpdateOTPRequest(
-    val diachi: String,
-    val id: Int
+    val otp: String
 )
 
 data class UpdateOTPResponse(

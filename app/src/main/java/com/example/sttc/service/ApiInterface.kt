@@ -15,10 +15,16 @@ import com.example.sttc.model.CommentData
 import com.example.sttc.model.Comments
 import com.example.sttc.model.DeleteRequest
 import com.example.sttc.model.DeleteResponse
+import com.example.sttc.model.DeleteResponseNow
 import com.example.sttc.model.ImageSP
 import com.example.sttc.model.LoginRequest
 import com.example.sttc.model.LoginResponse
+import com.example.sttc.model.NowData
+import com.example.sttc.model.NowRequest
+import com.example.sttc.model.NowResponse
 import com.example.sttc.model.ProductData
+import com.example.sttc.model.Search
+import com.example.sttc.model.SearchData
 import com.example.sttc.model.SignupRequest
 import com.example.sttc.model.SignupResponse
 import com.example.sttc.model.UpdateAddressRequest
@@ -33,6 +39,7 @@ import com.example.sttc.model.UpdatePassRequest
 import com.example.sttc.model.UpdatePassResponse
 import com.example.sttc.model.UpdatePhoneRequest
 import com.example.sttc.model.UpdatePhoneResponse
+import com.example.sttc.view.System.Key
 import retrofit2.Call
 import retrofit2.http.Body
 
@@ -75,14 +82,23 @@ interface ApiInterface {
     @GET("admin/sanpham/infosp/{id}")
     fun getProductById(@Path("id") productId: Int): Call<ProductData>
 
-    @GET("admin/cart")
-    fun getCart():  Call<CartData>
+    @GET("admin/cart/{iduser}")
+    fun getCart(@Path("iduser") userId: Int):  Call<CartData>
 
     @POST("admin/cart/deletesptocart/{id}")
-    fun deleteSPtoCart(@Path("id") cartId: Int, @Body deleteRequest: DeleteRequest): Call<DeleteResponse>
+    fun deleteSPtoCart(@Path("id") cartId: Int): Call<DeleteResponse>
 
-    @GET("admin/cart/addsptocart/{id}")
-    fun addCart(@Path("id") cartId: Int, @Body addRequest: AddRequest): Call<AddResponse>
+    @POST("admin/cart/addsptocart/{idsp}/{iduser}")
+    fun addCart(@Header("Authorization") token: String, @Path("idsp") productId: Int, @Path("iduser") userId: Int, @Body addRequest: AddRequest): Call<AddResponse>
+
+    @POST("admin/bill/buy/{iduser}")
+    fun buy(@Path("iduser") userId: Int, @Body addBillRequest: AddBillRequest): Call<AddBillResponse>
+
+    @GET("admin/sanpham/buynow/{iduser}")
+    fun now(@Path("iduser") userId: Int):  Call<NowData>
+
+    @POST("admin/sanpham/deletesptonow/{id}")
+    fun deleteSPtoNow(@Path("id") nowId: Int): Call<DeleteResponseNow>
 
 
 
@@ -115,4 +131,9 @@ interface ApiInterface {
     @POST("admin/blogs/{id}/comments")
     fun createCmt(@Path("id") blogId: Int, @Body comment: Comments): Call<Comments>
 
+    @POST("admin/sanpham/addsptonow/{idsp}/{iduser}")
+    fun addNow(@Header("Authorization") token: String, @Path("idsp") productId: Int, @Path("iduser") userId: Int, @Body addRequest: NowRequest): Call<NowResponse>
+
+    @POST("admin/sanpham/search")
+    fun search(@Body keyWord: Key): Call<SearchData>
 }

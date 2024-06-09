@@ -1,7 +1,6 @@
 package com.example.sttc.view.System
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -52,6 +51,49 @@ import com.example.sttc.viewmodel.ProductViewModel
 import kotlinx.coroutines.delay
 import java.text.NumberFormat
 import java.util.Locale
+
+data class Bank(
+    val name: String,
+    val image: Int
+)
+
+data class BankData(
+    val bankName: String,
+    val accountNumber: String
+)
+
+data class OtherAddress(
+    val address: String,
+    val error: Boolean,
+    val message: String
+)
+
+data class Check(
+    val check: Boolean,
+    val card: Boolean,
+    val receive: Boolean
+)
+
+data class Keyword(
+    val keyword: String
+)
+
+data class Key(
+    val keyword: String
+)
+
+data class ItemsBaiViet(
+    val id: Int,
+    val tieude: String,
+    val noidung: String,
+    val imageblog: Int,
+)
+
+data class ItemsCmt(
+    val id: Int,
+    val nameUser: String,
+    var cmt: String,
+)
 
 data class ItemsCart(
     val id: Int,
@@ -106,10 +148,12 @@ fun capitalizeWords(text: String): String {
 }
 
 @Composable
-fun allow(
-    openCard: () -> Unit
+fun Allow(
+    back: () -> Unit,
+    showSuccess: Boolean
 ) {
-    var showDialogAllow by remember { mutableStateOf(false) }
+    var showDialogAllow by remember { mutableStateOf(showSuccess) }
+    var okButton by remember { mutableStateOf(false) }
     if (showDialogAllow) {
         AlertDialog(
             containerColor = Color(0xFFccf5ff),
@@ -213,7 +257,6 @@ fun SuggestTodayopen(
         else -> products
     }
 
-
     // Kết quả: "10,000"
     // Chia danh sách thành các nhóm có 2 mặt hàng
     val rows = filteredProducts.chunked(2)
@@ -291,7 +334,169 @@ fun SuggestTodayopen(
                                             modifier = Modifier.fillMaxSize()
                                         )
                                     } else {
-                                        Text(text = "Image not found")
+                                        Image(
+                                            painter = painterResource(id = R.drawable.rs1),
+                                            contentDescription = "Image",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+                                }
+                            }
+
+                            val tags = tagMap[item.idtag]
+                            if (tags != null) {
+                                Text(
+                                    text = tags.tagname, // Thay thế bằng tên thẻ thực tế của bạn
+                                    modifier = Modifier.padding(8.dp),
+                                    style = TextStyle(
+                                        fontSize = 12.sp,
+                                        fontStyle = FontStyle.Italic,
+                                        color = Color.Gray
+                                    ),
+                                )
+                            }
+                            val productName = item.tensp
+                            val shortenedName = if (productName.length > 15) {
+                                "${productName.substring(0, 15)}..."
+                            } else {
+                                productName
+                            }
+                            Text(
+                                text = shortenedName, // Thay thế bằng tên sản phẩm thực tế của bạn
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp),
+                                style = TextStyle(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                ),
+                            )
+                            Text(
+
+                                text = formatNumber(number) + "đ", // Thay thế bằng giá sản phẩm thực tế của bạn
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 9.dp),
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFff4d4d),
+                                    textAlign = TextAlign.End
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SuggestToday(
+    openDetailProducts: (id: Int) -> Unit,
+    productViewModel: ProductViewModel,
+    context: Context,
+    selectedOption: String,
+    selectedAnimal: Int
+) {
+    val products by productViewModel.products.collectAsState(initial = emptyList())
+    val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())
+    val tag by productViewModel.tag.collectAsState(initial = emptyList())
+    val tagMap = remember(tag) { tag.associateBy { it.maTag } }
+
+    val filteredProducts = when (selectedOption) {
+        "Áo quần" -> products.filter { it.idtype == 1 && it.idanimal == selectedAnimal }
+        "Thức ăn" -> products.filter { it.idtype == 2 && it.idanimal == selectedAnimal }
+        "Vật dụng" -> products.filter { it.idtype == 3 && it.idanimal == selectedAnimal }
+        else -> products
+    }
+
+    val limitedProducts = filteredProducts.take(10)
+    // Kết quả: "10,000"
+    // Chia danh sách thành các nhóm có 2 mặt hàng
+    val rows = limitedProducts.chunked(2)
+
+    Column(
+//        modifier = Modifier.verticalScroll(rememberScrollState())
+    ) {
+        rows.forEach { rowItems ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(2.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFFF6F2F2),
+                                    Color(0xFFFFC1B6),
+                                    Color(0xFFFF9999)
+                                ),
+                                startY = 720f,
+                                endY = 0f
+                            )
+                        ),
+//                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    for (item in rowItems) {
+                        val number = item.buyprice.toInt()
+                        Column(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .width(200.dp)
+                                .border(1.dp, color = Color(0xFFff4d4d))
+                                .clickable { openDetailProducts(item.maSP) },
+                        ) {
+                            LaunchedEffect(key1 = item.maSP) {
+                                delay(10000)
+                                productViewModel.fetchImages(item.maSP)
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(200.dp, 210.dp)
+                                    .border(1.dp, color = Color(0xFFff4d4d)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                // Thay thế bằng hình ảnh thực tế của bạn
+                                val productImages = imagesMap[item.maSP].orEmpty()
+                                if (productImages.isNotEmpty()) {
+                                    val image = productImages.first()
+                                    val imageUrl = image.image
+                                    val fileName =
+                                        imageUrl.substringAfterLast("/").substringBeforeLast(".")
+                                    val fileExtension = imageUrl.substringAfterLast(".")
+                                    val resourceId = context.resources.getIdentifier(
+                                        fileName,
+                                        "drawable",
+                                        context.packageName
+                                    )
+                                    val a = context.resources.getResourceName(resourceId)
+                                    val b = a.substringAfter('/')
+//                                    Log.d("test", "FileName: $fileName")
+//                                    Log.d("test", "FileExtension: $fileExtension")
+//                                    Log.d("test", "ResourceId: $resourceId")
+//                                    Log.d("test", "ResourceName1: $a")
+//                                    Log.d("test", "ResourceName2: $b")
+                                    if (b == fileName) {
+                                        Image(
+                                            painter = painterResource(id = resourceId),
+                                            contentDescription = "Image",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    } else {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.rs1),
+                                            contentDescription = "Image",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
                                     }
                                 }
                             }
@@ -349,7 +554,7 @@ fun SuggestTodayopen(
 @Composable
 fun TestAll() {
     STTCTheme {
-        allow(openCard = {})
+        Allow(back = {}, true)
     }
 }
 

@@ -22,24 +22,23 @@ data class BillData(
 )
 
 data class AddBillRequest(
-    val iduser: Int,
+    val otp: String,
     val diachi: String,
     val status: String,
     val ship: String,
     val pay: String,
     val info: String,
-    val situation: String,
-    val carts: Carts
+    val carts: List<PayData>
 )
 
 data class AddBillResponse(
     val token: String,
-    val bill: Bill
+    val bills: Bill
 )
 
 data class ErrorAddBillResponse(
     val message: String,
-    val errors: String
+    val error: String
 )
 data class billShow(
     val maBill: Int,
