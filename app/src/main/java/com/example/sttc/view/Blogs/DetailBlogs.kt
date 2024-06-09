@@ -64,6 +64,7 @@ import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.Blogs.Avatar
 import com.example.sttc.view.System.ItemsCmt
+import com.example.sttc.view.System.formatUpdatedAt
 import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.BlogsViewModel
 
@@ -76,6 +77,7 @@ fun DetailBlogsScreen(
     context: Context,
     blogId: Int
 ) {
+    val cmt by commentViewModel.comments.collectAsState(initial = emptyList())
     val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
@@ -92,7 +94,23 @@ fun DetailBlogsScreen(
             modifier = Modifier.padding(0.dp, 10.dp)
         )
         TitleCmt()
-        ShowCmt(commentViewModel, blogId, accountViewModel)
+        if(cmt.isNotEmpty()){
+            ShowCmt(commentViewModel, blogId, accountViewModel)
+        }else{
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ){
+                Text(
+                    text = "Chưa có bình luận nào",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.padding(10.dp)
+                )
+            }
+        }
 
     }
 
@@ -174,16 +192,20 @@ fun ContentBlogs(
                 ) {
                     blogsViewModel.fetchImages(blogId)
                     val blogImages = imagesMap[blog?.maBlog].orEmpty()
+                    Log.e("anh2 imageMap", "$blogImages")
                     if (blogImages.isNotEmpty()) {
                         val image = blogImages.first()
                         val imageUrl = image.image
-                        val fileName = imageUrl.substringBeforeLast(".")
+                        val fileName =
+                            imageUrl.substringAfterLast("/").substringBeforeLast(".")
                         val resourceId = context.resources.getIdentifier(
                             fileName,
                             "drawable",
                             context.packageName
                         )
-                        if (resourceId != 0) {
+                        val a = context.resources.getResourceName(resourceId)
+                        val b = a.substringAfter('/')
+                        if (b == fileName) {
                             Image(
                                 painter = painterResource(id = resourceId),
                                 contentDescription = "blog image",
@@ -400,7 +422,7 @@ fun ShowCmt(
                                         .padding(start = 5.dp)
                                 )
 
-                                Text(text = "1 giờ trước", style = TextStyle(fontSize = 14.sp))
+                                Text(text = formatUpdatedAt(rowItems.updated_at), style = TextStyle(fontSize = 14.sp))
 
                                 if (accountViewModel.getUserIdFromSharedPreferences() == rowItems.iduser){
                                     Row(

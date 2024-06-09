@@ -1,6 +1,7 @@
 package com.example.sttc.view
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,6 +23,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -40,16 +47,24 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import com.example.sttc.R
+import com.example.sttc.model.ImageSP
+import com.example.sttc.model.billShow
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.BillProduct
 import com.example.sttc.view.System.Product
+import com.example.sttc.view.System.formatEstimatedDeliveryDate
 import com.example.sttc.view.System.formatNumber
+import com.example.sttc.view.System.formatUpdatedAt
+import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.BillViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 
 @Composable
 fun BillShipScreen(
-    openDetailBillShip: () -> Unit,
+    openDetailBillShip: (Int) -> Unit,
     productViewModel: ProductViewModel,
+    accountViewModel: AccountViewModel,
+    billViewModel: BillViewModel,
     context: Context
 ) {
     val scrollState = rememberScrollState()
@@ -59,14 +74,20 @@ fun BillShipScreen(
 //            .verticalScroll(scrollState)
 
     ) {
-        Column (
+        Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
             TopIconBillShip()
             TitleBillShip()
-            ContentBillShip( openDetailBillShip = openDetailBillShip)
+            ContentBillShip(
+                openDetailBillShip,
+                billViewModel,
+                accountViewModel,
+                productViewModel,
+                context
+            )
         }
     }
 
@@ -104,27 +125,6 @@ fun TopIconBillShip() {
                 )
             )
     )
-
-//    Image(
-//        painter = painterResource(id = R.drawable.shipper),
-//        contentDescription = "TopIconShipper",
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(130.dp)
-//            .background(
-//                Brush.radialGradient(
-//                    colors = listOf(
-//                        Color(0xFFFF6767),
-//                        Color(0xFFFFF4F4),
-//                        Color(0xFFFFD2D2),
-//                        Color(0xFFFFE4E4),
-//                        Color(0xFFF6F2F2),
-//                    ),
-//                    radius = 400f
-//                )
-//            )
-//            .border(1.dp, color = Color(0xFFcc00cc))
-//    )
 }
 
 @Composable
@@ -156,15 +156,27 @@ fun TitleBillShip() {
 }
 
 @Composable
-fun ContentBillShip(openDetailBillShip: () -> Unit) {
-    val items = listOf(
-        BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.System.Bill(1)),
-        BillProduct(Product(R.drawable.rs2, "Tag B", "Product B", 102000), com.example.sttc.view.System.Bill(2)),
-        BillProduct(Product(R.drawable.rs3, "Tag C", "Product C", 2345000), com.example.sttc.view.System.Bill(2)),
-        BillProduct(Product(R.drawable.rs1, "Tag D", "Product D", 30000), com.example.sttc.view.System.Bill(2)),
-        BillProduct(Product(R.drawable.rs2, "Tag E", "Product E", 8000), com.example.sttc.view.System.Bill(2)),
+fun ContentBillShip(
+    openDetailBillShip: (Int) -> Unit,
+    billViewModel: BillViewModel,
+    accountViewModel: AccountViewModel,
+    productViewModel: ProductViewModel,
+    context: Context,
+) {
+    var items by remember { mutableStateOf(emptyList<billShow>()) }
 
-        )
+    LaunchedEffect(Unit) {
+        billViewModel.fetchBillShip()
+
+        billViewModel.bill.collect { value ->
+            items = value
+        }
+    }
+    val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())
+    val productImages = remember { mutableStateOf<List<ImageSP>>(emptyList()) }
+
+
+    Log.e("huhuhuhh", "items: $items")
 
     LazyColumn(
         modifier = Modifier
@@ -172,7 +184,7 @@ fun ContentBillShip(openDetailBillShip: () -> Unit) {
             .background(Color(0xFFccffff))
             .padding(5.dp, 0.dp)
     ) {
-        items(items) { item ->
+        items(items) { billShow ->
             Column(
                 modifier = Modifier
                     .padding(0.dp, 0.dp, 0.dp, 10.dp)
@@ -183,12 +195,13 @@ fun ContentBillShip(openDetailBillShip: () -> Unit) {
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row (
+                Row(
                     modifier = Modifier
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
-                ){
-                    Text(text = "Công ty TNHH QuacQUac",
+                ) {
+                    Text(
+                        text = billShow.proname,
                         style = TextStyle(
                             fontSize = 15.sp,
                             fontStyle = FontStyle.Italic,
@@ -200,7 +213,8 @@ fun ContentBillShip(openDetailBillShip: () -> Unit) {
                             .padding(10.dp, 5.dp)
                     )
 
-                    Text(text = "Mã đơn hàng:",
+                    Text(
+                        text = "Mã đơn hàng: " + billShow.maBill.toString(),
                         style = TextStyle(
                             fontSize = 14.sp,
                             fontStyle = FontStyle.Italic,
@@ -217,18 +231,40 @@ fun ContentBillShip(openDetailBillShip: () -> Unit) {
                 Row(
                     modifier = Modifier
 //                        .border(2.dp, color = Color(0xFFff6666))
-                        .clickable { openDetailBillShip() },
+                        .clickable { openDetailBillShip(billShow.maBill) },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
-                ){
-                    Image(
-                        painter = painterResource(id = item.product.imageResId),
-                        contentDescription = "Image",
-                        modifier = Modifier
-                            .size(120.dp)
-                            .padding(5.dp, 5.dp)
-                            .border(0.1.dp, color = Color.Black)
+                ) {
+                    val imageUrl = billShow.image
+                    val fileName =
+                        imageUrl.substringAfterLast("/").substringBeforeLast(".")
+                    val resourceId = context.resources.getIdentifier(
+                        fileName,
+                        "drawable",
+                        context.packageName
                     )
+                    val a = context.resources.getResourceName(resourceId)
+                    val b = a.substringAfter('/')
+                    if (b == fileName) {
+                        Image(
+                            painter = painterResource(id = resourceId),
+                            contentDescription = "Image",
+                            modifier = Modifier
+                                .size(120.dp)
+                                .padding(5.dp, 5.dp)
+                                .border(0.1.dp, color = Color.Black)
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.rs3),
+                            contentDescription = "Image",
+                            modifier = Modifier
+                                .size(120.dp)
+                                .padding(5.dp, 5.dp)
+                                .border(0.1.dp, color = Color.Black)
+                        )
+                    }
+
 
                     Column(
                         modifier = Modifier
@@ -236,7 +272,8 @@ fun ContentBillShip(openDetailBillShip: () -> Unit) {
                             .height(120.dp)
                             .padding(5.dp, 16.dp),
                     ) {
-                        Text(text = item.product.productName,
+                        Text(
+                            text = billShow.tensp,
                             style = TextStyle(
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold,
@@ -244,14 +281,16 @@ fun ContentBillShip(openDetailBillShip: () -> Unit) {
                             )
                         )
                         Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
-                        Text(text = item.product.tagName,
+                        Text(
+                            text = billShow.tagname,
                             style = TextStyle(
                                 fontSize = 16.sp,
                                 fontStyle = FontStyle.Italic,
                                 color = Color.Black,
                             )
                         )
-                        Text("x" + item.bill.soluongmua.toString(),
+                        Text(
+                            "x" + billShow.soluong.toString(),
                             style = TextStyle(
                                 fontSize = 18.sp,
                                 color = Color.Black,
@@ -259,7 +298,8 @@ fun ContentBillShip(openDetailBillShip: () -> Unit) {
                             ),
                             modifier = Modifier.fillMaxWidth()
                         )
-                        Text("Giá: " + formatNumber(item.product.productPrice) + "đ",
+                        Text(
+                            "Giá: " + formatNumber(billShow.buyprice) + "đ",
                             style = TextStyle(
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
@@ -273,11 +313,11 @@ fun ContentBillShip(openDetailBillShip: () -> Unit) {
 
                 HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
-                Row (
+                Row(
                     modifier = Modifier
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start
-                ){
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ship),
                         contentDescription = "Money",
@@ -287,7 +327,9 @@ fun ContentBillShip(openDetailBillShip: () -> Unit) {
                             .padding(10.dp, 5.dp)
                     )
 
-                    Text(text = "Dự kiến giao hàng trước ngày",
+                    val dukien = formatUpdatedAt(billShow.created_at)
+                    Text(
+                        text = "Dự kiến giao hàng trước ngày " + formatEstimatedDeliveryDate(dukien),
                         style = TextStyle(
                             fontSize = 14.sp,
                             fontStyle = FontStyle.Italic,
@@ -301,13 +343,13 @@ fun ContentBillShip(openDetailBillShip: () -> Unit) {
 
                 HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
-                Row (
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
 //                        .border(1.dp, color = Color(0xFFff6666))
                     ,
                     horizontalArrangement = Arrangement.End
-                ){
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.money),
                         contentDescription = "Money",
@@ -317,7 +359,7 @@ fun ContentBillShip(openDetailBillShip: () -> Unit) {
                             .padding(0.dp, 9.dp, 2.dp, 10.dp)
                     )
                     Text(
-                        text = "Thành tiền: " + formatNumber(item.product.productPrice * item.bill.soluongmua) + "đ",
+                        text = "Thành tiền: " + formatNumber(billShow.buyprice * billShow.soluong) + "đ",
                         style = TextStyle(
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
@@ -335,12 +377,14 @@ fun ContentBillShip(openDetailBillShip: () -> Unit) {
 }
 
 
-
-
 @Preview(showBackground = true)
 @Composable
 fun BillShipScreenPreview() {
+    val context = LocalContext.current
     STTCTheme {
-        BillShipScreen(openDetailBillShip = {}, ProductViewModel(), LocalContext.current)
+        BillShipScreen(
+            openDetailBillShip = {}, ProductViewModel(), AccountViewModel(context),
+            BillViewModel(context), LocalContext.current
+        )
     }
 }

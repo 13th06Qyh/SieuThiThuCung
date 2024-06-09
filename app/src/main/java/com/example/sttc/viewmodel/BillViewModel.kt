@@ -5,22 +5,38 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
+import androidx.lifecycle.viewModelScope
 import com.example.sttc.model.AddBillRequest
 import com.example.sttc.model.AddBillResponse
 import com.example.sttc.model.Bill
+import com.example.sttc.model.BillData
 import com.example.sttc.model.ErrorAddBillResponse
 import com.example.sttc.model.PayData
+import com.example.sttc.model.billDetail
+import com.example.sttc.model.billShow
 import com.example.sttc.service.ApiService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class BillViewModel(context: Context) : ViewModel() {
 
-    private val _bill = MutableLiveData<List<Bill>>()
-    val cart = _bill.asFlow()
+    private val _bill = MutableStateFlow<List<billShow>>(emptyList())
+    val bill = _bill.asStateFlow()
+
+    private val _billShow = MutableStateFlow<List<billShow>>(emptyList())
+    val billShow: StateFlow<List<billShow>> = _billShow.asStateFlow()
+
+    private val _billDetail = MutableStateFlow<List<billDetail>>(emptyList())
+    val billDetail: StateFlow<List<billDetail>> = _billDetail.asStateFlow()
 
     private val _buy = MutableLiveData<Result<String>>()
     val buy = _buy.asFlow()
@@ -87,6 +103,159 @@ class BillViewModel(context: Context) : ViewModel() {
         val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         return sharedPreferences.getString("token", null)
     }
+
+
+
+    //------------------------Thu------------------------
+    fun fetchBillCancel() {
+        val iduser = getUserIdFromSharedPreferences() ?: return
+        viewModelScope.launch {
+            if (System.currentTimeMillis() - lastFetchTime < 60000) {
+                // Nếu lần tải trước đó chưa quá 60 giây, không tải lại
+                return@launch
+            }
+            try {
+                val call: Call<BillData> = ApiService.apiService.getBillCancel(iduser)
+                call.enqueue(object : Callback<BillData> {
+                    override fun onResponse(call: Call<BillData>, response: Response<BillData>) {
+                        if (response.isSuccessful) {
+                            val billCancelData = response.body()
+                            _bill.value = billCancelData?.bills ?: emptyList()
+                            Log.e("API Response billCancelData", billCancelData.toString())
+
+                            Log.d("billCancelDataViewModel", "Fetched Cart Data: ${billCancelData?.bills}")
+                            lastFetchTime = System.currentTimeMillis()
+
+                        }
+                    }
+
+                    override fun onFailure(call: Call<BillData>, t: Throwable) {
+                        Log.e("API billCancelData Error", "Error: ${t.message}")
+                        t.printStackTrace()
+                    }
+                })
+            } catch (e: Exception) {
+                Log.e("API billCancelData Error", "Error: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+    fun fetchBillShip() {
+        val iduser = getUserIdFromSharedPreferences() ?: return
+        viewModelScope.launch {
+            if (System.currentTimeMillis() - lastFetchTime < 60000) {
+                // Nếu lần tải trước đó chưa quá 60 giây, không tải lại
+                return@launch
+            }
+            try {
+                val call: Call<BillData> = ApiService.apiService.getBillShip(iduser)
+                call.enqueue(object : Callback<BillData> {
+                    override fun onResponse(call: Call<BillData>, response: Response<BillData>) {
+                        if (response.isSuccessful) {
+                            val billShipData = response.body()
+                            _bill.value = billShipData?.bills ?: emptyList()
+                            Log.e("API Response billShipData", billShipData.toString())
+
+                            Log.d("billShipDataViewModel", "Fetched Cart Data: ${billShipData?.bills}")
+                            lastFetchTime = System.currentTimeMillis()
+                        } else {
+                            if (response.code() == 429) {
+                                Log.e(
+                                    "API billShipData Error",
+                                    "Error: Too Many Requests (429), retrying in 60 seconds"
+                                )
+                                viewModelScope.launch(Dispatchers.IO) {
+                                    delay(60000) // Wait for 60 seconds before retrying
+                                    fetchBillShip()
+                                }
+                            } else {
+                                Log.e("API billShipData Error", "Error: ${response.code()}")
+                            }
+                        }
+                    }
+
+                    override fun onFailure(call: Call<BillData>, t: Throwable) {
+                        Log.e("API billShipData Error", "Error: ${t.message}")
+                        t.printStackTrace()
+                    }
+                })
+            } catch (e: Exception) {
+                Log.e("API billShipData Error", "Error: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun fetchBillHistory() {
+        val iduser = getUserIdFromSharedPreferences() ?: return
+        viewModelScope.launch {
+            if (System.currentTimeMillis() - lastFetchTime < 60000) {
+                // Nếu lần tải trước đó chưa quá 60 giây, không tải lại
+                return@launch
+            }
+            try {
+                val call: Call<BillData> = ApiService.apiService.getBillHistory(iduser)
+                call.enqueue(object : Callback<BillData> {
+                    override fun onResponse(call: Call<BillData>, response: Response<BillData>) {
+                        if (response.isSuccessful) {
+                            val billHistoryData = response.body()
+                            _bill.value = billHistoryData?.bills ?: emptyList()
+                            Log.e("API Response BillHistory", billHistoryData.toString())
+
+                            Log.d("BillHistoryDataViewModel", "Fetched Cart Data: ${billHistoryData?.bills}")
+                            lastFetchTime = System.currentTimeMillis()
+
+                        } else {
+                            if (response.code() == 429) {
+                                Log.e(
+                                    "API BillHistory Error",
+                                    "Error: Too Many Requests (429), retrying in 60 seconds"
+                                )
+                                viewModelScope.launch(Dispatchers.IO) {
+                                    delay(60000) // Wait for 60 seconds before retrying
+                                    fetchBillHistory()
+                                }
+                            } else {
+                                Log.e("API BillHistory Error", "Error: ${response.code()}")
+                            }
+                        }
+                    }
+
+                    override fun onFailure(call: Call<BillData>, t: Throwable) {
+                        Log.e("API BillHistory Error", "Error: ${t.message}")
+                        t.printStackTrace()
+                    }
+                })
+            } catch (e: Exception) {
+                Log.e("API BillHistory Error", "Error: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+//    fun fetchBillDetail(billId: Int) {
+//        viewModelScope.launch {
+//            try {
+//                val call: Call<BillData> = ApiService.apiService.getBillDetail(billId)
+//                call.enqueue(object : Callback<BillData> {
+//                    override fun onResponse(call: Call<BillData>, response: Response<BillData>) {
+//                        if (response.isSuccessful) {
+//                            val billDetailData = response.body()
+//                            _billDetail.value = billDetailData?.billDetail ?: emptyList()
+//                            Log.e("dsbilldetail", _billDetail.value.toString())
+//                        }
+//                    }
+//
+//                    override fun onFailure(call: Call<BillData>, t: Throwable) {
+//                        Log.e("API Error", "Error: ${t.message}")
+//                        t.printStackTrace()
+//                    }
+//                })
+//            } catch (e: Exception) {
+//                Log.e("API Error", "Error: ${e.message}")
+//                e.printStackTrace()
+//            }
+//        }
+//    }
 
 
 

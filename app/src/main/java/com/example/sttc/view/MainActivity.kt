@@ -31,7 +31,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            App(accountViewModel = AccountViewModel(LocalContext.current), SharedViewModel(LocalContext.current))
+            App(
+                accountViewModel = AccountViewModel(LocalContext.current),
+                SharedViewModel(LocalContext.current)
+            )
         }
     }
 }
@@ -74,9 +77,11 @@ fun App(
                 openNotification = { navController.navigate("notification") },
                 openPayment = { navController.navigate("payments") },
                 openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
-                openDetailBlogs = { id->navController.navigate("detailBlog/$id") },
-                openDetailCmt = { id-> navController.navigate("detailComments/$id") }
-                )
+                openDetailBlogs = { id -> navController.navigate("detailBlog/$id") },
+                openDetailCmt = { id -> navController.navigate("detailComments/$id") },
+                openDetailBillHistory = { navController.navigate("detailBillHistory/$id") },
+                openDetailBillShip = { navController.navigate("detailBillShip/$id") }
+            )
         }
         composable("detailProducts/{productId}") { backStackEntry ->
             val productId =
@@ -101,27 +106,59 @@ fun App(
                 },
             )
         }
-        composable("detailBlog/{id}") {backStackEntry->
+        composable("detailBlog/{id}") { backStackEntry ->
             DetailBlogsScreen(
                 back = { navController.popBackStack() },
-                accountViewModel = AccountViewModel(context) ,
-                blogsViewModel = BlogsViewModel() ,
+                accountViewModel = AccountViewModel(context),
+                blogsViewModel = BlogsViewModel(),
                 commentViewModel = CommentsViewModel(),
-                context = LocalContext.current ,
+                context = LocalContext.current,
                 blogId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
             )
         }
-        composable("detailComments/{id}") {backStackEntry->
+        composable("detailComments/{id}") { backStackEntry ->
             DetailCommentScreen(
-                back = {navController.popBackStack() },
+                back = { navController.popBackStack() },
                 commentViewModel = CommentsViewModel(),
-                accountViewModel = AccountViewModel(context) ,
-                blogId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0 ,
+                accountViewModel = AccountViewModel(context),
+                blogId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0,
                 openLogin = {
                     navController.navigate("login") {
                         popUpTo("homemenu") { inclusive = true }
                     }
                 },
+            )
+        }
+        composable("detailBillShip/{id}") { backStackEntry ->
+            val productId =
+                backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
+            InforBillShipScreen(
+                back = { navController.popBackStack() },
+                openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
+                productViewModel = ProductViewModel(),//cai nay la moi hien suggesttoday thoi, sau nay them cai billviewmodel nua de hien thi contentbill
+                context = LocalContext.current,
+                billViewModel = BillViewModel(context),
+                billId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0,
+                openCart = { navController.navigate("cart") },
+                cartViewModel = CartViewModel(context),
+                accountViewModel = AccountViewModel(context),
+                id = productId,
+            )
+        }
+        composable("detailBillHistory/{id}") { backStackEntry ->
+            val productId =
+                backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
+            InforBillHistoryShipScreen(
+                back = { navController.popBackStack() },
+                openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
+                productViewModel = ProductViewModel(),//cai nay la moi hien suggesttoday thoi, sau nay them cai billviewmodel nua de hien thi contentbill
+                context = LocalContext.current,
+                billViewModel = BillViewModel(context),
+                billId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0,
+                openCart = { navController.navigate("cart") },
+                cartViewModel = CartViewModel(context),
+                accountViewModel = AccountViewModel(context),
+                id = productId,
             )
         }
         // ------------cart---------------

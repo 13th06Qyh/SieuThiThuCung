@@ -138,17 +138,20 @@ fun ListBlogScreen(
                             }
 
                             val blogImages = imagesMap[blog.maBlog].orEmpty()
-//                            Log.e("anh imageMap", "$blogImages")
+                            Log.e("anh imageMap", "$blogImages")
                             if (blogImages.isNotEmpty()) {
                                 val image = blogImages.first()
                                 val imageUrl = image.image
-                                val fileName = imageUrl.substringBeforeLast(".")
+                                val fileName =
+                                    imageUrl.substringAfterLast("/").substringBeforeLast(".")
                                 val resourceId = context.resources.getIdentifier(
                                     fileName,
                                     "drawable",
                                     context.packageName
                                 )
-                                if (resourceId != 0) {
+                                val a = context.resources.getResourceName(resourceId)
+                                val b = a.substringAfter('/')
+                                if (b == fileName) {
                                     Image(
                                         painter = painterResource(id = resourceId),
                                         contentDescription = "blog image",
@@ -170,7 +173,7 @@ fun ListBlogScreen(
                                             .height(200.dp)
                                             .clip(shape = RoundedCornerShape(4.dp))
                                     )
-                                    Log.e("ListBlogScreen", "Image not found: $imageUrl")
+                                    Log.e("ListBlogScreen", "Image not found: $fileName")
                                 }
                             }
                         }
@@ -192,16 +195,16 @@ fun ListBlogScreen(
                     shape = RectangleShape,
                     onClick = { isClicked = !isClicked },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isClicked) Color.Blue else Color.Gray,
+                        containerColor = Color.White,
                     )
                 ) {
                     Icon(
                         Icons.Default.ThumbUp,
                         contentDescription = "",
-                        tint = if (isClicked) Color.Gray else Color.Blue
+                        tint = if (isClicked) Color.Blue else Color.DarkGray
                     )
                     Spacer(modifier = Modifier.width(7.dp))
-                    Text(text = "Thích", color = if (isClicked) Color.Blue else Color.Gray)
+                    Text(text = "Thích", color = if (isClicked) Color.Blue else Color.DarkGray)
                 }
                 Button(
                     shape = RectangleShape,

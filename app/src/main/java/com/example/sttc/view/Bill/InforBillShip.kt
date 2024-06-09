@@ -50,15 +50,18 @@ import com.example.sttc.view.System.Product
 import com.example.sttc.view.System.SuggestTodayopen
 import com.example.sttc.view.System.formatNumber
 import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.BillViewModel
 import com.example.sttc.viewmodel.CartViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 
 @Composable
 fun InforBillShipScreen(
     back: () -> Unit,
-    openDetailProducts: (id:Int) -> Unit,
+    openDetailProducts: (id: Int) -> Unit,
     productViewModel: ProductViewModel,
     context: Context,
+    billViewModel: BillViewModel,
+    billId: Int,
     openCart: () -> Unit,
     cartViewModel: CartViewModel,
     accountViewModel: AccountViewModel,
@@ -114,14 +117,20 @@ fun InforBillShipScreen(
                     color = Color.Gray
                 )
             }
-            SuggestTodayopen(openDetailProducts, productViewModel, context, selectedOption.value, selectedAnimal)
+            SuggestTodayopen(
+                openDetailProducts,
+                productViewModel,
+                context,
+                selectedOption.value,
+                selectedAnimal
+            )
         }
     }
 
 }
 
 @Composable
-fun TitleInforBill(back : () -> Unit) {
+fun TitleInforBill(back: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -340,7 +349,7 @@ fun ContentInforBill(
             )
         }
         HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
-        Column(){
+        Column() {
             Row(
                 modifier = Modifier
                     .padding(5.dp, 0.dp)
@@ -402,11 +411,13 @@ fun ContentInforBill(
                 }
             }
 
-            SuccessPay(openCart,
+            SuccessPay(
+                openCart,
                 cartViewModel,
                 productViewModel,
                 accountViewModel,
-                id)
+                id
+            )
         }
 
         HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
@@ -627,7 +638,17 @@ fun LocationReceive() {
 @Composable
 fun InforBillShipScreenPreview() {
     STTCTheme {
-        InforBillShipScreen(back = {}, openDetailProducts = {}, ProductViewModel(), LocalContext.current, {}, CartViewModel(LocalContext.current), AccountViewModel(LocalContext.current), 1)
+        InforBillShipScreen(back = {},
+            openDetailProducts = {},
+            ProductViewModel(),
+            LocalContext.current,
+            BillViewModel(LocalContext.current),
+            0,
+            openCart = {},
+            CartViewModel(LocalContext.current),
+            AccountViewModel(LocalContext.current),
+            1
+        )
 //        MyApp()
 //        SignUpForm(navController = rememberNavController(), authController = AuthController())
     }

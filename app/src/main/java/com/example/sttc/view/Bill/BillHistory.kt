@@ -1,6 +1,7 @@
 package com.example.sttc.view
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +26,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -39,16 +46,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
+import com.example.sttc.model.ImageSP
+import com.example.sttc.model.billShow
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.BillProduct
 import com.example.sttc.view.System.Product
 import com.example.sttc.view.System.formatNumber
+import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.BillViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 
 @Composable
 fun BillHistoryScreen(
-    openDetailBillHistory: () -> Unit,
+    openDetailBillHistory: (billId: Int) -> Unit,
     productViewModel: ProductViewModel,
+    accountViewModel: AccountViewModel,
+    billViewModel: BillViewModel,
     context: Context
 ) {
     val scrollState = rememberScrollState()
@@ -58,14 +71,20 @@ fun BillHistoryScreen(
 //            .verticalScroll(scrollState)
 
     ) {
-        Column (
+        Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
             TopIconBillHistory()
             TitleBillHistory()
-            ContentBillHistory(openDetailBillHistory = openDetailBillHistory)
+            ContentBillHistory(
+                openDetailBillHistory,
+                billViewModel,
+                accountViewModel,
+                productViewModel,
+                context
+            )
         }
     }
 
@@ -126,15 +145,25 @@ fun TitleBillHistory() {
 }
 
 @Composable
-fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
-    val items = listOf(
-        BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.System.Bill(1)),
-        BillProduct(Product(R.drawable.rs2, "Tag B", "Product B", 102000), com.example.sttc.view.System.Bill(2)),
-        BillProduct(Product(R.drawable.rs3, "Tag C", "Product C", 2345000), com.example.sttc.view.System.Bill(2)),
-        BillProduct(Product(R.drawable.rs1, "Tag D", "Product D", 30000), com.example.sttc.view.System.Bill(2)),
-        BillProduct(Product(R.drawable.rs2, "Tag E", "Product E", 8000), com.example.sttc.view.System.Bill(2)),
+fun ContentBillHistory(
+    openDetailBillHistory: (billId: Int) -> Unit,
+    billViewModel: BillViewModel,
+    accountViewModel: AccountViewModel,
+    productViewModel: ProductViewModel,
+    context: Context,
+) {
+    val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())
+    val productImages = remember { mutableStateOf<List<ImageSP>>(emptyList()) }
 
-        )
+    var items by remember { mutableStateOf(emptyList<billShow>()) }
+
+    LaunchedEffect(Unit) {
+        billViewModel.fetchBillHistory()
+
+        billViewModel.bill.collect { value ->
+            items = value
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -154,12 +183,13 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row (
+                Row(
                     modifier = Modifier
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
-                ){
-                    Text(text = "Công ty TNHH QuacQUac",
+                ) {
+                    Text(
+                        text = item.proname,
                         style = TextStyle(
                             fontSize = 15.sp,
                             fontStyle = FontStyle.Italic,
@@ -171,7 +201,8 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
                             .padding(10.dp, 5.dp)
                     )
 
-                    Text(text = "Mã đơn hàng: ",
+                    Text(
+                        text = "Mã đơn hàng: " + item.maBill.toString(),
                         style = TextStyle(
                             fontSize = 14.sp,
                             fontStyle = FontStyle.Italic,
@@ -185,19 +216,39 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
 
                 HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
                 Row(
-                    modifier = Modifier.clickable { openDetailBillHistory() }
-                        ,
+                    modifier = Modifier.clickable { openDetailBillHistory(item.maBill) },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
-                ){
-                    Image(
-                        painter = painterResource(id = item.product.imageResId),
-                        contentDescription = "Image",
-                        modifier = Modifier
-                            .size(100.dp)
-                            .padding(5.dp, 5.dp)
-                            .border(0.1.dp, color = Color.Black)
+                ) {
+                    val imageUrl = item.image
+                    val fileName =
+                        imageUrl.substringAfterLast("/").substringBeforeLast(".")
+                    val resourceId = context.resources.getIdentifier(
+                        fileName,
+                        "drawable",
+                        context.packageName
                     )
+                    val a = context.resources.getResourceName(resourceId)
+                    val b = a.substringAfter('/')
+                    if (b == fileName) {
+                        Image(
+                            painter = painterResource(id = resourceId),
+                            contentDescription = "Image",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .padding(5.dp, 5.dp)
+                                .border(0.1.dp, color = Color.Black)
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.rs1),
+                            contentDescription = "Image",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .padding(5.dp, 5.dp)
+                                .border(0.1.dp, color = Color.Black)
+                        )
+                    }
 
                     Column(
                         modifier = Modifier
@@ -205,7 +256,8 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
                             .height(100.dp)
                             .padding(5.dp, 10.dp),
                     ) {
-                        Text(text = item.product.productName,
+                        Text(
+                            text = item.tensp,
                             style = TextStyle(
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
@@ -213,14 +265,16 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
                             )
                         )
                         Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
-                        Text(text = item.product.tagName,
+                        Text(
+                            text = item.tagname,
                             style = TextStyle(
                                 fontSize = 13.sp,
                                 fontStyle = FontStyle.Italic,
                                 color = Color.Black,
                             )
                         )
-                        Text("x" + item.bill.soluongmua.toString(),
+                        Text(
+                            "x" + item.soluong.toString(),
                             style = TextStyle(
                                 fontSize = 14.sp,
                                 color = Color.Black,
@@ -228,7 +282,8 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
                             ),
                             modifier = Modifier.fillMaxWidth()
                         )
-                        Text("Giá: " + formatNumber(item.product.productPrice) + "đ",
+                        Text(
+                            "Giá: " + formatNumber(item.buyprice) + "đ",
                             style = TextStyle(
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
@@ -242,13 +297,13 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
 
                 HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
 
-                Row (
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
 //                        .border(1.dp, color = Color(0xFF006600))
                     ,
                     horizontalArrangement = Arrangement.End
-                ){
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.money),
                         contentDescription = "Money",
@@ -258,7 +313,7 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
                             .padding(0.dp, 9.dp, 0.dp, 0.dp)
                     )
                     Text(
-                        text = "Đã thanh toán: " + formatNumber(item.product.productPrice * item.bill.soluongmua) + "đ",
+                        text = "Đã thanh toán: " + formatNumber(item.buyprice * item.soluong) + "đ",
                         style = TextStyle(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -273,11 +328,11 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
 
                 HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
 
-                Row (
+                Row(
                     modifier = Modifier
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start
-                ){
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ship),
                         contentDescription = "Money",
@@ -287,7 +342,8 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
                             .padding(10.dp, 5.dp)
                     )
 
-                    Text(text = "Giao hàng thành công",
+                    Text(
+                        text = "Giao hàng thành công",
                         style = TextStyle(
                             fontSize = 14.sp,
                             fontStyle = FontStyle.Italic,
@@ -301,7 +357,7 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
 
                 HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
 
-                Row (
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
 //                        .border(1.dp, color = Color(0xFFcc2900))
@@ -312,7 +368,7 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
 
                 ) {
                     Button(
-                        onClick = { /* Do something! */ },
+                        onClick = { openDetailBillHistory(item.maBill) },
                         shape = RoundedCornerShape(10.dp), // Định dạng góc bo tròn của nút
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFcc2900), // Màu nền của nút
@@ -321,7 +377,8 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
                         modifier = Modifier
                             .padding(5.dp, 5.dp)
                     ) {
-                        Text(text = "Mua lại",
+                        Text(
+                            text = "Chi tiết",
                             style = TextStyle(
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
@@ -336,12 +393,16 @@ fun ContentBillHistory(openDetailBillHistory: () -> Unit) {
 }
 
 
-
-
 @Preview(showBackground = true)
 @Composable
 fun BillHistoryScreenPreview() {
     STTCTheme {
-        BillHistoryScreen(openDetailBillHistory = {}, ProductViewModel(), LocalContext.current)
+        BillHistoryScreen(
+            openDetailBillHistory = {},
+            ProductViewModel(),
+            AccountViewModel(LocalContext.current),
+            BillViewModel(LocalContext.current),
+            LocalContext.current
+        )
     }
 }

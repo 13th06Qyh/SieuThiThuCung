@@ -133,240 +133,258 @@ fun DetailCommentScreen(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                items(items = cmt, key = { it.id }) { task ->
-                    Surface(
-                        color = Color.White,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp)
-                    ) {
-
+                if (cmt.isEmpty()) {
+                    item {
                         Row(
                             modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ){
+                            Text(
+                                "Chưa có bình luận nào",
+                                modifier = Modifier.padding(16.dp),
+                                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            )
+                        }
+                    }
+                }else{
+                    items(items = cmt) { task ->
+                        Surface(
+                            color = Color.White,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFFd9d9d9))
-                                .border(
-                                    width = 2.dp,
-                                    color = Color.Black,
-                                    shape = RoundedCornerShape(8.dp)
-                                )
-                        ) {
-
-                            Column(
+                                .padding(5.dp)
+                        ) {//line 143
+                            Row(
                                 modifier = Modifier
-                                    .padding(start = 4.dp)
                                     .fillMaxWidth()
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(Color(0xFFd9d9d9))
-                                        .padding(horizontal = 8.dp, vertical = 1.dp)
-                                ) {
-                                    Surface(
-                                        modifier = Modifier
-                                            .border(
-                                                BorderStroke(2.dp, Color.Black),
-                                                shape = CircleShape
-                                            )
-                                            .clip(shape = CircleShape)
-
-                                    ) {
-                                        Image(
-                                            painter = painterResource(R.drawable.user),
-                                            contentDescription = "avatar",
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier
-                                                .size(30.dp)
-                                                .clip(CircleShape)
-                                        )
-                                    }
-                                    Text(
-                                        text = task.username,
-                                        style = TextStyle(fontSize = 18.sp),
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(start = 5.dp)
+                                    .background(Color(0xFFd9d9d9))
+                                    .border(
+                                        width = 2.dp,
+                                        color = Color.Black,
+                                        shape = RoundedCornerShape(8.dp)
                                     )
+                            ) {
 
-                                    Text(text = formatUpdatedAt(task.updated_at), style = TextStyle(fontSize = 14.sp))
+                                Column(
+                                    modifier = Modifier
+                                        .padding(start = 4.dp)
+                                        .fillMaxWidth()
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color(0xFFd9d9d9))
+                                            .padding(horizontal = 8.dp, vertical = 1.dp)
+                                    ) {
+                                        Surface(
+                                            modifier = Modifier
+                                                .border(
+                                                    BorderStroke(2.dp, Color.Black),
+                                                    shape = CircleShape
+                                                )
+                                                .clip(shape = CircleShape)
 
-                                    if (accountViewModel.getUserIdFromSharedPreferences() == task.iduser) {
-                                        Row(
-                                            modifier = Modifier,
-                                            horizontalArrangement = Arrangement.End,
                                         ) {
-                                            IconButton(onClick = { openDialogDelete = true }) {
-                                                Icon(
-                                                    Icons.Default.Delete,
-                                                    contentDescription = "DeleteCmt",
-                                                    tint = Color.Gray,
-                                                    modifier = Modifier.padding(end = 5.dp)
-                                                )
-                                            }
-                                            IconButton(onClick = {
-                                                openDialogBuild = true
-                                                selectedTaskCmt = task.noidungbl
-                                            }) {
-                                                Icon(
-                                                    Icons.Default.Create,
-                                                    contentDescription = "EditCmt",
-                                                    tint = Color.Gray
-                                                )
+                                            Image(
+                                                painter = painterResource(R.drawable.user),
+                                                contentDescription = "avatar",
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .size(30.dp)
+                                                    .clip(CircleShape)
+                                            )
+                                        }
+                                        Text(
+                                            text = task.username,
+                                            style = TextStyle(fontSize = 18.sp),
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .padding(start = 5.dp)
+                                        )
+                                        val date = task.updated_at
+                                        Log.e("Update_at", "Update_at: $date")
+                                        Text(text = formatUpdatedAt(task.updated_at), style = TextStyle(fontSize = 14.sp)) //line 195
+
+                                        if (accountViewModel.getUserIdFromSharedPreferences() == task.iduser) {
+                                            Row(
+                                                modifier = Modifier,
+                                                horizontalArrangement = Arrangement.End,
+                                            ) {
+                                                IconButton(onClick = { openDialogDelete = true }) {
+                                                    Icon(
+                                                        Icons.Default.Delete,
+                                                        contentDescription = "DeleteCmt",
+                                                        tint = Color.Gray,
+                                                        modifier = Modifier.padding(end = 5.dp)
+                                                    )
+                                                }
+                                                IconButton(onClick = {
+                                                    openDialogBuild = true
+                                                    selectedTaskCmt = task.noidungbl
+                                                }) {
+                                                    Icon(
+                                                        Icons.Default.Create,
+                                                        contentDescription = "EditCmt",
+                                                        tint = Color.Gray
+                                                    )
+                                                }
                                             }
                                         }
                                     }
-                                }
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(Color(0xFFf1f4fe))
-                                        .padding(horizontal = 8.dp, vertical = 1.dp)
-                                ) {
-                                    Text(
-                                        text = task.noidungbl,
-                                        style = TextStyle(fontSize = 18.sp),
-                                        fontWeight = FontWeight.Bold,
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier
-                                            .weight(1f)
-                                            .padding(top = 10.dp, bottom = 25.dp)
-                                    )
+                                            .fillMaxWidth()
+                                            .background(Color(0xFFf1f4fe))
+                                            .padding(horizontal = 8.dp, vertical = 1.dp)
+                                    ) {
+                                        Text(
+                                            text = task.noidungbl,
+                                            style = TextStyle(fontSize = 18.sp),
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .padding(top = 10.dp, bottom = 25.dp)
+                                        )
+                                    }
                                 }
+
                             }
+                        }
+                        if (openDialogDelete) {
+                            AlertDialog(
+                                containerColor = Color(0xFFfffff5),
+                                onDismissRequest = { openDialogDelete = false },
+                                title = {
+                                    Text(
+                                        "Bạn chắc chắn muốn xóa bình luận?",
+                                        style = TextStyle(
+                                            textAlign = TextAlign.Center,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 16.sp,
+                                        ),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            openDialogDelete = false
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFFFFA483), // Màu nền của nút
+                                            contentColor = Color.Black, // Màu chữ của nút
+                                        ),
+
+                                        border = BorderStroke(1.dp, Color(0xFF8B2701)),
+                                    ) {
+                                        Text(
+                                            "Xác nhận",
+                                            style = TextStyle(
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(
+                                        onClick = {
+                                            openDialogDelete = false
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFFA2FFAB), // Màu nền của nút
+                                            contentColor = Color.Black, // Màu chữ của nút
+                                        ),
+
+                                        border = BorderStroke(1.dp, Color(0xFF018B0F)),
+                                    ) {
+                                        Text(
+                                            "Hủy",
+                                            style = TextStyle(
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                        if (openDialogBuild) {
+                            AlertDialog(
+                                containerColor = Color(0xFFcce6ff),
+                                onDismissRequest = { openDialogBuild = false },
+                                title = {
+                                    Text(
+                                        "Chỉnh sửa bình luận",
+                                        style = TextStyle(
+                                            textAlign = TextAlign.Center,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 23.sp,
+                                        ),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                },
+                                text = {
+                                    TextField(
+                                        value = newCmt,
+                                        onValueChange = { newCmt = it },
+                                        placeholder = { Text("Nhập bình luận mới vào đây") },
+                                        colors = TextFieldDefaults.textFieldColors(
+                                            containerColor = Color(0xffe6ffff),
+                                            unfocusedIndicatorColor = Color(0xff0000ff),
+                                        ),
+                                        modifier = Modifier.height(100.dp)
+                                    )
+                                },
+                                confirmButton = {
+                                    Button(
+                                        onClick = {
+                                            cmt[0].noidungbl = newCmt
+                                            openDialogBuild = false
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFFccffff), // Màu nền của nút
+                                            contentColor = Color.Black, // Màu chữ của nút
+                                        ),
+
+                                        border = BorderStroke(1.dp, Color(0xFF0000ff)),
+                                    ) {
+                                        Text(
+                                            "Lưu",
+                                            style = TextStyle(
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
+                                },
+                                dismissButton = {
+                                    Button(
+                                        onClick = { openDialogBuild = false },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFFFFA483), // Màu nền của nút
+                                            contentColor = Color.Black, // Màu chữ của nút
+                                        ),
+
+                                        border = BorderStroke(1.dp, Color(0xFF8B2701)),
+                                    ) {
+                                        Text(
+                                            "Hủy",
+                                            style = TextStyle(
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
+                                }
+                            )
 
                         }
                     }
-                    if (openDialogDelete) {
-                        AlertDialog(
-                            containerColor = Color(0xFFfffff5),
-                            onDismissRequest = { openDialogDelete = false },
-                            title = {
-                                Text(
-                                    "Bạn chắc chắn muốn xóa bình luận?",
-                                    style = TextStyle(
-                                        textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp,
-                                    ),
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            },
-                            confirmButton = {
-                                TextButton(
-                                    onClick = {
-                                        openDialogDelete = false
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFFFA483), // Màu nền của nút
-                                        contentColor = Color.Black, // Màu chữ của nút
-                                    ),
-
-                                    border = BorderStroke(1.dp, Color(0xFF8B2701)),
-                                ) {
-                                    Text(
-                                        "Xác nhận",
-                                        style = TextStyle(
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    )
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(
-                                    onClick = {
-                                        openDialogDelete = false
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFA2FFAB), // Màu nền của nút
-                                        contentColor = Color.Black, // Màu chữ của nút
-                                    ),
-
-                                    border = BorderStroke(1.dp, Color(0xFF018B0F)),
-                                ) {
-                                    Text(
-                                        "Hủy",
-                                        style = TextStyle(
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    )
-                                }
-                            }
-                        )
-                    }
-                    if (openDialogBuild) {
-                        AlertDialog(
-                            containerColor = Color(0xFFcce6ff),
-                            onDismissRequest = { openDialogBuild = false },
-                            title = {
-                                Text(
-                                    "Chỉnh sửa bình luận",
-                                    style = TextStyle(
-                                        textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 23.sp,
-                                    ),
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            },
-                            text = {
-                                TextField(
-                                    value = newCmt,
-                                    onValueChange = { newCmt = it },
-                                    placeholder = { Text("Nhập bình luận mới vào đây") },
-                                    colors = TextFieldDefaults.textFieldColors(
-                                        containerColor = Color(0xffe6ffff),
-                                        unfocusedIndicatorColor = Color(0xff0000ff),
-                                    ),
-                                    modifier = Modifier.height(100.dp)
-                                )
-                            },
-                            confirmButton = {
-                                Button(
-                                    onClick = {
-                                        cmt[0].noidungbl = newCmt
-                                        openDialogBuild = false
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFccffff), // Màu nền của nút
-                                        contentColor = Color.Black, // Màu chữ của nút
-                                    ),
-
-                                    border = BorderStroke(1.dp, Color(0xFF0000ff)),
-                                ) {
-                                    Text(
-                                        "Lưu",
-                                        style = TextStyle(
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    )
-                                }
-                            },
-                            dismissButton = {
-                                Button(
-                                    onClick = { openDialogBuild = false },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFFFA483), // Màu nền của nút
-                                        contentColor = Color.Black, // Màu chữ của nút
-                                    ),
-
-                                    border = BorderStroke(1.dp, Color(0xFF8B2701)),
-                                ) {
-                                    Text(
-                                        "Hủy",
-                                        style = TextStyle(
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    )
-                                }
-                            }
-                        )
-
-                    }
                 }
+
             }
         }
         Row(

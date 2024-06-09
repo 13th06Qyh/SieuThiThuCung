@@ -1,5 +1,6 @@
 package com.example.sttc.view
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -41,9 +42,17 @@ import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.BillProduct
 import com.example.sttc.view.System.Product
 import com.example.sttc.view.System.formatNumber
+import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.BillViewModel
+import com.example.sttc.viewmodel.ProductViewModel
 
 @Composable
-fun BillCancelScreen() {
+fun BillCancelScreen(
+    billModelView: BillViewModel,
+    accountViewModel: AccountViewModel,
+    productViewModel: ProductViewModel,
+    context: Context,
+) {
     val scrollState = rememberScrollState()
     Box(
         modifier = Modifier
@@ -58,7 +67,7 @@ fun BillCancelScreen() {
         ){
             TopIconBillCancel()
             TitleBillCancel()
-            ContentBillCancel()
+            ContentBillCancel(billModelView, accountViewModel, productViewModel, context)
         }
     }
 
@@ -119,7 +128,12 @@ fun TitleBillCancel() {
 }
 
 @Composable
-fun ContentBillCancel() {
+fun ContentBillCancel(
+    billViewModel: BillViewModel,
+    accountViewModel: AccountViewModel,
+    productViewModel: ProductViewModel,
+    context: Context,
+) {
     val items = listOf(
         BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.System.Bill(1)),
         BillProduct(Product(R.drawable.rs2, "Tag B", "Product B", 102000), com.example.sttc.view.System.Bill(2)),
@@ -295,7 +309,13 @@ fun ContentBillCancel() {
 @Preview(showBackground = true)
 @Composable
 fun BillCancelScreenPreview() {
+    val context = LocalContext.current
     STTCTheme {
-        BillCancelScreen()
+        BillCancelScreen(
+            billModelView = BillViewModel(context),
+            accountViewModel = AccountViewModel(context),
+            productViewModel = ProductViewModel(),
+            context = context
+        )
     }
 }

@@ -48,6 +48,7 @@ import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.SuggestToday
 import com.example.sttc.view.System.SuggestTodayopen
 import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.BillViewModel
 import com.example.sttc.viewmodel.CartViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 
@@ -58,6 +59,8 @@ fun InforBillHistoryShipScreen(
     openDetailProducts: (id: Int) -> Unit,
     productViewModel: ProductViewModel,
     context: Context,
+    billViewModel: BillViewModel,
+    billId : Int,
     openCart: () -> Unit,
     cartViewModel: CartViewModel,
     accountViewModel: AccountViewModel,
@@ -463,6 +466,8 @@ fun InforBillHistoryScreenPreview() {
             openDetailProducts = {},
             ProductViewModel(),
             LocalContext.current,
+            BillViewModel(LocalContext.current),
+            0,
             openCart = {},
             CartViewModel(LocalContext.current),
             AccountViewModel(LocalContext.current),

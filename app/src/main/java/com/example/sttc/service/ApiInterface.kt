@@ -4,6 +4,7 @@ import com.example.sttc.model.AddBillRequest
 import com.example.sttc.model.AddBillResponse
 import com.example.sttc.model.AddRequest
 import com.example.sttc.model.AddResponse
+import com.example.sttc.model.BillData
 import com.example.sttc.model.BlogsData
 import com.example.sttc.model.CartData
 import com.example.sttc.model.CommentData
@@ -113,4 +114,14 @@ interface ApiInterface {
     @POST("admin/blogs/{id}/comments")
     fun createCmt(@Path("id") blogId: Int, @Body comment: Comments): Call<Comments>
 
+    //---------------------------------- bill----------------------------
+    @GET ("admin/bill/billCancel/{id}")
+    fun getBillCancel(@Path("id") userId: Int): Call<BillData>
+
+    @GET ("admin/bill/billShip/{id}")
+    fun getBillShip(@Path("id") userId: Int): Call<BillData>
+    @GET ("admin/bill/billHistory/{id}")
+    fun getBillHistory(@Path("id") userId: Int): Call<BillData>
+    @GET ("admin/bill/billDetail/{id}")
+    fun getBillDetail(@Path("id") billId: Int): Call<BillData>
 }

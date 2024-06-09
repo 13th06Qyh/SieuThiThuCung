@@ -111,6 +111,8 @@ fun HomeMenuScreen(
     openDetailProducts: (id: Int) -> Unit,
     openDetailBlogs: (id: Int) -> Unit,
     openDetailCmt: (id: Int) -> Unit,
+    openDetailBillHistory: (billId: Int) -> Unit,
+    openDetailBillShip: (Int) -> Unit,
 ) { //
     val navController = rememberNavController()
     var selectedProductType by remember { mutableStateOf("") }
@@ -349,48 +351,62 @@ fun HomeMenuScreen(
                     // ------------bill---------------
                     composable("billShip") {
                         BillShipScreen(
-                            openDetailBillShip = { navController.navigate("detailBillShip") },
+                            openDetailBillShip = { openDetailBillShip(it) },
                             productViewModel = ProductViewModel(), //sau này thay bằng billviewmodel
+                            accountViewModel = AccountViewModel(context),
+                            billViewModel = BillViewModel(context),
                             context = LocalContext.current
                         )
                     }
-                    composable("detailBillShip") { backStackEntry ->
-                        val productId =
-                            backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
-                        InforBillShipScreen(
-                            back = { navController.popBackStack() },
-                            openDetailProducts = { openDetailProducts(it) },
-                            productViewModel = ProductViewModel(),//cai nay la moi hien suggesttoday thoi, sau nay them cai billviewmodel nua de hien thi contentbill
-                            context = LocalContext.current,
-                            openCart = { openCart() },
-                            cartViewModel = CartViewModel(context),
-                            accountViewModel = AccountViewModel(context),
-                            id = productId,
-                        )
-                    }
+//                    composable("detailBillShip/{id}") { backStackEntry ->
+//                        val productId =
+//                            backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
+//                        InforBillShipScreen(
+//                            back = { navController.popBackStack() },
+//                            openDetailProducts = { openDetailProducts(it) },
+//                            productViewModel = ProductViewModel(),//cai nay la moi hien suggesttoday thoi, sau nay them cai billviewmodel nua de hien thi contentbill
+//                            context = LocalContext.current,
+//                            billViewModel = BillViewModel(context) ,
+//                            billId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0 ,
+//                            openCart = { openCart() },
+//                            cartViewModel = CartViewModel(context),
+//                            accountViewModel = AccountViewModel(context),
+//                            id = productId,
+//                        )
+//                    }
                     composable("billHistory") {
                         BillHistoryScreen(
-                            openDetailBillHistory = { navController.navigate("detailBillHistory") },
+                            openDetailBillHistory = { openDetailBillHistory(it) },
                             productViewModel = ProductViewModel(),
+                            accountViewModel = AccountViewModel(context),
+                            billViewModel = BillViewModel(context),
                             context = LocalContext.current
                         )
                     }
-                    composable("detailBillHistory") { backStackEntry ->
-                        val productId =
-                            backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
-                        InforBillHistoryShipScreen(
-                            back = { navController.popBackStack() },
-                            openDetailProducts = { openDetailProducts(it) },
-                            productViewModel = ProductViewModel(),//cai nay la moi hien suggesttoday thoi, sau nay them cai billviewmodel nua de hien thi contentbill
-                            context = LocalContext.current,
-                            openCart = { openCart() },
-                            cartViewModel = CartViewModel(context),
-                            accountViewModel = AccountViewModel(context),
-                            id = productId,
-                        )
-                    }
+//                    composable("detailBillHistory/{id}") { backStackEntry ->
+//                        val productId =
+//                            backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
+//                        InforBillHistoryShipScreen(
+//                            back = { navController.popBackStack() },
+//                            openDetailProducts = { openDetailProducts(it) },
+//                            productViewModel = ProductViewModel(),//cai nay la moi hien suggesttoday thoi, sau nay them cai billviewmodel nua de hien thi contentbill
+//                            context = LocalContext.current,
+//                            billViewModel = BillViewModel(context) ,
+//                            billId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0 ,
+//                            openCart = { openCart() },
+//                            cartViewModel = CartViewModel(context),
+//                            accountViewModel = AccountViewModel(context),
+//                            id = productId,
+//                        )
+//                    }
                     composable("billCancel") {
-                        BillCancelScreen()
+                        BillCancelScreen(
+                            billModelView = BillViewModel(context),
+                            accountViewModel = AccountViewModel(context),
+                            productViewModel = ProductViewModel(),
+                            context = context
+
+                        )
                     }
 //                    // ------------cart---------------
 //                    composable("cart") {
@@ -612,6 +628,8 @@ fun MenuScreenPreview() {
         openPayment = {},
         openDetailProducts = {},
         openDetailBlogs = {},
-        openDetailCmt = {}
+        openDetailCmt = {},
+        openDetailBillHistory = {},
+        openDetailBillShip = {}
     )
 }
