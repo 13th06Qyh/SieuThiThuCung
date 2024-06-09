@@ -1,5 +1,11 @@
 package com.example.sttc.view
 
+import android.content.Context
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import android.media.Image
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -23,6 +28,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -37,32 +47,38 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
+import com.example.sttc.model.ImageSP
+import com.example.sttc.model.billShow
 import com.example.sttc.ui.theme.STTCTheme
-import com.example.sttc.view.System.BillProduct
-import com.example.sttc.view.System.Product
 import com.example.sttc.view.System.formatNumber
+import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.BillViewModel
+import com.example.sttc.viewmodel.ProductViewModel
 
+// BillCancelScreen : đơn hàng đã bị hủy
 @Composable
-fun BillCancelScreen() {
-    val scrollState = rememberScrollState()
+fun BillCancelScreen(
+    billModelView: BillViewModel,
+    accountViewModel: AccountViewModel,
+    productViewModel: ProductViewModel,
+    context: Context,
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-//            .verticalScroll(scrollState)
-
     ) {
-        Column (
+        Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
             TopIconBillCancel()
             TitleBillCancel()
-            ContentBillCancel()
+            ContentBillCancel(billModelView, accountViewModel, productViewModel, context)
         }
     }
-
 }
+
 
 @Composable
 fun TopIconBillCancel() {
@@ -119,183 +135,226 @@ fun TitleBillCancel() {
 }
 
 @Composable
-fun ContentBillCancel() {
-    val items = listOf(
-        BillProduct(Product(R.drawable.rs1, "Tag A", "Product A", 10000), com.example.sttc.view.System.Bill(1)),
-        BillProduct(Product(R.drawable.rs2, "Tag B", "Product B", 102000), com.example.sttc.view.System.Bill(2)),
-        BillProduct(Product(R.drawable.rs3, "Tag C", "Product C", 2345000), com.example.sttc.view.System.Bill(2)),
-        BillProduct(Product(R.drawable.rs1, "Tag D", "Product D", 30000), com.example.sttc.view.System.Bill(2)),
-        BillProduct(Product(R.drawable.rs2, "Tag E", "Product E", 8000), com.example.sttc.view.System.Bill(2)),
+fun ContentBillCancel(
+    billViewModel: BillViewModel,
+    accountViewModel: AccountViewModel,
+    productViewModel: ProductViewModel,
+    context: Context,
+) {
+    val billCancel by billViewModel.billShow.collectAsState(initial = emptyList())
+    val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())
 
-        )
+    val userId = accountViewModel.getUserIdFromSharedPreferences()
+    Log.d("BillCancelScreen", "userId: $userId")
+//    LaunchedEffect(userId) {
+        billViewModel.fetchBillCancel(userId)
+//    }
+//    val billCancelList = listOf(
+//
+//    )
+    Log.e("huhukhocne", "billCancel: $billCancel")
+    if (billCancel.isNotEmpty()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFFe6e6e6))
+                .padding(5.dp, 0.dp)
+        ) {
+            items(billCancel) { item ->
+                BillCancelItem(item, imagesMap, productViewModel, context)
+                Log.e("itemBillCancelScreen", "item: $item")
+            }
+        }
+    } else {
+        Text("No data available")
+    }
+}
 
-    LazyColumn(
+@Composable
+fun BillCancelItem(
+    item: billShow,
+    imagesMap: Map<Int, List<ImageSP>>,
+    productViewModel: ProductViewModel,
+    context: Context
+) {
+    val productImages = remember { mutableStateOf<List<ImageSP>>(emptyList()) }
+
+    LaunchedEffect(key1 = item.maSP) {
+        productViewModel.fetchImages(item.maSP)
+    }
+
+    productImages.value = imagesMap[item.maSP].orEmpty()
+
+    Column(
         modifier = Modifier
+            .padding(0.dp, 0.dp, 0.dp, 10.dp)
+            .border(1.dp, color = Color(0xFFFFFFFF))
             .fillMaxWidth()
-//            .border(1.dp, color = Color(0xFF006600))
-            .background(Color(0xFFe6e6e6))
-            .padding(5.dp, 0.dp)
+            .background(Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        items(items) { item ->
-            Column(
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Text(
+                text = "Ngày huỷ đơn: ",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontStyle = FontStyle.Italic,
+                    textAlign = TextAlign.Start,
+                    color = Color.Gray,
+                ),
                 modifier = Modifier
-                    .padding(0.dp, 0.dp, 0.dp, 10.dp)
-                    .border(1.dp, color = Color(0xFFFFFFFF))
-                    .fillMaxWidth()
-                    .background(
-                        Color.White
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Row (
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start
-                ){
-                    Text(text = "Ngày huỷ đơn: ",
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontStyle = FontStyle.Italic,
-                            textAlign = TextAlign.Start,
-                            color = Color.Gray,
-                        ),
-                        modifier = Modifier
-                            .padding(10.dp, 5.dp)
-                    )
-                }
+                    .padding(10.dp, 5.dp)
+            )
+        }
 
-                HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
-                Row(
-                    modifier = Modifier
-//                        .border(2.dp, color = Color(0xFF006600))
-                    ,
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ){
+        HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            if (productImages.value.isNotEmpty()) {
+                val image = productImages.value.first()
+                val imageUrl = image.image
+                val fileName = imageUrl.substringBeforeLast(".")
+                val resourceId = context.resources.getIdentifier(
+                    fileName,
+                    "drawable",
+                    context.packageName
+                )
+                if (resourceId != 0) {
                     Image(
-                        painter = painterResource(id = item.product.imageResId),
+                        painter = painterResource(id = resourceId),
                         contentDescription = "Image",
                         modifier = Modifier
                             .size(100.dp)
                             .padding(5.dp, 5.dp)
                             .border(0.1.dp, color = Color.Black)
                     )
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp)
-                            .padding(5.dp, 10.dp),
-                    ) {
-                        Text(text = item.product.productName,
-                            style = TextStyle(
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            )
-                        )
-                        Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
-                        Text(text = item.product.tagName,
-                            style = TextStyle(
-                                fontSize = 13.sp,
-                                fontStyle = FontStyle.Italic,
-                                color = Color.Black,
-                            )
-                        )
-                        Text("x" + item.bill.soluongmua.toString(),
-                            style = TextStyle(
-                                fontSize = 14.sp,
-                                color = Color.Black,
-                                textAlign = TextAlign.End
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Text("Giá: " + formatNumber(item.product.productPrice) + "đ",
-                            style = TextStyle(
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black,
-                                textAlign = TextAlign.End
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
+                } else {
+                    Text(text = "Image not found")
                 }
+            }
 
-                HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
-
-                Row (
-                    modifier = Modifier
-                        .fillMaxWidth()
-//                        .border(1.dp, color = Color(0xFF006600))
-                    ,
-                    horizontalArrangement = Arrangement.End
-                ){
-                    Icon(
-                        painter = painterResource(id = R.drawable.money),
-                        contentDescription = "Money",
-                        tint = Color(0xFFcc2900),
-                        modifier = Modifier
-                            .size(28.dp)
-                            .padding(0.dp, 9.dp, 0.dp, 0.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .padding(5.dp, 10.dp),
+            ) {
+                Text(
+                    text = item.tensp,
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
                     )
-                    Text(
-                        text = "Thành tiền: " + formatNumber(item.product.productPrice * item.bill.soluongmua) + "đ",
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.End,
-                            color = Color(0xFFcc2900),
-                        ),
-                        modifier = Modifier
-                            .padding(5.dp, 10.dp)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = item.tagname,
+                    style = TextStyle(
+                        fontSize = 13.sp,
+                        fontStyle = FontStyle.Italic,
+                        color = Color.Black,
                     )
+                )
+                Text(
+                    "x${item.soluong}",
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        color = Color.Black,
+                        textAlign = TextAlign.End
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text(
+                    "Giá: ${formatNumber(item.buyprice)}đ",
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        textAlign = TextAlign.End
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
 
-                }
+        HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
 
-                HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.money),
+                contentDescription = "Money",
+                tint = Color(0xFFcc2900),
+                modifier = Modifier
+                    .size(28.dp)
+                    .padding(0.dp, 9.dp, 0.dp, 0.dp)
+            )
+            Text(
+                text = "Thành tiền: ${formatNumber(item.buyprice * item.soluong)}đ",
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.End,
+                    color = Color(0xFFcc2900),
+                ),
+                modifier = Modifier
+                    .padding(5.dp, 10.dp)
+            )
+        }
 
-                Row (
-                    modifier = Modifier
-                        .fillMaxWidth()
-//                        .border(1.dp, color = Color(0xFFcc2900))
-                        .background(
-                            Color.White
-                        ),
-                    horizontalArrangement = Arrangement.End
+        HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
 
-                ) {
-                    Button(
-                        onClick = { /* Do something! */ },
-                        shape = RoundedCornerShape(10.dp), // Định dạng góc bo tròn của nút
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFcc2900), // Màu nền của nút
-                            contentColor = Color.White // Màu chữ của nút
-                        ),
-                        modifier = Modifier
-                            .padding(5.dp, 5.dp)
-                    ) {
-                        Text(text = "Mua lại",
-                            style = TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            ),
-                        )
-                    }
-                }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Button(
+                onClick = { /* Do something! */ },
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFcc2900),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier
+                    .padding(5.dp, 5.dp)
+            ) {
+                Text(
+                    text = "Mua lại",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    ),
+                )
             }
         }
     }
 }
 
 
-
-
 @Preview(showBackground = true)
 @Composable
 fun BillCancelScreenPreview() {
+    val context = LocalContext.current
     STTCTheme {
-        BillCancelScreen()
+        BillCancelScreen(
+            billModelView = BillViewModel(),
+            accountViewModel = AccountViewModel(context),
+            productViewModel = ProductViewModel(),
+            context = context
+        )
     }
 }

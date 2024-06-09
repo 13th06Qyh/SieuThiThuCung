@@ -43,11 +43,11 @@ class AccountViewModel(context: Context) : ViewModel() {
     private val _request = MutableLiveData<String>(null)
     val request = _request.asFlow()
 
-    private val _update= MutableLiveData<Result<Pair<String, String>>>()
-    val update= _update.asFlow()
+    private val _update = MutableLiveData<Result<Pair<String, String>>>()
+    val update = _update.asFlow()
 
-    private val _create= MutableLiveData<Result<String>>()
-    val create= _create.asFlow()
+    private val _create = MutableLiveData<Result<String>>()
+    val create = _create.asFlow()
 
     private val _loginResult = MutableLiveData<Result<String>>()
     val loginResult = _loginResult.asFlow()
@@ -56,7 +56,11 @@ class AccountViewModel(context: Context) : ViewModel() {
     val signupResult = _signupResult.asFlow()
 
     private val context = context
+    val userId: Int
 
+    init {
+        userId = getUserIdFromSharedPreferences()
+    }
     private fun readUserInfoFromSharedPreferences() {
         val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         val userJson = sharedPreferences.getString("user", null)
@@ -80,12 +84,13 @@ class AccountViewModel(context: Context) : ViewModel() {
     init {
         readUserInfoFromSharedPreferences()
     }
+
     fun login(username: String, password: String) {
         val loginRequest = LoginRequest(username, password)
         apiService.login(loginRequest).enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                 if (response.isSuccessful) {
-                    response.body()?.let {loginResponse ->
+                    response.body()?.let { loginResponse ->
                         val token = loginResponse.token
                         val user = loginResponse.user
                         // Save token and user info to SharedPreferences
@@ -125,27 +130,31 @@ class AccountViewModel(context: Context) : ViewModel() {
             return
         }
         val updateNameRequest = UpdateNameRequest(username, id)
-        apiService.updateName("Bearer $token", id, updateNameRequest).enqueue(object : Callback<UpdateNameResponse> {
-            override fun onResponse(call: Call<UpdateNameResponse>, response: Response<UpdateNameResponse>) {
-                if (response.isSuccessful) {
-                    response.body()?.let { updatedResponse ->
-                        val user = updatedResponse.user
-                        saveUserInfoToSharedPreferences(token, user)
-                        updateUserInfo(user)
-                        val type = Pair(token, "updateName")
-                        _update.value = Result.success(type)
-                    } ?: run {
-                        _update.value = Result.failure(Exception("No user found"))
+        apiService.updateName("Bearer $token", id, updateNameRequest)
+            .enqueue(object : Callback<UpdateNameResponse> {
+                override fun onResponse(
+                    call: Call<UpdateNameResponse>,
+                    response: Response<UpdateNameResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        response.body()?.let { updatedResponse ->
+                            val user = updatedResponse.user
+                            saveUserInfoToSharedPreferences(token, user)
+                            updateUserInfo(user)
+                            val type = Pair(token, "updateName")
+                            _update.value = Result.success(type)
+                        } ?: run {
+                            _update.value = Result.failure(Exception("No user found"))
+                        }
+                    } else {
+                        handleErrorResponse(response, "updateName")
                     }
-                } else {
-                    handleErrorResponse(response, "updateName")
                 }
-            }
 
-            override fun onFailure(call: Call<UpdateNameResponse>, t: Throwable) {
-                _update.value = Result.failure(t)
-            }
-        })
+                override fun onFailure(call: Call<UpdateNameResponse>, t: Throwable) {
+                    _update.value = Result.failure(t)
+                }
+            })
     }
 
     fun updateMail(email: String, id: Int) {
@@ -155,27 +164,31 @@ class AccountViewModel(context: Context) : ViewModel() {
             return
         }
         val updateMailRequest = UpdateMailRequest(email, id)
-        apiService.updateMail("Bearer $token", id, updateMailRequest).enqueue(object : Callback<UpdateMailResponse> {
-            override fun onResponse(call: Call<UpdateMailResponse>, response: Response<UpdateMailResponse>) {
-                if (response.isSuccessful) {
-                    response.body()?.let { updatedResponse ->
-                        val user = updatedResponse.user
-                        saveUserInfoToSharedPreferences(token, user)
-                        updateUserInfo(user)
-                        val type = Pair(token, "updateMail")
-                        _update.value = Result.success(type)
-                    } ?: run {
-                        _update.value = Result.failure(Exception("No user found"))
+        apiService.updateMail("Bearer $token", id, updateMailRequest)
+            .enqueue(object : Callback<UpdateMailResponse> {
+                override fun onResponse(
+                    call: Call<UpdateMailResponse>,
+                    response: Response<UpdateMailResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        response.body()?.let { updatedResponse ->
+                            val user = updatedResponse.user
+                            saveUserInfoToSharedPreferences(token, user)
+                            updateUserInfo(user)
+                            val type = Pair(token, "updateMail")
+                            _update.value = Result.success(type)
+                        } ?: run {
+                            _update.value = Result.failure(Exception("No user found"))
+                        }
+                    } else {
+                        handleErrorResponse(response, "updateMail")
                     }
-                } else {
-                    handleErrorResponse(response, "updateMail")
                 }
-            }
 
-            override fun onFailure(call: Call<UpdateMailResponse>, t: Throwable) {
-                _update.value = Result.failure(t)
-            }
-        })
+                override fun onFailure(call: Call<UpdateMailResponse>, t: Throwable) {
+                    _update.value = Result.failure(t)
+                }
+            })
     }
 
     fun updatePhone(sdt: Int, id: Int) {
@@ -185,27 +198,31 @@ class AccountViewModel(context: Context) : ViewModel() {
             return
         }
         val updatePhoneRequest = UpdatePhoneRequest(sdt, id)
-        apiService.updatePhone("Bearer $token", id, updatePhoneRequest).enqueue(object : Callback<UpdatePhoneResponse> {
-            override fun onResponse(call: Call<UpdatePhoneResponse>, response: Response<UpdatePhoneResponse>) {
-                if (response.isSuccessful) {
-                    response.body()?.let { updatedResponse ->
-                        val user = updatedResponse.user
-                        saveUserInfoToSharedPreferences(token, user)
-                        updateUserInfo(user)
-                        val type = Pair(token, "updatePhone")
-                        _update.value = Result.success(type)
-                    } ?: run {
-                        _update.value = Result.failure(Exception("No user found"))
+        apiService.updatePhone("Bearer $token", id, updatePhoneRequest)
+            .enqueue(object : Callback<UpdatePhoneResponse> {
+                override fun onResponse(
+                    call: Call<UpdatePhoneResponse>,
+                    response: Response<UpdatePhoneResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        response.body()?.let { updatedResponse ->
+                            val user = updatedResponse.user
+                            saveUserInfoToSharedPreferences(token, user)
+                            updateUserInfo(user)
+                            val type = Pair(token, "updatePhone")
+                            _update.value = Result.success(type)
+                        } ?: run {
+                            _update.value = Result.failure(Exception("No user found"))
+                        }
+                    } else {
+                        handleErrorResponse(response, "updatePhone")
                     }
-                } else {
-                    handleErrorResponse(response, "updatePhone")
                 }
-            }
 
-            override fun onFailure(call: Call<UpdatePhoneResponse>, t: Throwable, ) {
-                _update.value = Result.failure(t)
-            }
-        })
+                override fun onFailure(call: Call<UpdatePhoneResponse>, t: Throwable) {
+                    _update.value = Result.failure(t)
+                }
+            })
     }
 
     fun updateAddress(diachi: String, id: Int) {
@@ -215,27 +232,31 @@ class AccountViewModel(context: Context) : ViewModel() {
             return
         }
         val updateAddressRequest = UpdateAddressRequest(diachi, id)
-        apiService.updateAddress("Bearer $token", id, updateAddressRequest).enqueue(object : Callback<UpdateAddressResponse> {
-            override fun onResponse(call: Call<UpdateAddressResponse>, response: Response<UpdateAddressResponse>) {
-                if (response.isSuccessful) {
-                    response.body()?.let { updatedResponse ->
-                        val user = updatedResponse.user
-                        saveUserInfoToSharedPreferences(token, user)
-                        updateUserInfo(user)
-                        val type = Pair(token, "updateAddress")
-                        _update.value = Result.success(type)
-                    } ?: run {
-                        _update.value = Result.failure(Exception("No user found"))
+        apiService.updateAddress("Bearer $token", id, updateAddressRequest)
+            .enqueue(object : Callback<UpdateAddressResponse> {
+                override fun onResponse(
+                    call: Call<UpdateAddressResponse>,
+                    response: Response<UpdateAddressResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        response.body()?.let { updatedResponse ->
+                            val user = updatedResponse.user
+                            saveUserInfoToSharedPreferences(token, user)
+                            updateUserInfo(user)
+                            val type = Pair(token, "updateAddress")
+                            _update.value = Result.success(type)
+                        } ?: run {
+                            _update.value = Result.failure(Exception("No user found"))
+                        }
+                    } else {
+                        handleErrorResponse(response, "updateAddress")
                     }
-                } else {
-                    handleErrorResponse(response, "updateAddress")
                 }
-            }
 
-            override fun onFailure(call: Call<UpdateAddressResponse>, t: Throwable) {
-                _update.value = Result.failure(t)
-            }
-        })
+                override fun onFailure(call: Call<UpdateAddressResponse>, t: Throwable) {
+                    _update.value = Result.failure(t)
+                }
+            })
     }
 
     fun changePass(currentpassword: String, newpassword: String, confirmpassword: String, id: Int) {
@@ -245,40 +266,44 @@ class AccountViewModel(context: Context) : ViewModel() {
             return
         }
         val updatePassRequest = UpdatePassRequest(currentpassword, newpassword, confirmpassword, id)
-        apiService.changePass("Bearer $token", id, updatePassRequest).enqueue(object : Callback<UpdatePassResponse> {
-            override fun onResponse(call: Call<UpdatePassResponse>, response: Response<UpdatePassResponse>) {
-                if (response.isSuccessful) {
-                    response.body()?.let { updatedResponse ->
-                        val user = updatedResponse.user
-                        saveUserInfoToSharedPreferences(token, user)
-                        updateUserInfo(user)
-                        val type = Pair(token, "changePass")
-                        _update.value = Result.success(type)
-                        Log.d("token", updatedResponse.message)
-                    } ?: run {
-                        _update.value = Result.failure(Exception("No user found"))
-                    }
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    Log.e("API ChangePass Error", "Error body: $errorBody")
+        apiService.changePass("Bearer $token", id, updatePassRequest)
+            .enqueue(object : Callback<UpdatePassResponse> {
+                override fun onResponse(
+                    call: Call<UpdatePassResponse>,
+                    response: Response<UpdatePassResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        response.body()?.let { updatedResponse ->
+                            val user = updatedResponse.user
+                            saveUserInfoToSharedPreferences(token, user)
+                            updateUserInfo(user)
+                            val type = Pair(token, "changePass")
+                            _update.value = Result.success(type)
+                            Log.d("token", updatedResponse.message)
+                        } ?: run {
+                            _update.value = Result.failure(Exception("No user found"))
+                        }
+                    } else {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("API ChangePass Error", "Error body: $errorBody")
 
-                    // Parse JSON error body
-                    val errorMessage = try {
-                        val jsonObject = JSONObject(errorBody)
-                        // Directly fetch the error message using the "error" key
-                        jsonObject.getString("error")
-                    } catch (e: JSONException) {
-                        "Unknown error occurred"
+                        // Parse JSON error body
+                        val errorMessage = try {
+                            val jsonObject = JSONObject(errorBody)
+                            // Directly fetch the error message using the "error" key
+                            jsonObject.getString("error")
+                        } catch (e: JSONException) {
+                            "Unknown error occurred"
+                        }
+                        Log.e("API ChangePass Error", "Parsed error message: $errorMessage")
+                        _update.value = Result.failure(Exception(errorMessage))
                     }
-                    Log.e("API ChangePass Error", "Parsed error message: $errorMessage")
-                    _update.value = Result.failure(Exception(errorMessage))
                 }
-            }
 
-            override fun onFailure(call: Call<UpdatePassResponse>, t: Throwable) {
-                _update.value = Result.failure(t)
-            }
-        })
+                override fun onFailure(call: Call<UpdatePassResponse>, t: Throwable) {
+                    _update.value = Result.failure(t)
+                }
+            })
     }
 
     fun createOTP(otp: String, id: Int) {
@@ -288,59 +313,64 @@ class AccountViewModel(context: Context) : ViewModel() {
             return
         }
         val updateOTPRequest = UpdateOTPRequest(otp, id)
-        apiService.createOTP("Bearer $token", id, updateOTPRequest).enqueue(object : Callback<UpdateOTPResponse> {
-            override fun onResponse(call: Call<UpdateOTPResponse>, response: Response<UpdateOTPResponse>) {
-                if (response.isSuccessful) {
-                    response.body()?.let { updatedResponse ->
-                        val user = updatedResponse.user
-                        saveUserInfoToSharedPreferences(token, user)
-                        updateUserInfo(user)
-                        _create.value = Result.success(token)
-                    } ?: run {
-                        _create.value = Result.failure(Exception("No user found"))
-                    }
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    Log.e("API CreateOTP Error", "Error body: $errorBody")
-
-                    // Parse JSON error body
-                    val errorMessage = try {
-                        val jsonObject = JSONObject(errorBody)
-                        val errorsObject = jsonObject.getJSONObject("errors")
-
-                        val errorMessages = mutableListOf<String>()
-
-                        // Iterate through all fields in the errors object
-                        errorsObject.keys().forEach { key ->
-                            val errorArray = errorsObject.getJSONArray(key)
-                            for (i in 0 until errorArray.length()) {
-                                errorMessages.add(errorArray.getString(i))
-                            }
+        apiService.createOTP("Bearer $token", id, updateOTPRequest)
+            .enqueue(object : Callback<UpdateOTPResponse> {
+                override fun onResponse(
+                    call: Call<UpdateOTPResponse>,
+                    response: Response<UpdateOTPResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        response.body()?.let { updatedResponse ->
+                            val user = updatedResponse.user
+                            saveUserInfoToSharedPreferences(token, user)
+                            updateUserInfo(user)
+                            _create.value = Result.success(token)
+                        } ?: run {
+                            _create.value = Result.failure(Exception("No user found"))
                         }
+                    } else {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("API CreateOTP Error", "Error body: $errorBody")
 
-                        // Join all error messages into a single string
-                        errorMessages.joinToString(separator = "\n")
+                        // Parse JSON error body
+                        val errorMessage = try {
+                            val jsonObject = JSONObject(errorBody)
+                            val errorsObject = jsonObject.getJSONObject("errors")
 
-                    } catch (e: JSONException) {
-                        "Unknown error occurred"
+                            val errorMessages = mutableListOf<String>()
+
+                            // Iterate through all fields in the errors object
+                            errorsObject.keys().forEach { key ->
+                                val errorArray = errorsObject.getJSONArray(key)
+                                for (i in 0 until errorArray.length()) {
+                                    errorMessages.add(errorArray.getString(i))
+                                }
+                            }
+
+                            // Join all error messages into a single string
+                            errorMessages.joinToString(separator = "\n")
+
+                        } catch (e: JSONException) {
+                            "Unknown error occurred"
+                        }
+                        Log.e("API CreateOTP Error", "Parsed error message: $errorMessage")
+
+                        _create.value = Result.failure(Exception(errorMessage))
                     }
-                    Log.e("API CreateOTP Error", "Parsed error message: $errorMessage")
-
-                    _create.value = Result.failure(Exception(errorMessage))
                 }
-            }
 
-            override fun onFailure(call: Call<UpdateOTPResponse>, t: Throwable) {
-                _create.value = Result.failure(t)
-            }
-        })
+                override fun onFailure(call: Call<UpdateOTPResponse>, t: Throwable) {
+                    _create.value = Result.failure(t)
+                }
+            })
     }
 
     private fun saveUserInfoToSharedPreferences(token: String, user: User) {
         val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         with(sharedPreferences.edit()) {
             putString("token", token)
-            putString("user", Gson().toJson(user)) // Convert user object to JSON string
+            putString("user", Gson().toJson(user))
+            putInt("userId", user.id)// Convert user object to JSON string
             apply()
         }
     }
@@ -348,6 +378,11 @@ class AccountViewModel(context: Context) : ViewModel() {
     fun getTokenFromSharedPreferences(): String? {
         val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         return sharedPreferences.getString("token", null)
+    }
+
+    fun getUserIdFromSharedPreferences(): Int {
+        val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        return sharedPreferences.getInt("userId", -1)
     }
 
     fun logout() {
@@ -363,7 +398,10 @@ class AccountViewModel(context: Context) : ViewModel() {
     fun signup(username: String, email: String, sdt: Int, password: String) {
         val signupRequest = SignupRequest(username, email, sdt, password)
         apiService.signup(signupRequest).enqueue(object : Callback<SignupResponse> {
-            override fun onResponse(call: Call<SignupResponse>, response: Response<SignupResponse>) {
+            override fun onResponse(
+                call: Call<SignupResponse>,
+                response: Response<SignupResponse>
+            ) {
                 if (response.isSuccessful) {
                     response.body()?.let {
                         _signupResult.value = Result.success(it.token)
@@ -436,10 +474,6 @@ class AccountViewModel(context: Context) : ViewModel() {
         }
         Log.e("API Update Error", "Parsed error message: $errorMessage")
         _update.value = Result.failure(Exception(errorMessage))
-    }
-    fun getUserIdFromSharedPreferences(): Int {
-        val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        return sharedPreferences.getInt("userId", -1)
     }
 
 }

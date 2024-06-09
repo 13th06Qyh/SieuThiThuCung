@@ -16,7 +16,6 @@ class CommentsViewModel : ViewModel() {
     private val _comments = MutableStateFlow<List<CommentWithUser>>(emptyList())
     val comments: StateFlow<List<CommentWithUser>> = _comments
     private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
 
     fun fetchComments(blogId: Int) {
         viewModelScope.launch {
@@ -29,7 +28,7 @@ class CommentsViewModel : ViewModel() {
                     if (response.isSuccessful) {
                         val commentData = response.body()
                         _comments.value = commentData?.comments ?: emptyList()
-                        Log.e("dscmt", _comments.value.toString())
+                        Log.e("dscmt", commentData.toString())
                     } else {
                         Log.e("Loi cmt", "Error: ${response.code()}")
                     }

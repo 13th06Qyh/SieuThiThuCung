@@ -395,10 +395,9 @@ fun DetailCommentScreen(
                     IconButton(onClick = {
                         val commentText = comment.value
                         val userId = accountViewModel.getUserIdFromSharedPreferences()
-                            ?: return@IconButton // Get the user ID here
-                        val blogId_real = blogId // Get the blog ID here
+                        Log.e("aaaaaa", userId.toString())
 
-// Create a Comments object with the necessary data
+
                         val newComment = Comments(
                             maBL = 0,
                             iduser = userId,

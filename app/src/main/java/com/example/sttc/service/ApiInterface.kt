@@ -8,8 +8,11 @@ import com.example.sttc.model.AddBillRequest
 import com.example.sttc.model.AddBillResponse
 import com.example.sttc.model.AddRequest
 import com.example.sttc.model.AddResponse
+import com.example.sttc.model.BillData
 import com.example.sttc.model.CartData
 import com.example.sttc.model.Carts
+import com.example.sttc.model.CommentData
+import com.example.sttc.model.Comments
 import com.example.sttc.model.DeleteRequest
 import com.example.sttc.model.DeleteResponse
 import com.example.sttc.model.ImageSP
@@ -81,10 +84,25 @@ interface ApiInterface {
     @GET("admin/cart/addsptocart/{id}")
     fun addCart(@Path("id") cartId: Int, @Body addRequest: AddRequest): Call<AddResponse>
 
+
+
+
+    //---------------------------------- bill----------------------------
     @POST("admin/bill/buy")
     fun buy(@Body addBillRequest: AddBillRequest): Call<AddBillResponse>
+    @GET ("admin/bill/billCancel/{id}")
+    fun getBillCancel(@Path("id") userId: Int): Call<BillData>
 
-    // blog
+    @GET ("admin/bill/billShip/{id}")
+    fun getBillShip(@Path("id") userId: Int): Call<BillData>
+    @GET ("admin/bill/billHistory/{id}")
+    fun getBillHistory(@Path("id") userId: Int): Call<BillData>
+    @GET ("admin/bill/billDetail/{id}")
+    fun getBillDetail(@Path("id") billId: Int): Call<BillData>
+
+
+
+    //---------------------------------- blog-----------------------------
     @GET("admin/blogs")
     fun getListBlogs(): Call<BlogsData>
     @GET("admin/blogs/{id}/images")
@@ -92,4 +110,9 @@ interface ApiInterface {
 
     @GET("admin/blogs/detailBlog/{id}")
     fun getBlogDetailById(@Path("id") blogId: Int): Call<BlogsData>
+    @GET("admin/blogs/{id}/comments")
+    fun getCommentsByBlogId(@Path("id") blogId: Int): Call<CommentData>
+    @POST("admin/blogs/{id}/comments")
+    fun createCmt(@Path("id") blogId: Int, @Body comment: Comments): Call<Comments>
+
 }
