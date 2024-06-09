@@ -1,17 +1,23 @@
 package com.example.sttc.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import com.example.sttc.model.CartData
 import com.example.sttc.model.ImageSP
 import com.example.sttc.model.ProductData
 import com.example.sttc.model.Provide
 import com.example.sttc.model.Sanpham
+import com.example.sttc.model.Search
+import com.example.sttc.model.SearchData
 import com.example.sttc.model.Tag
 import com.example.sttc.service.ApiService.apiService
+import com.example.sttc.view.System.Keyword
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -24,9 +30,6 @@ class ProductViewModel : ViewModel() {
 
     private val _products = MutableLiveData<List<Sanpham>>()
     val products = _products.asFlow()
-
-//    private val _productDT = MutableLiveData<List<Sanpham>>()
-//    val productDT = _productDT.asFlow()
 
     private val _images = MutableLiveData<Map<Int, List<ImageSP>>>()
     val images = _images.asFlow()
@@ -151,6 +154,7 @@ class ProductViewModel : ViewModel() {
                                 viewModelScope.launch(Dispatchers.IO) {
                                     delay(60000) // Wait for 60 seconds before retrying
                                     fetchProductById(productId)
+                                    fetchImages(productId)
                                 }
                             } else {
                                 Log.e("API SP Error", "Error: ${response.code()}")
@@ -309,6 +313,13 @@ class ProductViewModel : ViewModel() {
                 e.printStackTrace()
             }
         }
+    }
+
+
+
+
+    private fun getKeywordInfoFromJson(keywordJson: String?): Keyword? {
+        return if (keywordJson != null) Gson().fromJson(keywordJson, Keyword::class.java) else null
     }
 
 

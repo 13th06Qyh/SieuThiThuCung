@@ -519,6 +519,7 @@ fun CartScreen(
                             if (checkOnlyState != null && checkOnlyState.value) {
                                 val quantity = quantityState?.value ?: 1
                                 PayData(
+                                    idc = cart.maCart,
                                     id = cart.sanpham.maSP,
                                     image = cart.image,
                                     name = cart.sanpham.tensp,

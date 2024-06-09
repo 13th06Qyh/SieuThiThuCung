@@ -34,7 +34,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -1033,6 +1035,13 @@ fun getLocation(
     var selectedWard by remember { mutableStateOf<Ward?>(null) }
     var selectedTeam by remember { mutableStateOf<Team?>(null) }
 
+    val otherAddressState by sharedViewModel.otherAddressInfoFlow.collectAsState(null)
+    val card by sharedViewModel.checkInfoFlow.collectAsState(null)
+
+    LaunchedEffect(checkedStateOther.value) {
+        sharedViewModel.setSelectedCheck(Check(checkedStateOther.value, card?.card ?: false, card?.receive ?: false))
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1064,16 +1073,18 @@ fun getLocation(
                 modifier = Modifier.padding(10.dp, 10.dp)
             )
 //            val checkedStateOther = remember { mutableStateOf(false) }
-           Row (
-               modifier = Modifier
-                   .fillMaxWidth()
-                   .padding(end = 7.dp),
-               horizontalArrangement = Arrangement.End
-           ){
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 7.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
                 Checkbox(
                     checked = checkedStateOther.value,
-                    onCheckedChange = { checkedStateOther.value = it
-                        if (it) checkedStateDefautl.value = false },
+                    onCheckedChange = {
+                        checkedStateOther.value = it
+                        if (it) checkedStateDefautl.value = false
+                    },
                     modifier = Modifier
                         .size(20.dp)
                 )
@@ -1297,20 +1308,51 @@ fun getLocation(
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = Color(0xffffebe6),
                 unfocusedIndicatorColor = Color(0xffe62e00),
-            )
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 5.dp)
         )
+        Spacer(modifier = Modifier.height(16.dp))
 
-        if (showErrorAddress) {
-            Text(
-                text = "Vui lòng chọn đầy đủ địa chỉ và nhập địa chỉ chi tiết.",
-                color = Color.Red,
-                modifier = Modifier.padding(16.dp),
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Center,
-                    fontStyle = FontStyle.Italic
+        if (checkedStateOther.value) {
+            val location = newAddress + ", " + listOfNotNull(
+                selectedTeam?.name,
+                selectedWard?.name,
+                selectedCity?.name,
+                selectedProvince?.name
+            ).joinToString(", ")
+            if (newAddress.isNotEmpty() && selectedProvince != null && selectedCity != null && selectedWard != null && selectedTeam != null) {
+                showErrorAddress = false
+            } else {
+                showErrorAddress = true
+            }
+            LaunchedEffect(checkedStateOther.value, location, showErrorAddress) {
+                sharedViewModel.setSelectedOtherAddress(
+                    OtherAddress(
+                        location,
+                        showErrorAddress,
+                        "Vui lòng chọn địa chỉ và nhập địa chỉ chi tiết!"
+                    )
                 )
-            )
+            }
+
+            otherAddressState?.let { otherAddress ->
+                if (otherAddress.error == true) {
+                    Text(
+                        text = otherAddress.message,
+                        color = Color.Red,
+                        modifier = Modifier
+                            .padding(bottom = 16.dp)
+                            .fillMaxWidth(),
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                            fontStyle = FontStyle.Italic
+                        )
+                    )
+                }
+            }
         }
     }
 }
@@ -1319,8 +1361,11 @@ fun getLocation(
 @Preview(showBackground = true)
 @Composable
 fun ProPreview() {
-    getLocation(remember { mutableStateOf(false) }, remember { mutableStateOf(false) }, SharedViewModel(
-        LocalContext.current)
+    getLocation(remember { mutableStateOf(false) },
+        remember { mutableStateOf(false) },
+        SharedViewModel(
+            LocalContext.current
+        )
     )
 }
 

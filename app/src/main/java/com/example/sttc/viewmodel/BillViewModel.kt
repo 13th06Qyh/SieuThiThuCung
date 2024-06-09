@@ -8,9 +8,7 @@ import androidx.lifecycle.asFlow
 import com.example.sttc.model.AddBillRequest
 import com.example.sttc.model.AddBillResponse
 import com.example.sttc.model.Bill
-import com.example.sttc.model.Carts
 import com.example.sttc.model.ErrorAddBillResponse
-import com.example.sttc.model.ErrorAddResponse
 import com.example.sttc.model.PayData
 import com.example.sttc.service.ApiService
 import com.google.gson.Gson
@@ -45,14 +43,14 @@ class BillViewModel(context: Context) : ViewModel() {
         return if (idUser == -1) null else idUser
     }
 
-    fun buy(diachi: String, status: String, ship: String, pay: String, info: String, situation: String, carts: PayData) {
+    fun buy(otp: String, diachi: String, status: String, ship: String, pay: String, info: String, carts: List<PayData>) {
         val token = getTokenFromSharedPreferences()
         if (token == null) {
             _buy.value = Result.failure(Exception("No token found"))
             return
         }
         val iduser = getUserIdFromSharedPreferences() ?: return
-        val addBillRequest = AddBillRequest(diachi, status, ship, pay, info, situation, carts)
+        val addBillRequest = AddBillRequest(otp, diachi, status, ship, pay, info, carts)
         ApiService.apiService.buy(iduser, addBillRequest).enqueue(object : Callback<AddBillResponse> {
             override fun onResponse(call: Call<AddBillResponse>, response: Response<AddBillResponse>) {
                 if (response.isSuccessful) {

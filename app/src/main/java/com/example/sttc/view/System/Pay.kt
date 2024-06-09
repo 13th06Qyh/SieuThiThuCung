@@ -49,6 +49,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -68,6 +70,7 @@ import com.example.sttc.model.PayData
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.SharedViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun PayBillChoose(
@@ -85,10 +88,16 @@ fun PayBillChoose(
     Log.d("BankData", "BankData: $bankDataState")
     var pay by remember { mutableStateOf("Chưa có thẻ ngân hàng") }
 
+    val card by sharedViewModel.checkInfoFlow.collectAsState(null)
+
     LaunchedEffect(checkedStateFace.value, checkedStateCard.value) {
         if (!checkedStateFace.value && !checkedStateCard.value) {
             checkedStateFace.value = true
         }
+    }
+
+    LaunchedEffect(checkedStateCard.value) {
+        sharedViewModel.setSelectedCheck(Check(card?.check ?: false, checkedStateCard.value, card?.receive ?: false))
     }
 
     bankDataState?.let { bankData ->
@@ -185,7 +194,10 @@ fun PayBillChoose(
                         if(bankDataState == null) {
                             Log.d("Checkbox", "Opening Card screen")
                             openCard()
-                        }else {
+                        }else if (user.otp == "Nope") {
+                            Log.d("Checkbox", "Opening OTP screen")
+                            openOTP()
+                        } else {
                             checkedStateCard.value = it
                             if (it) checkedStateFace.value = false
                         }
@@ -775,13 +787,21 @@ fun Card(
 
 
 @Composable
-fun ShipChoose() {
+fun ShipChoose(
+    sharedViewModel: SharedViewModel
+) {
     val checkedStateReceive = remember { mutableStateOf(false) }
     val checkedStateShip = remember { mutableStateOf(true) }
+    val card by sharedViewModel.checkInfoFlow.collectAsState(null)
+
     LaunchedEffect(checkedStateReceive.value, checkedStateShip.value) {
         if (!checkedStateReceive.value && !checkedStateShip.value) {
             checkedStateShip.value = true
         }
+    }
+
+    LaunchedEffect(checkedStateReceive.value) {
+        sharedViewModel.setSelectedCheck(Check(card?.check ?: false, card?.card ?: false, checkedStateReceive.value))
     }
 
     Column(
@@ -882,12 +902,101 @@ fun ShipChoose() {
 }
 
 @Composable
-fun PinDigitField(digit: String, onDigitChange: (String) -> Unit) {
+fun PinEntryField(
+    pinCode: String,
+    onPinCodeChange: (String) -> Unit,
+    resetPinCode: Boolean,
+    onResetPinCodeHandled: () -> Unit
+) {
+    val focusRequesters = remember { List(6) { FocusRequester() } }
+
+    // If resetPinCode is true, clear the pinCode
+    LaunchedEffect(resetPinCode) {
+        delay(4000)
+        if (resetPinCode) {
+            onPinCodeChange("")
+            focusRequesters[0].requestFocus()
+            onResetPinCodeHandled()
+        }
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            for (i in 0 until 3) {
+                PinDigitField(
+                    digit = if (pinCode.length > i) pinCode[i].toString() else "",
+                    onDigitChange = { newDigit ->
+                        val newPinCode = StringBuilder(pinCode).apply {
+                            if (newDigit.isEmpty() && pinCode.isNotEmpty()) {
+                                deleteCharAt(lastIndex)
+                            } else if (newDigit.isNotEmpty() && pinCode.length < 6) {
+                                if (i < length) {
+                                    setCharAt(i, newDigit[0])
+                                } else {
+                                    append(newDigit[0])
+                                }
+                            }
+                        }.toString()
+                        onPinCodeChange(newPinCode)
+
+                        if (newDigit.isNotEmpty() && i < 5) {
+                            focusRequesters[i + 1].requestFocus()
+                        }
+                    },
+                    focusRequester = focusRequesters[i]
+                )
+            }
+        }
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            for (i in 3 until 6) {
+                PinDigitField(
+                    digit = if (pinCode.length > i) pinCode[i].toString() else "",
+                    onDigitChange = { newDigit ->
+                        val newPinCode = StringBuilder(pinCode).apply {
+                            if (newDigit.isEmpty() && pinCode.isNotEmpty()) {
+                                deleteCharAt(lastIndex)
+                            } else if (newDigit.isNotEmpty() && pinCode.length < 6) {
+                                if (i < length) {
+                                    setCharAt(i, newDigit[0])
+                                } else {
+                                    append(newDigit[0])
+                                }
+                            }
+                        }.toString()
+                        onPinCodeChange(newPinCode)
+
+                        if (newDigit.isNotEmpty() && i < 5) {
+                            focusRequesters[i + 1].requestFocus()
+                        }
+                    },
+                    focusRequester = focusRequesters[i]
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PinDigitField(
+    digit: String,
+    onDigitChange: (String) -> Unit,
+    focusRequester: FocusRequester
+) {
     OutlinedTextField(
         value = digit,
         onValueChange = onDigitChange,
         modifier = Modifier
-            .size(39.dp),
+            .size(60.dp)
+            .focusRequester(focusRequester),
         singleLine = true,
         maxLines = 1,
         textStyle = LocalTextStyle.current.copy(fontSize = 24.sp, textAlign = TextAlign.Center),
@@ -897,6 +1006,9 @@ fun PinDigitField(digit: String, onDigitChange: (String) -> Unit) {
         visualTransformation = VisualTransformation.None,
     )
 }
+
+
+
 
 @Preview(showBackground = true)
 @Composable

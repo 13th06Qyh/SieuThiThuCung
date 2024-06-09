@@ -367,6 +367,9 @@ class AccountViewModel(context: Context) : ViewModel() {
             remove("iduser")
             remove("bankdata")
             remove("otheraddress")
+            remove("now")
+            remove("check")
+            remove("keyword")
             apply()
         }
     }

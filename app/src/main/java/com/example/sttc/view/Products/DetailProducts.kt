@@ -64,6 +64,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.sttc.R
 import com.example.sttc.model.ImageSP
+import com.example.sttc.model.Now
+import com.example.sttc.model.PayData
 import com.example.sttc.model.User
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.PinDigitField
@@ -89,7 +91,8 @@ fun DetailProductsScreen(
     cartViewModel: CartViewModel,
     accountViewModel: AccountViewModel,
     context: Context,
-    productId: Int
+    productId: Int,
+    openPayment: (List<PayData>) -> Unit
 ) {
     val scrollState = rememberScrollState()
     val selectedOption = remember { mutableStateOf("") }
@@ -104,7 +107,14 @@ fun DetailProductsScreen(
         SlideImage(Modifier, productViewModel, context, productId)
         NameAndPrice(productViewModel, productId)
         InforProduct(productViewModel, productId)
-        BuyProduct(openCart, cartViewModel, productViewModel, accountViewModel, productId)
+        BuyProduct(
+            openCart,
+            cartViewModel,
+            productViewModel,
+            accountViewModel,
+            productId,
+            openPayment
+        )
         ContentProduct(productViewModel, productId)
         Row(
             modifier = Modifier
@@ -136,13 +146,13 @@ fun DetailProductsScreen(
                 color = Color.Gray
             )
         }
-//        SuggestToday(
-//            openDetailProducts,
-//            productViewModel,
-//            context,
-//            selectedOption.value,
-//            selectedAnimal
-//        )
+        SuggestToday(
+            openDetailProducts,
+            productViewModel,
+            context,
+            selectedOption.value,
+            selectedAnimal
+        )
     }
 
 }
@@ -200,8 +210,9 @@ fun SlideImage(
     LaunchedEffect(key1 = id) {
         delay(1000)
         productViewModel.fetchProductById(id)
+        productViewModel.fetchImages(id)
     }
-//    Log.d("test", "SlideImage: $id")
+    Log.d("test", "SlideImage: $id")
     val product = products.find { it.maSP == id }
     val productImages = if (product != null) {
         imagesMap[product.maSP].orEmpty()
@@ -252,11 +263,11 @@ fun SlideImage(
                     )
                     val a = context.resources.getResourceName(resourceId)
                     val b = a.substringAfter('/')
-//                    Log.d("test", "FileName: $fileName")
-//                    Log.d("test", "FileExtension: $fileExtension")
-//                    Log.d("test", "ResourceId: $resourceId")
-//                    Log.d("test", "ResourceName1: $a")
-//                    Log.d("test", "ResourceName2: $b")
+                    Log.d("test", "FileName: $fileName")
+                    Log.d("test", "FileExtension: $fileExtension")
+                    Log.d("test", "ResourceId: $resourceId")
+                    Log.d("test", "ResourceName1: $a")
+                    Log.d("test", "ResourceName2: $b")
                     if (b == fileName) {
                         Image(
                             painter = painterResource(id = resourceId),
@@ -268,7 +279,15 @@ fun SlideImage(
 
                         )
                     } else {
-                        Text(text = "Image not found")
+                        Image(
+                            painter = painterResource(id = R.drawable.rs1),
+                            contentDescription = "Image",
+//                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.White)
+
+                        )
                     }
                 }
             }
@@ -327,7 +346,15 @@ fun SlideImage(
             }
         }
     } else {
-        Text(text = "No image found")
+        Image(
+            painter = painterResource(id = R.drawable.rs1),
+            contentDescription = "Image",
+//                            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+
+        )
     }
 }
 
@@ -369,7 +396,14 @@ fun ZoomableImageDialog(images: List<ImageSP>, initialPage: Int, onDismiss: () -
                         contentScale = ContentScale.Fit
                     )
                 } else {
-                    Text(text = "Image not found")
+                    Image(
+                        painter = painterResource(id = R.drawable.rs1),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable(onClick = onDismiss),
+                        contentScale = ContentScale.Fit
+                    )
                 }
             }
             IconButton(
@@ -560,16 +594,22 @@ fun BuyProduct(
     cartViewModel: CartViewModel,
     productViewModel: ProductViewModel,
     accountViewModel: AccountViewModel,
-    id: Int
+    id: Int,
+    openPayment: (List<PayData>) -> Unit
 ) {
     val products by productViewModel.products.collectAsState(initial = emptyList())
+    val nows by cartViewModel.now.collectAsState(emptyList())
     val user by accountViewModel.userInfoFlow.collectAsState(null)
     val addCarts by cartViewModel.add.collectAsState(null)
+    val addNow by cartViewModel.addN.collectAsState(null)
     val product = products.find { it.maSP == id }
     var showErrorCart by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var showDialogError by remember { mutableStateOf(false) }
     var okButtonPressed by remember { mutableStateOf(false) }
+    var okButtonPressedN by remember { mutableStateOf(false) }
+    var showNow by remember { mutableStateOf(false) }
+    var showDialogNow by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
@@ -592,7 +632,10 @@ fun BuyProduct(
                         if (product != null) {
                             val idsp = product.maSP
                             val iduser = user.id
-                            Log.d("AddToCartButton", "Adding to cart: Product ID: $idsp, User ID: $iduser")
+                            Log.d(
+                                "AddToCartButton",
+                                "Adding to cart: Product ID: $idsp, User ID: $iduser"
+                            )
                             cartViewModel.addCart(idsp, iduser)
                         } else {
                             Log.d("AddToCartButton", "Product is null")
@@ -682,7 +725,29 @@ fun BuyProduct(
         }
 
         Button(
-            onClick = { openCart() },
+            onClick = {
+                user?.let { user ->
+                    okButtonPressedN = false
+                    Log.d("AddTonowButton", "User: $user")
+                    if (user.id == 0) {
+                        showDialogError = true
+                        errorMessage = "Vui lòng đăng nhập để thêm vào giỏ hàng"
+                        Log.d("AddTonowButton", "User not logged in")
+                    } else {
+                        if (product != null) {
+                            val idsp = product.maSP
+                            val iduser = user.id
+                            Log.d(
+                                "AddTonowButton",
+                                "Adding to now: Product ID: $idsp, User ID: $iduser"
+                            )
+                            cartViewModel.addNow(idsp, iduser)
+                        } else {
+                            Log.d("AddTonowButton", "Product is null")
+                        }
+                    }
+                }
+            },
             shape = RoundedCornerShape(2.dp), // Định dạng góc bo tròn của nút
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFFcc2900), // Màu nền của nút
@@ -702,6 +767,54 @@ fun BuyProduct(
             )
         }
 
+        if (showDialogNow) {
+            AlertDialog(
+                containerColor = Color(0xFFccf5ff),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.size(400.dp, 150.dp),
+                onDismissRequest = { showDialogNow = false },
+                title = {},
+                text = {},
+                confirmButton = {},
+                dismissButton = {
+                    Column {
+                        Text(
+                            "Chuyển sang trang thanh toán?",
+                            style = TextStyle(
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = Color.Red
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                        )
+                        Button(
+                            onClick = {
+                                showDialogNow = false
+                                okButtonPressedN = true
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFccffdd), // Màu nền của nút
+                                contentColor = Color.Black, // Màu chữ của nút
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                            border = BorderStroke(1.dp, Color(0xFF00e64d)),
+                        ) {
+                            Text(
+                                "OK",
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFcc3300)
+                                )
+                            )
+                        }
+                    }
+                }
+            )
+        }
+
         addCarts?.let { result ->
             result.fold(
                 onSuccess = { token ->
@@ -714,6 +827,60 @@ fun BuyProduct(
                     }
                     errorMessage = exception.message ?: "AddCart thất bại"
                     Log.e("AddCart", "AddCart thất bại: ${exception.message}")
+                }
+            )
+
+        }
+
+        addNow?.let { result ->
+            result.fold(
+                onSuccess = { token ->
+                    println("Them vao now thành công")
+                    showNow = true
+                    if (!okButtonPressedN) {
+                        showDialogNow = true
+
+                    } else {
+
+                        val selectedProducts = nows.mapIndexed { index, now ->
+                            PayData(
+                                idc = now.maNow,
+                                id = now.idsp,
+                                image = now.image,
+                                name = now.tensp,
+                                oneprice = now.buyprice.toInt(),
+                                tag = now.tagname,
+                                quantity = 1 // Sử dụng quantity state được xác định
+                            )
+                        }
+                        Log.d("nowPayments", "Selected products: $nows")
+                        Log.d("SelectNowPayments", "Selected products: $selectedProducts")
+                        if (selectedProducts.isNotEmpty()) {
+                            openPayment(selectedProducts)
+                        } else {
+                            showDialogNow = false
+                        }
+
+                    }
+                },
+                onFailure = { exception ->
+                    val selectedProducts = nows.mapIndexed { index, now ->
+                        PayData(
+                            idc = now.maNow,
+                            id = now.idsp,
+                            image = now.image,
+                            name = now.tensp,
+                            oneprice = now.buyprice.toInt(),
+                            tag = now.tagname,
+                            quantity = 1 // Sử dụng quantity state được xác định
+                        )
+                    }
+                    Log.d("SelectNowPayments", "Selected products: $selectedProducts")
+                    if (selectedProducts.isNotEmpty())
+                        openPayment(selectedProducts)
+
+                    errorMessage = exception.message ?: "AddNow thất bại"
+                    Log.e("AddNow", "AddCart thất bại: ${exception.message}")
                 }
             )
 
@@ -777,7 +944,8 @@ fun DetailProductsPreview() {
             CartViewModel(LocalContext.current),
             AccountViewModel(LocalContext.current),
             LocalContext.current,
-            0
+            0,
+            openPayment = {}
         )
     }
 }

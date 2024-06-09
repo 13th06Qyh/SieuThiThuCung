@@ -45,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.viewmodel.ProductViewModel
 import kotlinx.coroutines.delay
@@ -62,7 +63,23 @@ data class BankData(
 )
 
 data class OtherAddress(
-    val address: String
+    val address: String,
+    val error: Boolean,
+    val message: String
+)
+
+data class Check(
+    val check: Boolean,
+    val card: Boolean,
+    val receive: Boolean
+)
+
+data class Keyword(
+    val keyword: String
+)
+
+data class Key(
+    val keyword: String
 )
 
 data class ItemsBaiViet(
@@ -318,7 +335,12 @@ fun SuggestTodayopen(
                                             modifier = Modifier.fillMaxSize()
                                         )
                                     } else {
-                                        Text(text = "Image not found")
+                                        Image(
+                                            painter = painterResource(id = R.drawable.rs1),
+                                            contentDescription = "Image",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
                                     }
                                 }
                             }
@@ -385,11 +407,6 @@ fun SuggestToday(
     val tag by productViewModel.tag.collectAsState(initial = emptyList())
     val tagMap = remember(tag) { tag.associateBy { it.maTag } }
 
-
-    productViewModel.fetchProduct()
-    productViewModel.fetchTag()
-
-
     val filteredProducts = when (selectedOption) {
         "Áo quần" -> products.filter { it.idtype == 1 && it.idanimal == selectedAnimal }
         "Thức ăn" -> products.filter { it.idtype == 2 && it.idanimal == selectedAnimal }
@@ -397,9 +414,10 @@ fun SuggestToday(
         else -> products
     }
 
+    val limitedProducts = filteredProducts.take(10)
     // Kết quả: "10,000"
     // Chia danh sách thành các nhóm có 2 mặt hàng
-    val rows = filteredProducts.chunked(2)
+    val rows = limitedProducts.chunked(2)
 
     Column(
 //        modifier = Modifier.verticalScroll(rememberScrollState())
@@ -474,7 +492,12 @@ fun SuggestToday(
                                             modifier = Modifier.fillMaxSize()
                                         )
                                     } else {
-                                        Text(text = "Image not found")
+                                        Image(
+                                            painter = painterResource(id = R.drawable.rs1),
+                                            contentDescription = "Image",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
                                     }
                                 }
                             }

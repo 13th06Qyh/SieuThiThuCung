@@ -18,13 +18,13 @@ data class BillData(
 )
 
 data class AddBillRequest(
+    val otp: String,
     val diachi: String,
     val status: String,
     val ship: String,
     val pay: String,
     val info: String,
-    val situation: String,
-    val carts: PayData
+    val carts: List<PayData>
 )
 
 data class AddBillResponse(

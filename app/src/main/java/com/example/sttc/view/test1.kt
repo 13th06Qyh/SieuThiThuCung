@@ -42,6 +42,7 @@ import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.PayBillChoose
 import com.example.sttc.view.System.PinDigitField
+import com.example.sttc.view.System.PinEntryField
 import com.example.sttc.viewmodel.AccountViewModel
 
 @Composable
@@ -73,64 +74,26 @@ fun PayBillChooseT(
             )
         },
         text = {
-            Column{
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    for (i in 0 until 6) {
-                        PinDigitField(
-                            digit = if (pinCode.length > i) pinCode[i].toString() else "",
-                            onDigitChange = { newDigit ->
-                                if (newDigit.length <= 1 && newDigit.all { it.isDigit() }) {
-                                    val newPinCode = StringBuilder(pinCode).apply {
-                                        if (newDigit.isEmpty() && pinCode.isNotEmpty()) {
-                                            deleteCharAt(lastIndex)
-                                        } else if (pinCode.length < 6) {
-                                            append(newDigit)
-                                        }
-                                    }.toString()
-                                    pinCode = newPinCode
-
-                                    showErrorOTP = true
-                                    errorMessageOTP = "Mã OTP không đúng"
-                                }
-                            }
-                        )
-                    }
-                }
-
-                if(showErrorOTP)
-                {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 10.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Mã OTP không đúng!",
-                            style = TextStyle(
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Red,
-                                textAlign = TextAlign.Center
-                            )
-                        )
-                    }
-                }
+            Column {
+                // Two rows of PinDigitField
+                PinEntryField(
+                    pinCode = pinCode,
+                    onPinCodeChange = { newPinCode ->
+                        pinCode = newPinCode
+                        showErrorOTP = false
+                        errorMessageOTP = "Mã OTP không đúng"
+                    },
+                    resetPinCode = showErrorOTP,
+                    onResetPinCodeHandled = { showErrorOTP = false }
+                )
             }
-
         },
         confirmButton = {
             Button(
                 onClick = {
                     // Confirm button logic here
                     showDialogSecret = false
-//                    openCart()
-
+                    // openCart()
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFffcc99),
@@ -158,6 +121,7 @@ fun PayBillChooseT(
         }
     )
 }
+
 
 @Preview(showBackground = true)
 @Composable

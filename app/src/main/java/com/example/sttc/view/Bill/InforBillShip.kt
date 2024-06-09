@@ -49,6 +49,8 @@ import com.example.sttc.view.System.ItemAccount
 import com.example.sttc.view.System.Product
 import com.example.sttc.view.System.SuggestTodayopen
 import com.example.sttc.view.System.formatNumber
+import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.CartViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 
 @Composable
@@ -56,9 +58,13 @@ fun InforBillShipScreen(
     back: () -> Unit,
     openDetailProducts: (id:Int) -> Unit,
     productViewModel: ProductViewModel,
-    context: Context
+    context: Context,
+    openCart: () -> Unit,
+    cartViewModel: CartViewModel,
+    accountViewModel: AccountViewModel,
+    id: Int,
 
-) {
+    ) {
     val scrollState = rememberScrollState()
     val selectedOption = remember { mutableStateOf("") }
     val selectedAnimal = 0
@@ -77,7 +83,7 @@ fun InforBillShipScreen(
 //            TopIconInforBill()
             TitleInforBill(back)
             Bill()
-            ContentInforBill()
+            ContentInforBill(openCart, cartViewModel, productViewModel, accountViewModel, id)
             PayBill()
             LocationReceive()
             Row(
@@ -286,7 +292,13 @@ fun Bill() {
 }
 
 @Composable
-fun ContentInforBill() {
+fun ContentInforBill(
+    openCart: () -> Unit,
+    cartViewModel: CartViewModel,
+    productViewModel: ProductViewModel,
+    accountViewModel: AccountViewModel,
+    id: Int,
+) {
     val items = listOf(
         BillProduct(
             Product(
@@ -390,7 +402,11 @@ fun ContentInforBill() {
                 }
             }
 
-            SuccessPay()
+            SuccessPay(openCart,
+                cartViewModel,
+                productViewModel,
+                accountViewModel,
+                id)
         }
 
         HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
@@ -611,7 +627,7 @@ fun LocationReceive() {
 @Composable
 fun InforBillShipScreenPreview() {
     STTCTheme {
-        InforBillShipScreen(back = {}, openDetailProducts = {}, ProductViewModel(), LocalContext.current)
+        InforBillShipScreen(back = {}, openDetailProducts = {}, ProductViewModel(), LocalContext.current, {}, CartViewModel(LocalContext.current), AccountViewModel(LocalContext.current), 1)
 //        MyApp()
 //        SignUpForm(navController = rememberNavController(), authController = AuthController())
     }

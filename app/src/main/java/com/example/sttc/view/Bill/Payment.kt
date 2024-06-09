@@ -60,10 +60,13 @@ import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.BankData
 import com.example.sttc.view.System.PayBillChoose
 import com.example.sttc.view.System.PinDigitField
+import com.example.sttc.view.System.PinEntryField
 import com.example.sttc.view.System.ShipChoose
 import com.example.sttc.view.System.formatNumber
 import com.example.sttc.view.System.getLocation
 import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.BillViewModel
+import com.example.sttc.viewmodel.CartViewModel
 import com.example.sttc.viewmodel.SharedViewModel
 
 @Composable
@@ -75,7 +78,9 @@ fun PaymentScreen(
     accountViewModel: AccountViewModel,
     openAccount: () -> Unit,
     selectedProducts: List<PayData>,
-    sharedViewModel: SharedViewModel
+    sharedViewModel: SharedViewModel,
+    billViewModel: BillViewModel,
+    cartViewModel: CartViewModel
 ) {
     Log.d("PaymentScreen", selectedProducts.toString())
     val scrollState = rememberScrollState()
@@ -102,7 +107,7 @@ fun PaymentScreen(
             ) {
                 item {
                     LocationPayment(accountViewModel, openAccount, sharedViewModel)
-                    ShipChoose()
+                    ShipChoose(sharedViewModel)
                     PayBillChoose(openOTP, openCard, accountViewModel, sharedViewModel)
 
                     Column(
@@ -130,7 +135,8 @@ fun PaymentScreen(
                                     horizontalArrangement = Arrangement.SpaceEvenly
                                 ) {
                                     val productImages = item.image
-                                    val fileName = productImages.substringAfterLast("/").substringBeforeLast(".")
+                                    val fileName = productImages.substringAfterLast("/")
+                                        .substringBeforeLast(".")
                                     val resourceId = context.resources.getIdentifier(
                                         fileName,
                                         "drawable",
@@ -147,7 +153,7 @@ fun PaymentScreen(
                                                 .padding(5.dp, 5.dp)
                                                 .border(0.5.dp, color = Color.Black)
                                         )
-                                    }else{
+                                    } else {
                                         Text(text = "Image not found")
                                     }
 
@@ -204,7 +210,7 @@ fun PaymentScreen(
                 }
             }
             HorizontalDivider(thickness = 1.dp, color = Color(0xFF000000))
-            SuccessPayment(selectedProducts, accountViewModel)
+            SuccessPayment(selectedProducts, accountViewModel, sharedViewModel, billViewModel, back, cartViewModel)
         }
     }
 }
@@ -413,7 +419,11 @@ fun LocationPayment(
 @Composable
 fun SuccessPayment(
     selectedProducts: List<PayData>,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
+    sharedViewModel: SharedViewModel,
+    billViewModel: BillViewModel,
+    back: () -> Unit,
+    cartViewModel: CartViewModel
 ) {
     val total = selectedProducts.sumOf { it.oneprice * it.quantity }
     var showDialogSecret by remember { mutableStateOf(false) }
@@ -421,6 +431,74 @@ fun SuccessPayment(
     val userState by accountViewModel.userInfoFlow.collectAsState(initial = null)
     var showErrorOTP by remember { mutableStateOf(false) }
     var errorMessageOTP by remember { mutableStateOf("") }
+    val isAnySelected = remember { mutableStateOf(false) }
+    val check by sharedViewModel.checkInfoFlow.collectAsState(null)
+    val bankDataState by sharedViewModel.bankDataInfoFlow.collectAsState(null)
+    val otherAddressState by sharedViewModel.otherAddressInfoFlow.collectAsState(null)
+    val buyState by billViewModel.buy.collectAsState(null)
+
+    val diachi = remember { mutableStateOf("") }
+    val status = remember { mutableStateOf("") }
+    val ship = remember { mutableStateOf("") }
+    val pay = remember { mutableStateOf("") }
+    val info = remember { mutableStateOf("") }
+    val otp = remember { mutableStateOf("") }
+
+    LaunchedEffect(check, otherAddressState) {
+        isAnySelected.value = check?.let { checkState ->
+            if (checkState.check) {
+                otherAddressState?.let { otherAddress ->
+                    !otherAddress.error // If otherAddress.error is false, isAnySelected will be true, otherwise false
+                } ?: false // If otherAddressState is null, isAnySelected will be false
+            } else {
+                true // If check.check is false, isAnySelected will be true
+            }
+        } ?: true // If check is null, isAnySelected will be true
+    }
+
+    LaunchedEffect(check, otherAddressState, userState) {
+        check?.let { checkState ->
+            if (checkState.check) {
+                otherAddressState?.let { otherAddress ->
+                    diachi.value = otherAddress.address
+                }
+            } else {
+                userState?.let { user ->
+                    diachi.value = user.diachi
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(check, bankDataState) {
+        check?.let { checkState ->
+            if (checkState.card) {
+                bankDataState?.let { bankData ->
+                    status.value = "Đã thanh toán"
+                    pay.value = "Thanh toán bằng thẻ ngân hàng"
+                    info.value = bankData.bankName + " " + bankData.accountNumber
+                }
+                otp.value = "Yep"
+            } else {
+                status.value = "Chưa thanh toán"
+                pay.value = "Thanh toán khi nhận hàng"
+                info.value = "Chưa có thông tin thanh toán"
+                otp.value = "Nope"
+            }
+        }
+    }
+
+    LaunchedEffect(check, otherAddressState, userState) {
+        check?.let { checkState ->
+            if (checkState.receive) {
+                ship.value = "Nhận trực tiếp"
+            } else {
+                ship.value = "Giao tận nơi"
+            }
+        }
+    }
+
+
 
     Row(
         modifier = Modifier
@@ -451,10 +529,27 @@ fun SuccessPayment(
 
         Button(
             shape = RectangleShape,
-            onClick = { showDialogSecret = true },
+            onClick = {
+                if (otp.value == "Yep") {
+                    showDialogSecret = true
+                } else if (otp.value == "Nope") {
+                    showDialogSecret = false
+                    billViewModel.buy(
+                        otp.value,
+                        diachi.value,
+                        status.value,
+                        ship.value,
+                        pay.value,
+                        info.value,
+                        selectedProducts
+                    )
+                    back()
+                }
+            },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Red,
             ),
+            enabled = isAnySelected.value,
             modifier = Modifier.height(55.dp)
         ) {
             Text(
@@ -486,33 +581,19 @@ fun SuccessPayment(
                     )
                 },
                 text = {
-                    Column{
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            for (i in 0 until 6) {
-                                PinDigitField(
-                                    digit = if (pinCode.length > i) pinCode[i].toString() else "",
-                                    onDigitChange = { newDigit ->
-                                        if (newDigit.length <= 1 && newDigit.all { it.isDigit() }) {
-                                            val newPinCode = StringBuilder(pinCode).apply {
-                                                if (newDigit.isEmpty() && pinCode.isNotEmpty()) {
-                                                    deleteCharAt(lastIndex)
-                                                } else if (pinCode.length < 6) {
-                                                    append(newDigit)
-                                                }
-                                            }.toString()
-                                            pinCode = newPinCode
-                                        }
-                                    }
-                                )
-                            }
-                        }
+                    Column {
+                        PinEntryField(
+                            pinCode = pinCode,
+                            onPinCodeChange = { newPinCode ->
+                                pinCode = newPinCode
+                                showErrorOTP = false
+                                errorMessageOTP = "Mã OTP không đúng"
+                            },
+                            resetPinCode = showErrorOTP,
+                            onResetPinCodeHandled = { showErrorOTP = false }
+                        )
 
-                        if(showErrorOTP)
-                        {
+                        if (showErrorOTP) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -536,16 +617,16 @@ fun SuccessPayment(
                 confirmButton = {
                     Button(
                         onClick = {
-                            userState?.let { user ->
-                                if (pinCode == user.otp) {
-                                    showErrorOTP = false
-                                    showDialogSecret = false
-
-                                } else {
-                                    showErrorOTP = true
-                                    errorMessageOTP = "Mã OTP không đúng"
-                                }
-                            }
+                            billViewModel.buy(
+                                pinCode,
+                                diachi.value,
+                                status.value,
+                                ship.value,
+                                pay.value,
+                                info.value,
+                                selectedProducts
+                            )
+                            back()
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFffcc99),
@@ -573,6 +654,21 @@ fun SuccessPayment(
                 }
             )
         }
+
+        buyState?.let { result ->
+            result.fold(
+                onSuccess = { token ->
+                    println("Mua hang thành công")
+                    showDialogSecret = false
+                    back()
+                },
+                onFailure = { exception ->
+                    showErrorOTP = true
+                    errorMessageOTP = exception.message ?: "OTP không đúng"
+                    Log.e("OTP", "OTP không đúng: ${exception.message}")
+                }
+            )
+        }
     }
 
 }
@@ -594,6 +690,7 @@ fun PaymentPreview() {
             selectedProducts = listOf(
                 PayData(
                     1,
+                    1,
                     "image",
                     "name",
                     10000,
@@ -601,7 +698,9 @@ fun PaymentPreview() {
                     1
                 )
             ),
-            sharedViewModel = SharedViewModel(LocalContext.current)
+            sharedViewModel = SharedViewModel(LocalContext.current),
+            billViewModel = BillViewModel(LocalContext.current),
+            cartViewModel = CartViewModel(LocalContext.current)
         )
     }
 }

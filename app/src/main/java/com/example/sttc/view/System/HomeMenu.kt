@@ -2,6 +2,7 @@ package com.example.sttc.view.System
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,9 +16,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
@@ -31,6 +35,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -48,6 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,6 +86,7 @@ import com.example.sttc.view.Products.ProductScreens
 import com.example.sttc.view.Users.AccountScreen
 import com.example.sttc.view.Users.LoginForm
 import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.BillViewModel
 import com.example.sttc.viewmodel.CartViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 import com.example.sttc.viewmodel.SharedViewModel
@@ -91,7 +98,11 @@ fun HomeMenuScreen(
     openLogin: () -> Unit,
     openLogout: () -> Unit,
     cartViewModel: CartViewModel,
-    sharedViewModel: SharedViewModel
+    sharedViewModel: SharedViewModel,
+    openCart: () -> Unit,
+    openNotification: () -> Unit,
+    openPayment: () -> Unit,
+    openDetailProducts: (id: Int) -> Unit,
 ) { //
     val navController = rememberNavController()
     var selectedProductType by remember { mutableStateOf("") }
@@ -104,49 +115,90 @@ fun HomeMenuScreen(
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             var query by remember { mutableStateOf("") }
             var active by remember { mutableStateOf(false) }
-            val searchHistory = listOf("Thức ăn cho chó", "Thạch rau câu", "Đồ hộp", "Cá", "Chuồng")
+            val searchHistory = listOf("Đời", "KookMin", "Royal Canin", "VMin", "Cameo")
+
+            LaunchedEffect(query, active) {
+                sharedViewModel.setSelectedKeyword(Keyword(query))
+            }
             Icon(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "Logo",
                 modifier = Modifier.size(45.dp),
                 tint = Color(0xFF007acc)
             )
-            SearchBar(
-                modifier = Modifier.size(240.dp, 50.dp),
-                query = query,
-                onQueryChange = { query = it },
-                onSearch = { newQuery ->
-                    println("Performing search on query: $newQuery")
-                },
-                active = active,
-                onActiveChange = { active = it },
-                placeholder = {
-                    Text(
-                        text = "Tìm kiếm",
-                        style = TextStyle(
-                            fontSize = 17.sp
-                        ),
-                        modifier = Modifier.size(240.dp, 100.dp)
-                    )
-                },
-                leadingIcon = {
-                    Icon(imageVector = Icons.Filled.Search, contentDescription = "Search")
-                },
+            Box(
+                modifier = Modifier
+                    .height(70.dp) // Chiều cao của SearchBar
+                    .width(240.dp)
+                    .padding(start = 8.dp), // Khoảng cách từ viền
+                contentAlignment = Alignment.Center // Căn giữa nội dung
             ) {
-                searchHistory.takeLast(3).forEach { item ->
-                    ListItem(
-                        modifier = Modifier.clickable { query = item },
-                        headlineContent = { Text(text = item) },
-                        leadingContent = {
+                SearchBar(
+                    modifier = Modifier.fillMaxSize(),
+                    query = query,
+                    onQueryChange = { query = it },
+                    onSearch = { newQuery ->
+                        query = newQuery
+                        sharedViewModel.setSelectedKeyword(Keyword(query))
+                        navController.navigate("search")
+                    },
+                    active = active,
+                    onActiveChange = { active = it },
+                    placeholder = {
+                        Text(
+                            text = "Tìm kiếm",
+                            style = TextStyle(
+                                fontSize = 19.sp
+                            ),
+                            modifier = Modifier
+                                .size(240.dp, 100.dp)
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = "Search"
+                        )
+                    },
+                    trailingIcon = {
+                        if (query.isNotEmpty()) {
                             Icon(
-                                painter = painterResource(R.drawable.history),
-                                contentDescription = "SearchHistory"
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Clear",
+                                modifier = Modifier.clickable {
+                                    query = ""
+                                }
                             )
                         }
-                    )
+                    }
+                ) {
+                    searchHistory.takeLast(5).forEach { item ->
+                        ListItem(
+                            modifier = Modifier.clickable {
+                                query = item
+                                sharedViewModel.setSelectedKeyword(Keyword(query))
+                            },
+                            headlineContent = {
+                                Text(
+                                    text = item,
+                                    modifier = Modifier.padding(8.dp).height(100.dp),
+                                    style = TextStyle(
+                                        fontSize = 18.sp
+                                    ),
+                                )
+                            },
+                            leadingContent = {
+                                Icon(
+                                    painter = painterResource(R.drawable.history),
+                                    contentDescription = "SearchHistory"
+                                )
+                            }
+                        )
+                    }
                 }
             }
 
@@ -156,7 +208,7 @@ fun HomeMenuScreen(
                         if (user.id == 0) {
                             openLogin()
                         } else {
-                            navController.navigate("cart")
+                            openCart()
                         }
                     }
                 },
@@ -187,7 +239,7 @@ fun HomeMenuScreen(
                     }
                 }
             }
-            IconButton(onClick = { navController.navigate("notification") }) {
+            IconButton(onClick = { openNotification() }) {
                 Icon(
                     Icons.Filled.Notifications,
                     contentDescription = "Notice",
@@ -211,9 +263,16 @@ fun HomeMenuScreen(
                     composable("home") {
                         HomeScreen(
                             openListProducts = { navController.navigate("listProducts") },
-                            openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
+                            openDetailProducts = { openDetailProducts(it) },
                             openDetailBlogs = { navController.navigate("DetailBlogs") },
                             productViewModel = ProductViewModel(),
+                            context = LocalContext.current
+                        )
+                    }
+                    composable("search") {
+                        SearchScreen(
+                            openDetailProducts = {},
+                            sharedViewModel = SharedViewModel(LocalContext.current),
                             context = LocalContext.current
                         )
                     }
@@ -252,27 +311,31 @@ fun HomeMenuScreen(
                     // ------------sanPham---------------
                     composable("listProducts") {
                         ListProductScreen(
-                            openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
+                            openDetailProducts = { openDetailProducts(it) },
                             productType = selectedProductType,
                             productViewModel = ProductViewModel(),
                             context = LocalContext.current
                         )
                     }
 
-                    composable("detailProducts/{productId}") { backStackEntry ->
-                        val productId =
-                            backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
-                        DetailProductsScreen(
-                            back = { navController.popBackStack() },
-                            openCart = { navController.navigate("cart") },
-                            openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
-                            productViewModel = ProductViewModel(),
-                            cartViewModel = CartViewModel(context),
-                            accountViewModel = AccountViewModel(context),
-                            context = LocalContext.current,
-                            productId = productId
-                        )
-                    }
+//                    composable("detailProducts/{productId}") { backStackEntry ->
+//                        val productId =
+//                            backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
+//                        DetailProductsScreen(
+//                            back = { navController.popBackStack() },
+//                            openCart = { openCart() },
+//                            openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
+//                            productViewModel = ProductViewModel(),
+//                            cartViewModel = CartViewModel(context),
+//                            accountViewModel = AccountViewModel(context),
+//                            context = LocalContext.current,
+//                            productId = productId,
+//                            openPayment = { selectedProducts ->
+//                                sharedViewModel.setSelectedProducts(selectedProducts)
+//                                openPayment()
+//                            }
+//                        )
+//                    }
 
                     //---------------blogs------------
                     composable("listBlogs") {
@@ -299,12 +362,18 @@ fun HomeMenuScreen(
                             context = LocalContext.current
                         )
                     }
-                    composable("detailBillShip") {
+                    composable("detailBillShip") { backStackEntry ->
+                        val productId =
+                            backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
                         InforBillShipScreen(
                             back = { navController.popBackStack() },
-                            openDetailProducts = { navController.navigate("detailProducts") },
+                            openDetailProducts = { openDetailProducts(it) },
                             productViewModel = ProductViewModel(),//cai nay la moi hien suggesttoday thoi, sau nay them cai billviewmodel nua de hien thi contentbill
-                            context = LocalContext.current
+                            context = LocalContext.current,
+                            openCart = { openCart() },
+                            cartViewModel = CartViewModel(context),
+                            accountViewModel = AccountViewModel(context),
+                            id = productId,
                         )
                     }
                     composable("billHistory") {
@@ -314,65 +383,75 @@ fun HomeMenuScreen(
                             context = LocalContext.current
                         )
                     }
-                    composable("detailBillHistory") {
+                    composable("detailBillHistory") { backStackEntry ->
+                        val productId =
+                            backStackEntry.arguments?.getString("productId")?.toIntOrNull() ?: 0
                         InforBillHistoryShipScreen(
                             back = { navController.popBackStack() },
-                            openDetailProducts = { navController.navigate("detailProducts") },
+                            openDetailProducts = { openDetailProducts(it) },
                             productViewModel = ProductViewModel(),//cai nay la moi hien suggesttoday thoi, sau nay them cai billviewmodel nua de hien thi contentbill
-                            context = LocalContext.current
+                            context = LocalContext.current,
+                            openCart = { openCart() },
+                            cartViewModel = CartViewModel(context),
+                            accountViewModel = AccountViewModel(context),
+                            id = productId,
                         )
                     }
                     composable("billCancel") {
                         BillCancelScreen()
                     }
-                    // ------------cart---------------
-                    composable("cart") {
-                        CartScreen(
-                            back = { navController.popBackStack() },
-                            openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
-                            openPayment = { selectedProducts ->
-                                sharedViewModel.setSelectedProducts(selectedProducts)
-                                navController.navigate("payments")
-                            },
-                            accountViewModel = AccountViewModel(context),
-                            cartViewModel = CartViewModel(context),
-                            context = context
-                        )
-                    }
-                    // ------------payment---------------
-                    composable("payments") {
-                        val selectedProducts by sharedViewModel.selectedProducts.collectAsState(emptyList())
-
-                        PaymentScreen(
-                            back = { navController.popBackStack() },
-                            context = context,
-                            openOTP = { navController.navigate("otp") },
-                            openCard = { navController.navigate("card") },
-                            accountViewModel = AccountViewModel(context),
-                            openAccount = { navController.navigate("account") },
-                            selectedProducts = selectedProducts,
-                            sharedViewModel = SharedViewModel(context)
-                        )
-                    }
-                    // ------------otp---------------
-                    composable("otp") {
-                        Secret(
-                            back = { navController.popBackStack() },
-                            accountViewModel = AccountViewModel(context)
-                        )
-                    }
-                    // ------------card---------------
-                    composable("card") {
-                        Card(
-                            back = { navController.popBackStack() },
-                            openCart = { navController.navigate("cart") },
-                            sharedViewModel = SharedViewModel(context)
-                        )
-                    }
-                    // ------------notification---------------
-                    composable("notification") {
-                        NotificationScreen(back = { navController.popBackStack() })
-                    }
+//                    // ------------cart---------------
+//                    composable("cart") {
+//                        CartScreen(
+//                            back = { navController.popBackStack() },
+//                            openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
+//                            openPayment = { selectedProducts ->
+//                                sharedViewModel.setSelectedProducts(selectedProducts)
+//                                navController.navigate("payments")
+//                            },
+//                            accountViewModel = AccountViewModel(context),
+//                            cartViewModel = CartViewModel(context),
+//                            context = context
+//                        )
+//                    }
+//                    // ------------payment---------------
+//                    composable("payments") {
+//                        val selectedProducts by sharedViewModel.selectedProducts.collectAsState(
+//                            emptyList()
+//                        )
+//
+//                        PaymentScreen(
+//                            back = { navController.popBackStack() },
+//                            context = context,
+//                            openOTP = { navController.navigate("otp") },
+//                            openCard = { navController.navigate("card") },
+//                            accountViewModel = AccountViewModel(context),
+//                            openAccount = { navController.navigate("account") },
+//                            selectedProducts = selectedProducts,
+//                            sharedViewModel = SharedViewModel(context),
+//                            billViewModel = BillViewModel(context),
+//                            cartViewModel = CartViewModel(context)
+//                        )
+//                    }
+//                    // ------------otp---------------
+//                    composable("otp") {
+//                        Secret(
+//                            back = { navController.popBackStack() },
+//                            accountViewModel = AccountViewModel(context)
+//                        )
+//                    }
+//                    // ------------card---------------
+//                    composable("card") {
+//                        Card(
+//                            back = { navController.popBackStack() },
+//                            openCart = { navController.navigate("cart") },
+//                            sharedViewModel = SharedViewModel(context)
+//                        )
+//                    }
+//                    // ------------notification---------------
+//                    composable("notification") {
+//                        NotificationScreen(back = { navController.popBackStack() })
+//                    }
 
                 }
             }
@@ -535,6 +614,10 @@ fun MenuScreenPreview() {
         openLogin = {},
         openLogout = {},
         cartViewModel = CartViewModel(LocalContext.current),
-        sharedViewModel = SharedViewModel(LocalContext.current)
+        sharedViewModel = SharedViewModel(LocalContext.current),
+        openCart = {},
+        openNotification = {},
+        openPayment = {},
+        openDetailProducts = {}
     )
 }
