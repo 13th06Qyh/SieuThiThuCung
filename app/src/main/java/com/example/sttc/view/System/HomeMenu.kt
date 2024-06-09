@@ -1,5 +1,6 @@
 package com.example.sttc.view.System
 
+import CommentsViewModel
 import android.content.Context
 import android.util.Log
 import androidx.compose.animation.animateContentSize
@@ -91,6 +92,7 @@ import com.example.sttc.view.Users.AccountScreen
 import com.example.sttc.view.Users.LoginForm
 import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.BillViewModel
+import com.example.sttc.viewmodel.BlogsViewModel
 import com.example.sttc.viewmodel.CartViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 import com.example.sttc.viewmodel.SharedViewModel
@@ -107,9 +109,12 @@ fun HomeMenuScreen(
     openNotification: () -> Unit,
     openPayment: () -> Unit,
     openDetailProducts: (id: Int) -> Unit,
+    openDetailBlogs: (id: Int) -> Unit,
+    openDetailCmt: (id: Int) -> Unit,
 ) { //
     val navController = rememberNavController()
     var selectedProductType by remember { mutableStateOf("") }
+    var selectBlogType by remember { mutableStateOf("") }
     val count by cartViewModel.count.collectAsState(0)
     val user by accountViewModel.userInfoFlow.collectAsState(null)
     Column(
@@ -258,7 +263,11 @@ fun HomeMenuScreen(
                         )
                     }
                     composable("blogs") {
-                        BlogsScreens(openListBlogs = { navController.navigate("listBlogs") })
+                        BlogsScreens(
+                            openListBlogs = { blogType->
+                                selectBlogType = blogType
+                                navController.navigate("listBlogs") }
+                        )
                     }
                     composable("account") {
                         val context = LocalContext.current
@@ -313,20 +322,30 @@ fun HomeMenuScreen(
                     //---------------blogs------------
                     composable("listBlogs") {
                         ListBlogScreen(
-                            openDetailBlogs = { navController.navigate("DetailBlogs") },
-                            openDetailCmt = { navController.navigate("DetailComments") },
+                            blogsViewModel = BlogsViewModel() ,
+                            blogType = selectBlogType,
+                            openDetailBlogs = { openDetailBlogs(it) },
+                            openDetailCmt = { openDetailCmt(it) },
+                            context = LocalContext.current
                         )
                     }
-                    composable("DetailBlogs") {
-                        DetailBlogsScreen(
-                            back = { navController.popBackStack() },
-                        )
-                    }
-                    composable("DetailComments") {
-                        DetailCommentScreen(
-                            back = { navController.popBackStack() },
-                        )
-                    }
+//                    composable("detailBlog/{id}") {backStackEntry->
+//                        DetailBlogsScreen(
+//                            back = { navController.popBackStack() },
+//                            blogsViewModel = BlogsViewModel() ,
+//                            commentViewModel = CommentsViewModel(),
+//                            context = LocalContext.current ,
+//                            blogId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
+//                        )
+//                    }
+//                    composable("detailComments/{id}") {backStackEntry->
+//                        DetailCommentScreen(
+//                            back = {navController.popBackStack() },
+//                            commentViewModel = CommentsViewModel(),
+//                            accountViewModel = AccountViewModel(context) ,
+//                            blogId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0 ,
+//                        )
+//                    }
                     // ------------bill---------------
                     composable("billShip") {
                         BillShipScreen(
@@ -591,6 +610,8 @@ fun MenuScreenPreview() {
         openCart = {},
         openNotification = {},
         openPayment = {},
-        openDetailProducts = {}
+        openDetailProducts = {},
+        openDetailBlogs = {},
+        openDetailCmt = {}
     )
 }

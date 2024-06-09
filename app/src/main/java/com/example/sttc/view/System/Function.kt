@@ -50,6 +50,7 @@ import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.viewmodel.ProductViewModel
 import kotlinx.coroutines.delay
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 import java.util.Locale
 
 data class Bank(
@@ -138,6 +139,13 @@ data class ItemsNotification(
 fun formatNumber(number: Int): String {
     val format = NumberFormat.getNumberInstance(Locale.GERMAN)
     return format.format(number)
+}
+
+fun formatUpdatedAt(updatedAt: String): String {
+    val inputFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+    val outputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val date = inputFormatter.parse(updatedAt) ?: return ""
+    return outputFormatter.format(date)
 }
 
 @Composable

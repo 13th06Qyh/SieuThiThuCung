@@ -4,9 +4,13 @@ import com.example.sttc.model.AddBillRequest
 import com.example.sttc.model.AddBillResponse
 import com.example.sttc.model.AddRequest
 import com.example.sttc.model.AddResponse
+import com.example.sttc.model.BlogsData
 import com.example.sttc.model.CartData
+import com.example.sttc.model.CommentData
+import com.example.sttc.model.Comments
 import com.example.sttc.model.DeleteResponse
 import com.example.sttc.model.DeleteResponseNow
+import com.example.sttc.model.ImageBlogs
 import com.example.sttc.model.ImageSP
 import com.example.sttc.model.LoginRequest
 import com.example.sttc.model.LoginResponse
@@ -95,4 +99,18 @@ interface ApiInterface {
 
     @POST("admin/sanpham/search")
     fun search(@Body keyWord: Key): Call<SearchData>
+
+    //---------------------------------- blog-----------------------------
+    @GET("admin/blogs")
+    fun getListBlogs(): Call<BlogsData>
+    @GET("admin/blogs/{id}/images")
+    fun getImagesByBlogId(@Path("id") productId: Int): Call<List<ImageBlogs>>
+
+    @GET("admin/blogs/detailBlog/{id}")
+    fun getBlogDetailById(@Path("id") blogId: Int): Call<BlogsData>
+    @GET("admin/blogs/{id}/comments")
+    fun getCommentsByBlogId(@Path("id") blogId: Int): Call<CommentData>
+    @POST("admin/blogs/{id}/comments")
+    fun createCmt(@Path("id") blogId: Int, @Body comment: Comments): Call<Comments>
+
 }

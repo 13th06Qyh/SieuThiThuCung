@@ -1,4 +1,5 @@
 package com.example.sttc.view.Blogs
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,7 +33,7 @@ import com.example.sttc.ui.theme.STTCTheme
 
 @Composable
 fun BlogsScreens(
-    openListBlogs : () -> Unit ,
+    openListBlogs: (String) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -41,7 +42,8 @@ fun BlogsScreens(
 
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .background(
                     Brush.radialGradient(
                         colors = listOf(
@@ -61,17 +63,31 @@ fun BlogsScreens(
             BlogsRowItems(
                 R.drawable.icon_dog, R.drawable.icon_cat,
                 colors = listOf(Color(0xFFffff99), Color(0xFFccffcc)),
-                onItemClick = { openListBlogs()}
+                onItemClick = { imageRes ->
+                    val blogType = when (imageRes) {
+                        R.drawable.icon_dog -> "dog"
+                        R.drawable.icon_cat -> "cat"
+                        else -> ""
+                    }
+                    openListBlogs(blogType)
+                }
             )
             BlogsRowItems(
                 R.drawable.icon_chim,
                 colors = listOf(Color(0xFFffcccc)),
-                onItemClick = {openListBlogs() }
+                onItemClick = { openListBlogs("bird") }
             )
             BlogsRowItems(
                 R.drawable.icon_ca, R.drawable.icon_hamster,
                 colors = listOf(Color(0xFFb3f0ff), Color(0xFFffd699)),
-                onItemClick = {openListBlogs()}
+                onItemClick = { imageRes ->
+                    val blogType = when (imageRes) {
+                        R.drawable.icon_ca -> "fish"
+                        R.drawable.icon_hamster -> "hasmter"
+                        else -> ""
+                    }
+                    openListBlogs(blogType)
+                }
             )
         }
     }
@@ -135,7 +151,8 @@ fun TopIconBlogs() {
 @Composable
 fun BlogsRowItems(vararg images: Int, colors: List<Color> = listOf(), onItemClick: (Int) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(0.dp, 10.dp, 0.dp, 5.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
@@ -150,7 +167,8 @@ fun BlogsRowItems(vararg images: Int, colors: List<Color> = listOf(), onItemClic
 @Composable
 fun BlogsBoxItem(image: Int, color: Color, onItemClick: () -> Unit) {
     Box(
-        modifier = Modifier.size(170.dp)
+        modifier = Modifier
+            .size(170.dp)
             .padding(10.dp)
             .background(color, shape = CircleShape)
             .border(2.dp, color = Color(0xFF000000), shape = CircleShape)

@@ -1,5 +1,7 @@
 package com.example.sttc.view.Blogs
 
+import CommentsViewModel
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,24 +53,37 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
+import com.example.sttc.model.Comments
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.ItemsCmt
+import com.example.sttc.view.System.formatUpdatedAt
+import com.example.sttc.viewmodel.AccountViewModel
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailCommentScreen(back: () -> Unit) {
+fun DetailCommentScreen(
+    back: () -> Unit,
+    commentViewModel: CommentsViewModel,
+    accountViewModel: AccountViewModel,
+    blogId: Int,
+    openLogin: () -> Unit,
+) {
+    commentViewModel.fetchComments(blogId)
+
+    val cmt by commentViewModel.comments.collectAsState()
+    Log.e("ShowCmt", "Comments: $cmt")
+
     //dialog
     var openDialogDelete by remember { mutableStateOf(false) }
     var openDialogBuild by remember { mutableStateOf(false) }
-
-    val itemsCmt = listOf(
-        ItemsCmt(1, "Nguyen Anh Thu", "Nội dung binh luan 1"),
-        ItemsCmt(2, "Pham Nhu Quynh", "Nội dung binh luan 2"),
-        ItemsCmt(3, "Nguyen Van A", "Nội dung binh luan 3"),
-        ItemsCmt(4, "Pham Nhu Quynh", "Nội dung binh luan 4"),
-        ItemsCmt(5, "Pham Nhu Quynh", "Nội dung binh luan 5"),
-        ItemsCmt(6, "Nguyen Anh Thu", "Nội dung binh luan 5"),
-    )
+    var errorMessage by remember { mutableStateOf("") }
+    var showDialogError by remember { mutableStateOf(false) }
+    var okButtonPressed by remember { mutableStateOf(false) }
     var selectedTaskCmt by remember { mutableStateOf("") }
     var newCmt by remember { mutableStateOf("") }
     Column(
@@ -116,7 +133,7 @@ fun DetailCommentScreen(back: () -> Unit) {
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                items(items = itemsCmt, key = { it.id }) { task ->
+                items(items = cmt, key = { it.id }) { task ->
                     Surface(
                         color = Color.White,
                         shape = RoundedCornerShape(8.dp),
@@ -167,7 +184,7 @@ fun DetailCommentScreen(back: () -> Unit) {
                                         )
                                     }
                                     Text(
-                                        text = task.nameUser,
+                                        text = task.username,
                                         style = TextStyle(fontSize = 18.sp),
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier
@@ -175,29 +192,31 @@ fun DetailCommentScreen(back: () -> Unit) {
                                             .padding(start = 5.dp)
                                     )
 
-                                    Text(text = "1 giờ trước", style = TextStyle(fontSize = 14.sp))
+                                    Text(text = formatUpdatedAt(task.updated_at), style = TextStyle(fontSize = 14.sp))
 
-                                    Row(
-                                        modifier = Modifier,
-                                        horizontalArrangement = Arrangement.End,
-                                    ) {
-                                        IconButton(onClick = { openDialogDelete = true }) {
-                                            Icon(
-                                                Icons.Default.Delete,
-                                                contentDescription = "DeleteCmt",
-                                                tint = Color.Gray,
-                                                modifier = Modifier.padding(end = 5.dp)
-                                            )
-                                        }
-                                        IconButton(onClick = {
-                                            openDialogBuild = true
-                                            selectedTaskCmt = task.cmt
-                                        }) {
-                                            Icon(
-                                                Icons.Default.Create,
-                                                contentDescription = "EditCmt",
-                                                tint = Color.Gray
-                                            )
+                                    if (accountViewModel.getUserIdFromSharedPreferences() == task.iduser) {
+                                        Row(
+                                            modifier = Modifier,
+                                            horizontalArrangement = Arrangement.End,
+                                        ) {
+                                            IconButton(onClick = { openDialogDelete = true }) {
+                                                Icon(
+                                                    Icons.Default.Delete,
+                                                    contentDescription = "DeleteCmt",
+                                                    tint = Color.Gray,
+                                                    modifier = Modifier.padding(end = 5.dp)
+                                                )
+                                            }
+                                            IconButton(onClick = {
+                                                openDialogBuild = true
+                                                selectedTaskCmt = task.noidungbl
+                                            }) {
+                                                Icon(
+                                                    Icons.Default.Create,
+                                                    contentDescription = "EditCmt",
+                                                    tint = Color.Gray
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -209,7 +228,7 @@ fun DetailCommentScreen(back: () -> Unit) {
                                         .padding(horizontal = 8.dp, vertical = 1.dp)
                                 ) {
                                     Text(
-                                        text = task.cmt,
+                                        text = task.noidungbl,
                                         style = TextStyle(fontSize = 18.sp),
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier
@@ -308,7 +327,7 @@ fun DetailCommentScreen(back: () -> Unit) {
                             confirmButton = {
                                 Button(
                                     onClick = {
-                                        itemsCmt[0].cmt = newCmt
+                                        cmt[0].noidungbl = newCmt
                                         openDialogBuild = false
                                     },
                                     colors = ButtonDefaults.buttonColors(
@@ -382,7 +401,30 @@ fun DetailCommentScreen(back: () -> Unit) {
                     ), // Thêm dòng này
                 singleLine = false,
                 trailingIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = {
+                        val commentText = comment.value
+                        val userId = accountViewModel.getUserIdFromSharedPreferences()
+                        Log.e("User ID", userId.toString())
+
+                        userId?.let {
+                            val newComment = Comments(
+                                maBL = 0,
+                                iduser = userId,
+                                idblog = blogId,
+                                noidungbl = commentText,
+                                created_at = "",
+                                updated_at = ""
+                            )
+                            Log.e("newComment", newComment.toString() )
+
+                            commentViewModel.createCmt(newComment, blogId)
+                            comment.value = ""
+                        } ?: run {
+                            errorMessage = "Vui lòng đăng nhập để thêm bình luận"
+                            showDialogError = true
+                            Log.e("User ID", "User ID is null")
+                        }
+                    }) {
                         Icon(
                             painter = painterResource(id = R.drawable.icon_send),
                             contentDescription = "send",
@@ -392,6 +434,75 @@ fun DetailCommentScreen(back: () -> Unit) {
                     }
                 },
             )
+
+            if (showDialogError) {
+                AlertDialog(
+                    containerColor = Color(0xFFccf5ff),
+                    shape = RoundedCornerShape(8.dp),
+                    onDismissRequest = { showDialogError = false },
+                    title = {},
+                    text = {
+                        Text(
+                            errorMessage,
+                            style = TextStyle(
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = Color.Red
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showDialogError = false
+                                okButtonPressed = true
+                                if (errorMessage == "Vui lòng đăng nhập để thêm bình luận") {
+                                    openLogin()
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFccffdd), // Màu nền của nút
+                                contentColor = Color.Black, // Màu chữ của nút
+                            ),
+                            border = BorderStroke(1.dp, Color(0xFF00e64d)),
+                        ) {
+                            Text(
+                                "OK",
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFcc3300)
+                                )
+                            )
+                        }
+
+                    },
+                    dismissButton = {
+                        Button(
+                            onClick = {
+                                showDialogError = false
+                                okButtonPressed = true
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.LightGray, // Màu nền của nút
+                                contentColor = Color.Black, // Màu chữ của nút
+                            ),
+                            border = BorderStroke(1.dp, Color.Black),
+                        ) {
+                            Text(
+                                "Hủy",
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                            )
+                        }
+                    }
+
+                )
+            }
         }
 
     }
@@ -401,7 +512,14 @@ fun DetailCommentScreen(back: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun DetailCommentPreview() {
+    val context = LocalContext.current
     STTCTheme {
-        DetailCommentScreen(back = {})
+        DetailCommentScreen(
+            back = {},
+            commentViewModel = CommentsViewModel(),
+            accountViewModel = AccountViewModel(context),
+            blogId = 0,
+            openLogin = {}
+        )
     }
 }

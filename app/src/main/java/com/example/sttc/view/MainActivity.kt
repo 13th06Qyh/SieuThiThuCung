@@ -1,5 +1,6 @@
 package com.example.sttc.view
 
+import CommentsViewModel
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.sttc.view.Blogs.DetailCommentScreen
 import com.example.sttc.view.Cart.CartScreen
 import com.example.sttc.view.Products.DetailProductsScreen
 import com.example.sttc.view.System.Card
@@ -20,6 +22,7 @@ import com.example.sttc.view.Users.LoginForm
 import com.example.sttc.view.Users.SignUpForm
 import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.BillViewModel
+import com.example.sttc.viewmodel.BlogsViewModel
 import com.example.sttc.viewmodel.CartViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 import com.example.sttc.viewmodel.SharedViewModel
@@ -71,8 +74,9 @@ fun App(
                 openNotification = { navController.navigate("notification") },
                 openPayment = { navController.navigate("payments") },
                 openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
-
-            )
+                openDetailBlogs = { id->navController.navigate("detailBlog/$id") },
+                openDetailCmt = { id-> navController.navigate("detailComments/$id") }
+                )
         }
         composable("detailProducts/{productId}") { backStackEntry ->
             val productId =
@@ -89,7 +93,35 @@ fun App(
                 openPayment = { selectedProducts ->
                     sharedViewModel.setSelectedProducts(selectedProducts)
                     navController.navigate("payments")
-                }
+                },
+                openLogin = {
+                    navController.navigate("login") {
+                        popUpTo("homemenu") { inclusive = true }
+                    }
+                },
+            )
+        }
+        composable("detailBlog/{id}") {backStackEntry->
+            DetailBlogsScreen(
+                back = { navController.popBackStack() },
+                accountViewModel = AccountViewModel(context) ,
+                blogsViewModel = BlogsViewModel() ,
+                commentViewModel = CommentsViewModel(),
+                context = LocalContext.current ,
+                blogId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
+            )
+        }
+        composable("detailComments/{id}") {backStackEntry->
+            DetailCommentScreen(
+                back = {navController.popBackStack() },
+                commentViewModel = CommentsViewModel(),
+                accountViewModel = AccountViewModel(context) ,
+                blogId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0 ,
+                openLogin = {
+                    navController.navigate("login") {
+                        popUpTo("homemenu") { inclusive = true }
+                    }
+                },
             )
         }
         // ------------cart---------------

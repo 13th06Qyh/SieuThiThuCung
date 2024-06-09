@@ -92,7 +92,8 @@ fun DetailProductsScreen(
     accountViewModel: AccountViewModel,
     context: Context,
     productId: Int,
-    openPayment: (List<PayData>) -> Unit
+    openPayment: (List<PayData>) -> Unit,
+    openLogin: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
     val selectedOption = remember { mutableStateOf("") }
@@ -113,7 +114,8 @@ fun DetailProductsScreen(
             productViewModel,
             accountViewModel,
             productId,
-            openPayment
+            openPayment,
+            openLogin
         )
         ContentProduct(productViewModel, productId)
         Row(
@@ -595,7 +597,8 @@ fun BuyProduct(
     productViewModel: ProductViewModel,
     accountViewModel: AccountViewModel,
     id: Int,
-    openPayment: (List<PayData>) -> Unit
+    openPayment: (List<PayData>) -> Unit,
+    openLogin: () -> Unit
 ) {
     val products by productViewModel.products.collectAsState(initial = emptyList())
     val nows by cartViewModel.now.collectAsState(emptyList())
@@ -680,47 +683,70 @@ fun BuyProduct(
             AlertDialog(
                 containerColor = Color(0xFFccf5ff),
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.size(400.dp, 150.dp),
                 onDismissRequest = { showDialogError = false },
                 title = {},
-                text = {},
-                confirmButton = {},
-                dismissButton = {
-                    Column {
+                text = {
+                    Text(
+                        errorMessage,
+                        style = TextStyle(
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color.Red
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showDialogError = false
+                            okButtonPressed = true
+                            if (errorMessage == "Vui lòng đăng nhập để thêm vào giỏ hàng") {
+                                openLogin()
+                            }else{
+                                openCart()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFccffdd), // Màu nền của nút
+                            contentColor = Color.Black, // Màu chữ của nút
+                        ),
+                        border = BorderStroke(1.dp, Color(0xFF00e64d)),
+                    ) {
                         Text(
-                            errorMessage,
+                            "OK",
                             style = TextStyle(
-                                textAlign = TextAlign.Center,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
-                                color = Color.Red
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp)
-                        )
-                        Button(
-                            onClick = {
-                                showDialogError = false
-                                okButtonPressed = true
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFccffdd), // Màu nền của nút
-                                contentColor = Color.Black, // Màu chữ của nút
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                            border = BorderStroke(1.dp, Color(0xFF00e64d)),
-                        ) {
-                            Text(
-                                "OK",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFcc3300)
-                                )
+                                color = Color(0xFFcc3300)
                             )
-                        }
+                        )
+                    }
+
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            showDialogError = false
+                            okButtonPressed = true
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.LightGray, // Màu nền của nút
+                            contentColor = Color.Black, // Màu chữ của nút
+                        ),
+                        border = BorderStroke(1.dp, Color.Black),
+                    ) {
+                        Text(
+                            "Hủy",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        )
                     }
                 }
+
             )
         }
 
@@ -945,7 +971,8 @@ fun DetailProductsPreview() {
             AccountViewModel(LocalContext.current),
             LocalContext.current,
             0,
-            openPayment = {}
+            openPayment = {},
+            openLogin = {}
         )
     }
 }

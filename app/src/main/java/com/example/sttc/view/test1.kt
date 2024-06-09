@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
@@ -51,74 +53,74 @@ fun PayBillChooseT(
     openCard: () -> Unit,
     accountViewModel: AccountViewModel
 ) {
-    var showDialogSecret by remember { mutableStateOf(false) }
+    var showDialogError by remember { mutableStateOf(false) }
     var pinCode by remember { mutableStateOf("") }
     val userState by accountViewModel.userInfoFlow.collectAsState(initial = null)
-    var showErrorOTP by remember { mutableStateOf(false) }
-    var errorMessageOTP by remember { mutableStateOf("") }
+    var okButtonPressed by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     AlertDialog(
-        modifier = Modifier.fillMaxWidth(),
-        onDismissRequest = { showDialogSecret = false },
-        title = {
+        containerColor = Color(0xFFccf5ff),
+        shape = RoundedCornerShape(8.dp),
+        onDismissRequest = { showDialogError = false },
+        title = {},
+        text = {
             Text(
-                text = "Nhập Mã Giao Dịch",
+                errorMessage,
                 style = TextStyle(
-                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
+                    fontSize = 18.sp,
+                    color = Color.Red
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 10.dp)
             )
         },
-        text = {
-            Column {
-                // Two rows of PinDigitField
-                PinEntryField(
-                    pinCode = pinCode,
-                    onPinCodeChange = { newPinCode ->
-                        pinCode = newPinCode
-                        showErrorOTP = false
-                        errorMessageOTP = "Mã OTP không đúng"
-                    },
-                    resetPinCode = showErrorOTP,
-                    onResetPinCodeHandled = { showErrorOTP = false }
-                )
-            }
-        },
         confirmButton = {
-            Button(
-                onClick = {
-                    // Confirm button logic here
-                    showDialogSecret = false
-                    // openCart()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFffcc99),
-                    contentColor = Color.Black
-                ),
-                border = BorderStroke(1.dp, Color.Red)
-            ) {
-                Text("OK", style = TextStyle(fontWeight = FontWeight.Bold))
-            }
+                Button(
+                    onClick = {
+                        showDialogError = false
+                        okButtonPressed = true
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFccffdd), // Màu nền của nút
+                        contentColor = Color.Black, // Màu chữ của nút
+                    ),
+                    border = BorderStroke(1.dp, Color(0xFF00e64d)),
+                ) {
+                    Text(
+                        "OK",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFcc3300)
+                        )
+                    )
+                }
+
         },
         dismissButton = {
-            Button(
-                onClick = {
-                    // Dismiss button logic here
-                    showDialogSecret = false
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFd9d9d9),
-                    contentColor = Color.Black
-                ),
-                border = BorderStroke(1.dp, Color.Black)
-            ) {
-                Text("Hủy", style = TextStyle(fontWeight = FontWeight.Bold))
+                Button(
+                    onClick = {
+                        showDialogError = false
+                        okButtonPressed = true
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.LightGray, // Màu nền của nút
+                        contentColor = Color.Black, // Màu chữ của nút
+                    ),
+                    border = BorderStroke(1.dp, Color.Black),
+                ) {
+                    Text(
+                        "Hủy",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    )
+                }
             }
-        }
+
     )
 }
 
