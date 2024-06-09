@@ -189,16 +189,19 @@ fun ContentBillShip(
     productViewModel: ProductViewModel,
     context: Context,
 ) {
-var items by remember { mutableStateOf(emptyList<billShow>()) }
 
-LaunchedEffect(Unit) {
-    val userId = accountViewModel.userId
-    billViewModel.fetchBillShip(userId)
-    Log.d("BillCancelScreen", "userId: $userId")
-    billViewModel.billShow.collect { value ->
-        items = value
+
+    // chỗ ni đây là ko cho chạy nhiều lần
+    var items by remember { mutableStateOf(emptyList<billShow>()) }
+
+    LaunchedEffect(Unit) {
+        val userId = accountViewModel.userId
+        billViewModel.fetchBillShip(userId)
+        Log.d("BillCancelScreen", "userId: $userId")
+        billViewModel.billShow.collect { value ->
+            items = value
+        }
     }
-}
     val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())
     val productImages = remember { mutableStateOf<List<ImageSP>>(emptyList()) }
 
