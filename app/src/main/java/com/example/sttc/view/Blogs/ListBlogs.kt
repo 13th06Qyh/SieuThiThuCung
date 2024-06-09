@@ -1,5 +1,7 @@
 package com.example.sttc.view.Blogs
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,6 +28,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +40,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -42,33 +50,40 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
-import com.example.sttc.view.System.ItemsBaiViet
+import com.example.sttc.viewmodel.BlogsViewModel
+import kotlinx.coroutines.delay
+import kotlin.math.log
 
 @Composable
 fun ListBlogScreen(
-    openDetailCmt : () -> Unit ,
-    openDetailBlogs : () -> Unit
+    blogsViewModel: BlogsViewModel,
+    blogType: String,
+    openDetailCmt: (id: Int) -> Unit,
+    openDetailBlogs: (id: Int) -> Unit,
+    context: Context
 ) {
-
-    val itemsBV = listOf(
-        ItemsBaiViet(1, "Một số đặc điểm nổi bậc của loài mèo Ba Tư", "Nội dung bài viết 1", R.drawable.bg1),
-        ItemsBaiViet(2, "Bài viết 2", "Nội dung bài viết 2", R.drawable.bg2),
-        ItemsBaiViet(3, "Bài viết 3", "Nội dung bài viết 3", R.drawable.bg3),
-        ItemsBaiViet(4, "Bài viết 4", "Nội dung bài viết 4", R.drawable.bg4),
-        ItemsBaiViet(5, "Bài viết 5", "Nội dung bài viết 5", R.drawable.bg5),
-        ItemsBaiViet(6, "Bài viết 6", "Nội dung bài viết 6", R.drawable.bg6)
-    )
+    val blogs by blogsViewModel.blogs.collectAsState(initial = emptyList())
+    val imagesMap by blogsViewModel.imagesBlogs.collectAsState(initial = emptyMap())
+    val selectedAnimal = when (blogType) {
+        "dog" -> 1
+        "cat" -> 2
+        "bird" -> 3
+        "fish" -> 5
+        "hamster" -> 4
+        else -> 1
+    }
+    val filteredBlogs = blogs.filter { it.idanimal == selectedAnimal }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF000000)),
     ) {
-        items(items = itemsBV, key = { it.id }) { task ->
-            Column (
+        items(items = filteredBlogs) { blog ->
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-            ){
+            ) {
                 Surface(
                     color = Color.White,
                     modifier = Modifier
@@ -78,7 +93,6 @@ fun ListBlogScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-//                            .background(Color(0xFFe6f5ff))
                             .background(
                                 Brush.horizontalGradient(
                                     colors = listOf(
@@ -93,7 +107,6 @@ fun ListBlogScreen(
                             )
                     ) {
                         Avatar()
-//                        HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
                         Column(
                             modifier = Modifier
                                 .padding(0.dp, 5.dp, 0.dp, 0.dp)
@@ -101,39 +114,64 @@ fun ListBlogScreen(
                                 .fillMaxWidth()
                         ) {
                             Text(
-                                text = task.tieude,
+                                text = blog.title,
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 18.sp,
                                     fontStyle = FontStyle.Italic
                                 ),
-                                modifier = Modifier.padding(top = 12.dp, bottom = 4.dp, start = 10.dp, end = 10.dp)
+                                modifier = Modifier.padding(
+                                    top = 12.dp,
+                                    bottom = 4.dp,
+                                    start = 10.dp,
+                                    end = 10.dp
+                                )
                             )
                             Spacer(modifier = Modifier.height(4.dp))
-                            Image(
-                                painter = painterResource(id = task.imageblog),
-                                contentDescription = "blog image",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .padding(start = 5.dp, end = 5.dp)
-                                    .fillMaxWidth()
-                                    .height(200.dp)
-                                    .clip(shape = RoundedCornerShape(4.dp))
-                            )
-                        }
+                            LaunchedEffect(key1 = blog.maBlog) {
+                                if (imagesMap[blog.maBlog].isNullOrEmpty()) {
+                                    blogsViewModel.fetchImages(blog.maBlog)
+                                }
+                            }
 
+                            val blogImages = imagesMap[blog.maBlog].orEmpty()
+//                            Log.e("anh imageMap", "$blogImages")
+                            if (blogImages.isNotEmpty()) {
+                                val image = blogImages.first()
+                                val imageUrl = image.image
+                                val fileName = imageUrl.substringBeforeLast(".")
+                                val resourceId = context.resources.getIdentifier(
+                                    fileName,
+                                    "drawable",
+                                    context.packageName
+                                )
+                                if (resourceId != 0) {
+                                    Image(
+                                        painter = painterResource(id = resourceId),
+                                        contentDescription = "blog image",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .padding(start = 5.dp, end = 5.dp)
+                                            .fillMaxWidth()
+                                            .height(200.dp)
+                                            .clip(shape = RoundedCornerShape(4.dp))
+                                    )
+                                } else {
+                                    Log.e("ListBlogScreen", "Image not found: $imageUrl")
+                                }
+                            }
+                        }
                     }
                 }
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .background(Color.White),
-
             ) {
                 Button(
-                    modifier = Modifier
-                        .weight(1f) ,
+                    modifier = Modifier.weight(1f),
                     shape = RectangleShape,
                     onClick = { /*TODO*/ },
                     colors = ButtonDefaults.buttonColors(
@@ -150,7 +188,14 @@ fun ListBlogScreen(
                 }
                 Button(
                     shape = RectangleShape,
-                    onClick = {openDetailCmt()},
+                    onClick = {
+                        Log.e(
+                            "aeurszagvjkx",
+                            "openDetailCmt: ${blog.maBlog}"
+                        ) // Ghi log khi click
+                        openDetailCmt(blog.maBlog)
+                    },
+
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
                     )
@@ -165,7 +210,7 @@ fun ListBlogScreen(
                 }
                 Button(
                     shape = RectangleShape,
-                    onClick = {openDetailBlogs() },
+                    onClick = { openDetailBlogs(blog.maBlog) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
                     )
@@ -179,25 +224,25 @@ fun ListBlogScreen(
                     Text(text = "Chi Tiết", color = Color.Gray)
                 }
             }
-            HorizontalDivider( thickness = 7.dp, color = Color(0xFF99d6ff))
-
+            HorizontalDivider(thickness = 7.dp, color = Color(0xFF99d6ff))
         }
     }
+
+
 }
+
 
 @Composable
 fun Avatar() {
     Row(
         modifier = Modifier
-            .padding(start = 5.dp, top = 5.dp)
-        ,
+            .padding(start = 5.dp, top = 5.dp),
         verticalAlignment = Alignment.CenterVertically // Center items vertically
     ) {
         Surface(
             modifier = Modifier
                 .size(40.dp)
         ) {
-
             Icon(
                 painter = painterResource(R.drawable.logo),
                 contentDescription = "avatar",
@@ -206,9 +251,9 @@ fun Avatar() {
                 tint = Color(0xFF990000)
             )
         }
-        Column (
+        Column(
             modifier = Modifier.padding(10.dp, 10.dp, 10.dp, 5.dp)
-        ){
+        ) {
             Text(
                 text = "Pet Shop",
                 style = TextStyle(
@@ -234,6 +279,13 @@ fun Avatar() {
 @Composable
 fun BaiVietPreview() {
     STTCTheme {
-        ListBlogScreen(openDetailCmt = {}, openDetailBlogs = {})
+        val selectedBlogType by remember { mutableStateOf("") }
+        ListBlogScreen(
+            blogsViewModel = BlogsViewModel(),
+            blogType = selectedBlogType,
+            openDetailCmt = {},
+            openDetailBlogs = {},
+            context = LocalContext.current
+        )
     }
 }

@@ -1,5 +1,6 @@
 package com.example.sttc.view.System
 
+import CommentsViewModel
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
@@ -51,7 +52,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -78,9 +78,10 @@ import com.example.sttc.view.Products.DetailProductsScreen
 import com.example.sttc.view.Products.ListProductScreen
 import com.example.sttc.view.Products.ProductScreens
 import com.example.sttc.view.Users.AccountScreen
-import com.example.sttc.view.Users.LoginForm
 import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.CartViewModel
+import com.example.sttc.viewmodel.BillViewModel
+import com.example.sttc.viewmodel.BlogsViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 import com.example.sttc.viewmodel.SharedViewModel
 
@@ -97,6 +98,7 @@ fun HomeMenuScreen(
     var selectedProductType by remember { mutableStateOf("") }
     val count by cartViewModel.count.collectAsState(0)
     val user by accountViewModel.userInfoFlow.collectAsState(null)
+    var selectBlogType by remember { mutableStateOf("") }
     Column(
         modifier = Modifier.fillMaxSize(),
     )
@@ -206,7 +208,6 @@ fun HomeMenuScreen(
                 modifier = Modifier
                     .padding(innerPadding),
             ) {
-                val context = LocalContext.current
                 NavHost(navController = navController, startDestination = "home") {
                     composable("home") {
                         HomeScreen(
@@ -226,7 +227,11 @@ fun HomeMenuScreen(
                         )
                     }
                     composable("blogs") {
-                        BlogsScreens(openListBlogs = { navController.navigate("listBlogs") })
+                        BlogsScreens(
+                            openListBlogs = { blogType->
+                                selectBlogType = blogType
+                            navController.navigate("listBlogs") }
+                        )
                     }
                     composable("account") {
                         val context = LocalContext.current
@@ -277,53 +282,82 @@ fun HomeMenuScreen(
                     //---------------blogs------------
                     composable("listBlogs") {
                         ListBlogScreen(
-                            openDetailBlogs = { navController.navigate("DetailBlogs") },
-                            openDetailCmt = { navController.navigate("DetailComments") },
+                            blogsViewModel = BlogsViewModel() ,
+                            blogType = selectBlogType,
+                            openDetailBlogs = { id->navController.navigate("detailBlog/$id") },
+                            openDetailCmt = { id-> navController.navigate("detailComments/$id") },
+                            context = LocalContext.current
                         )
                     }
-                    composable("DetailBlogs") {
+                    composable("detailBlog/{id}") {backStackEntry->
                         DetailBlogsScreen(
                             back = { navController.popBackStack() },
+                            blogsViewModel = BlogsViewModel() ,
+                            commentViewModel = CommentsViewModel(),
+                            context = LocalContext.current ,
+                            blogId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0
                         )
                     }
-                    composable("DetailComments") {
+                    composable("detailComments/{id}") {backStackEntry->
+                        val context = LocalContext.current
                         DetailCommentScreen(
-                            back = { navController.popBackStack() },
+                            back = {navController.popBackStack() },
+                            commentViewModel = CommentsViewModel(),
+                            accountViewModel = AccountViewModel(context) ,
+                            blogId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0 ,
                         )
                     }
                     // ------------bill---------------
                     composable("billShip") {
+                        val context = LocalContext.current
                         BillShipScreen(
-                            openDetailBillShip = { navController.navigate("detailBillShip") },
+                            openDetailBillShip = { id->navController.navigate("detailBillShip/$id") },
                             productViewModel = ProductViewModel(), //sau này thay bằng billviewmodel
-                            context = LocalContext.current
+                            accountViewModel = AccountViewModel(context),
+                            billViewModel = BillViewModel(),
+                            context
                         )
                     }
-                    composable("detailBillShip") {
+                    composable("detailBillShip/{id}") {backStackEntry->
                         InforBillShipScreen(
                             back = { navController.popBackStack() },
-                            openDetailProducts = { navController.navigate("detailProducts") },
+//                            openDetailProducts = { navController.navigate("detailProducts") },
                             productViewModel = ProductViewModel(),//cai nay la moi hien suggesttoday thoi, sau nay them cai billviewmodel nua de hien thi contentbill
-                            context = LocalContext.current
+                            context = LocalContext.current ,
+                            billViewModel = BillViewModel() ,
+                            billId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0 ,
                         )
                     }
                     composable("billHistory") {
+                        val context = LocalContext.current
                         BillHistoryScreen(
-                            openDetailBillHistory = { navController.navigate("detailBillHistory") },
+                            openDetailBillHistory = {id->navController.navigate("detailBillHistory/$id")},
                             productViewModel = ProductViewModel(),
-                            context = LocalContext.current
+                            accountViewModel = AccountViewModel(context),
+                            billViewModel = BillViewModel(),
+                            context
                         )
                     }
-                    composable("detailBillHistory") {
+                    composable("detailBillHistory/{id}") {backStackEntry->
+                        val context = LocalContext.current
                         InforBillHistoryShipScreen(
-                            back = { navController.popBackStack() },
+                            back = {navController.popBackStack() },
                             openDetailProducts = { navController.navigate("detailProducts") },
                             productViewModel = ProductViewModel(),//cai nay la moi hien suggesttoday thoi, sau nay them cai billviewmodel nua de hien thi contentbill
-                            context = LocalContext.current
+                            context = context ,
+                            billViewModel = BillViewModel() ,
+                            billId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: 0 ,
                         )
                     }
                     composable("billCancel") {
-                        BillCancelScreen()
+                        val context = LocalContext.current
+                        BillCancelScreen(
+                            billModelView = BillViewModel(),
+                            accountViewModel = AccountViewModel(context),
+                            productViewModel = ProductViewModel(),
+                            context = context
+
+                            )
                     }
                     // ------------cart---------------
                     composable("cart") {
@@ -343,6 +377,7 @@ fun HomeMenuScreen(
                     composable("payments") {
                         val selectedProducts by sharedViewModel.selectedProducts.collectAsState(emptyList())
 
+                        val context = LocalContext.current
                         PaymentScreen(
                             back = { navController.popBackStack() },
                             context = context,
@@ -356,6 +391,7 @@ fun HomeMenuScreen(
                     }
                     // ------------otp---------------
                     composable("otp") {
+                        val context = LocalContext.current
                         Secret(
                             back = { navController.popBackStack() },
                             accountViewModel = AccountViewModel(context)
@@ -363,6 +399,7 @@ fun HomeMenuScreen(
                     }
                     // ------------card---------------
                     composable("card") {
+                        val context = LocalContext.current
                         Card(
                             back = { navController.popBackStack() },
                             openCart = { navController.navigate("cart") },
@@ -380,6 +417,8 @@ fun HomeMenuScreen(
 
     }
 }
+
+
 
 @Composable
 fun BottomBar(navController: NavHostController) {

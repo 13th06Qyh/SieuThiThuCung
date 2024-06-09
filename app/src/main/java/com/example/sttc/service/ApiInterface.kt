@@ -67,15 +67,15 @@ interface ApiInterface {
     @GET("admin/sanpham/infosp/{id}")
     fun getProductById(@Path("id") productId: Int): Call<ProductData>
 
-    @GET("admin/cart/{iduser}")
-    fun getCart(@Path("iduser") userId: Int):  Call<CartData>
+    @GET("admin/cart")
+    fun getCart():  Call<CartData>
 
     @POST("admin/cart/deletesptocart/{id}")
-    fun deleteSPtoCart(@Path("id") cartId: Int): Call<DeleteResponse>
+    fun deleteSPtoCart(@Path("id") cartId: Int, @Body deleteRequest: DeleteRequest): Call<DeleteResponse>
 
-    @POST("admin/cart/addsptocart/{idsp}/{iduser}")
-    fun addCart(@Header("Authorization") token: String, @Path("idsp") productId: Int, @Path("iduser") userId: Int, @Body addRequest: AddRequest): Call<AddResponse>
+    @GET("admin/cart/addsptocart/{id}")
+    fun addCart(@Path("id") cartId: Int, @Body addRequest: AddRequest): Call<AddResponse>
 
-    @POST("admin/bill/buy/{iduser}")
-    fun buy(@Path("iduser") userId: Int, @Body addBillRequest: AddBillRequest): Call<AddBillResponse>
+    @POST("admin/bill/buy")
+    fun buy(@Body addBillRequest: AddBillRequest): Call<AddBillResponse>
 }

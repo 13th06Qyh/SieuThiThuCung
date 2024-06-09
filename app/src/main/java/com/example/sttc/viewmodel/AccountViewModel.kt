@@ -281,21 +281,14 @@ class AccountViewModel(context: Context) : ViewModel() {
         })
     }
 
-    fun getUserIdFromSharedPreferences(): Int? {
-        val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        val idUser = sharedPreferences.getInt("iduser", -1)
-        return if (idUser == -1) null else idUser
-    }
-
-    fun createOTP(otp: String) {
+    fun createOTP(otp: String, id: Int) {
         val token = getTokenFromSharedPreferences()
         if (token == null) {
             _create.value = Result.failure(Exception("No token found"))
             return
         }
-        val iduser = getUserIdFromSharedPreferences() ?: return
-        val updateOTPRequest = UpdateOTPRequest(otp)
-        apiService.createOTP("Bearer $token", iduser, updateOTPRequest).enqueue(object : Callback<UpdateOTPResponse> {
+        val updateOTPRequest = UpdateOTPRequest(otp, id)
+        apiService.createOTP("Bearer $token", id, updateOTPRequest).enqueue(object : Callback<UpdateOTPResponse> {
             override fun onResponse(call: Call<UpdateOTPResponse>, response: Response<UpdateOTPResponse>) {
                 if (response.isSuccessful) {
                     response.body()?.let { updatedResponse ->
@@ -348,7 +341,6 @@ class AccountViewModel(context: Context) : ViewModel() {
         with(sharedPreferences.edit()) {
             putString("token", token)
             putString("user", Gson().toJson(user)) // Convert user object to JSON string
-            putInt("iduser", user.id) // Lưu iduser vào SharedPreferences
             apply()
         }
     }
@@ -364,9 +356,6 @@ class AccountViewModel(context: Context) : ViewModel() {
         with(sharedPreferences.edit()) {
             remove("token")
             remove("user")
-            remove("iduser")
-            remove("bankdata")
-            remove("otheraddress")
             apply()
         }
     }

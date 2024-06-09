@@ -51,10 +51,16 @@ android {
 
 dependencies {
     //thu them
+    // Hilt
+    implementation ("androidx.hilt:hilt-navigation-compose:1.0.0-beta01")
+    implementation ("com.google.dagger:hilt-android:2.38.1")
+implementation("androidx.compose.runtime:runtime-livedata:1.0.0-alpha07")
+
     implementation("com.google.accompanist:accompanist-pager:0.12.0")
     implementation("io.coil-kt:coil:2.0.0-rc02")
     implementation("io.coil-kt:coil-gif:2.0.0-rc02")
     implementation("io.coil-kt:coil-compose:2.0.0-rc02")
+
 
 
     //quynh them

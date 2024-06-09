@@ -82,9 +82,6 @@ fun ListProductScreen(
         stickyHeader {
 
             val options = listOf("Áo quần", "Thức ăn", "Vật dụng")
-            Row {
-
-            }
             SingleChoiceSegmentedButtonRow {
                 options.forEachIndexed { index, label ->
                     SegmentedButton(

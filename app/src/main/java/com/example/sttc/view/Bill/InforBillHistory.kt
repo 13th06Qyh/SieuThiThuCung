@@ -1,6 +1,7 @@
 package com.example.sttc.view
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -20,6 +23,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -38,74 +43,88 @@ import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.SuggestTodayopen
+import com.example.sttc.viewmodel.BillViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 
-
+//InforBillHistoryShipScreen : chi tiết đơn hàng đã mua - trạng thái đã giao
 @Composable
 fun InforBillHistoryShipScreen(
     back: () -> Unit,
     openDetailProducts: (id: Int) -> Unit,
     productViewModel: ProductViewModel,
-    context: Context
+    billViewModel: BillViewModel ,
+    context: Context ,
+    billId : Int
 ) {
-    val scrollState = rememberScrollState()
-    val selectedOption = remember { mutableStateOf("") }
-    val selectedAnimal = 0
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFf2f2f2))
-            .verticalScroll(scrollState)
-
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-//            TopIconInforBill()
-            TitleInforBill(back)
-            BillSuccess()
-            ContentInforBill()
-            PayBill()
-            LocationReceive()
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(0.dp, 10.dp),  // Take up half the space
-                    thickness = 1.2.dp,
-                    color = Color.Gray
-                )
-                Text(
-                    text = "Có thể bạn quan tâm",
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        fontStyle = FontStyle.Italic,
-                        color = Color.Black,
-                    ),
-                    modifier = Modifier.padding(10.dp, 0.dp, 10.dp, 10.dp)
-                )
-                HorizontalDivider(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(0.dp, 10.dp),  // Take up half the space
-                    thickness = 1.2.dp,
-                    color = Color.Gray
-                )
-            }
-            SuggestTodayopen(
-                openDetailProducts,
-                productViewModel,
-                context,
-                selectedOption.value,
-                selectedAnimal
-            )
-        }
-    }
+//    val billDetail by billViewModel.billDetail.collectAsState()
+//    val imagesMap by productViewModel.images.collectAsState(emptyMap())
+//
+//    billViewModel.fetchBillDetail(billId)
+//
+//    val scrollState = rememberScrollState()
+//    val selectedOption = remember { mutableStateOf("") }
+//    val selectedAnimal = 0
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .background(Color(0xFFf2f2f2))
+//            .verticalScroll(scrollState)
+//
+//    ) {
+//        Column(
+//            modifier = Modifier.fillMaxSize(),
+//            verticalArrangement = Arrangement.Center,
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+////            TopIconInforBill()
+//            TitleInforBill(back)
+//            BillSuccess()
+//            LazyColumn {
+//                items(billDetail) { item ->
+//                    ContentInforBill(item, imagesMap, productViewModel, context)
+//                }
+//            }
+////            if (item.isNotEmpty()) {
+////                PayBill(item[0])
+////                LocationReceive(item[0])
+////            }
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                horizontalArrangement = Arrangement.SpaceBetween
+//            ) {
+//                HorizontalDivider(
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .padding(0.dp, 10.dp),  // Take up half the space
+//                    thickness = 1.2.dp,
+//                    color = Color.Gray
+//                )
+//                Text(
+//                    text = "Có thể bạn quan tâm",
+//                    style = TextStyle(
+//                        fontSize = 15.sp,
+//                        fontStyle = FontStyle.Italic,
+//                        color = Color.Black,
+//                    ),
+//                    modifier = Modifier.padding(10.dp, 0.dp, 10.dp, 10.dp)
+//                )
+//                HorizontalDivider(
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .padding(0.dp, 10.dp),  // Take up half the space
+//                    thickness = 1.2.dp,
+//                    color = Color.Gray
+//                )
+//            }
+////            SuggestTodayopen(
+////                openDetailProducts,
+////                productViewModel,
+////                context,
+////                selectedOption.value,
+////                selectedAnimal
+////            )
+//        }
+//    }
 
 }
 
@@ -334,7 +353,9 @@ fun InforBillHistoryScreenPreview() {
             back = {},
             openDetailProducts = {},
             ProductViewModel(),
-            LocalContext.current
+            BillViewModel(),
+            LocalContext.current ,
+            0
         )
 //        MyApp()
 //        SignUpForm(navController = rememberNavController(), authController = AuthController())

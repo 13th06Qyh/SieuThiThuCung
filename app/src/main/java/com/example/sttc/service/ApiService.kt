@@ -21,7 +21,7 @@ object ApiService {
         .writeTimeout(30, TimeUnit.SECONDS)//Set the read timeout
         .build()
 
-    private const val BASE_URL = "http://192.168.2.136:8000/api/"
+    private const val BASE_URL = "http://192.168.1.8:8000/api/"
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)

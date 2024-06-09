@@ -397,6 +397,7 @@ fun SuggestToday(
         else -> products
     }
 
+
     // Kết quả: "10,000"
     // Chia danh sách thành các nhóm có 2 mặt hàng
     val rows = filteredProducts.chunked(2)
