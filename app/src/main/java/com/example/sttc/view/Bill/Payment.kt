@@ -80,7 +80,8 @@ fun PaymentScreen(
     selectedProducts: List<PayData>,
     sharedViewModel: SharedViewModel,
     billViewModel: BillViewModel,
-    cartViewModel: CartViewModel
+    cartViewModel: CartViewModel,
+    openComeBack: () -> Unit
 ) {
     Log.d("PaymentScreen", selectedProducts.toString())
     val scrollState = rememberScrollState()
@@ -210,7 +211,7 @@ fun PaymentScreen(
                 }
             }
             HorizontalDivider(thickness = 1.dp, color = Color(0xFF000000))
-            SuccessPayment(selectedProducts, accountViewModel, sharedViewModel, billViewModel, back, cartViewModel)
+            SuccessPayment(selectedProducts, accountViewModel, sharedViewModel, billViewModel, back, cartViewModel, openComeBack)
         }
     }
 }
@@ -423,7 +424,8 @@ fun SuccessPayment(
     sharedViewModel: SharedViewModel,
     billViewModel: BillViewModel,
     back: () -> Unit,
-    cartViewModel: CartViewModel
+    cartViewModel: CartViewModel,
+    openComeBack: () -> Unit
 ) {
     val total = selectedProducts.sumOf { it.oneprice * it.quantity }
     var showDialogSecret by remember { mutableStateOf(false) }
@@ -543,7 +545,7 @@ fun SuccessPayment(
                         info.value,
                         selectedProducts
                     )
-                    back()
+                    openComeBack()
                 }
             },
             colors = ButtonDefaults.buttonColors(
@@ -626,7 +628,7 @@ fun SuccessPayment(
                                 info.value,
                                 selectedProducts
                             )
-                            back()
+                            openComeBack()
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFffcc99),
@@ -660,7 +662,7 @@ fun SuccessPayment(
                 onSuccess = { token ->
                     println("Mua hang thành công")
                     showDialogSecret = false
-                    back()
+                    openComeBack()
                 },
                 onFailure = { exception ->
                     showErrorOTP = true
@@ -700,7 +702,8 @@ fun PaymentPreview() {
             ),
             sharedViewModel = SharedViewModel(LocalContext.current),
             billViewModel = BillViewModel(LocalContext.current),
-            cartViewModel = CartViewModel(LocalContext.current)
+            cartViewModel = CartViewModel(LocalContext.current),
+            openComeBack = { }
         )
     }
 }

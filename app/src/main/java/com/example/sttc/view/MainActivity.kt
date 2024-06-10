@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.sttc.view.Bill.ComeBackScreen
 import com.example.sttc.view.Blogs.DetailCommentScreen
 import com.example.sttc.view.Cart.CartScreen
 import com.example.sttc.view.Products.DetailProductsScreen
@@ -79,8 +80,8 @@ fun App(
                 openDetailProducts = { id -> navController.navigate("detailProducts/$id") },
                 openDetailBlogs = { id -> navController.navigate("detailBlog/$id") },
                 openDetailCmt = { id -> navController.navigate("detailComments/$id") },
-                openDetailBillHistory = { navController.navigate("detailBillHistory/$id") },
-                openDetailBillShip = { navController.navigate("detailBillShip/$id") }
+                openDetailBillHistory = { navController.navigate("detailBillHistory/$it") },
+                openDetailBillShip = { navController.navigate("detailBillShip/$it") }
             )
         }
         composable("detailProducts/{productId}") { backStackEntry ->
@@ -191,7 +192,13 @@ fun App(
                 selectedProducts = selectedProducts,
                 sharedViewModel = SharedViewModel(context),
                 billViewModel = BillViewModel(context),
-                cartViewModel = CartViewModel(context)
+                cartViewModel = CartViewModel(context),
+                openComeBack = { navController.navigate("comeback") }
+            )
+        }
+        composable("comeback") {
+            ComeBackScreen(
+                openHomeMenu = { navController.navigate("homemenu") }
             )
         }
         // ------------otp---------------

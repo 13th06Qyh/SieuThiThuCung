@@ -61,14 +61,15 @@ import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.SuggestToday
 import com.example.sttc.view.System.formatNumber
+import com.example.sttc.viewmodel.BlogsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
-    openListProducts : () -> Unit,
-    openDetailBlogs : () -> Unit,
-    openDetailProducts : (id:Int) -> Unit,
+    openListProducts: () -> Unit,
+    openDetailBlogs: () -> Unit,
+    openDetailProducts: (id: Int) -> Unit,
     productViewModel: ProductViewModel,
     context: Context
 ) {
@@ -81,16 +82,17 @@ fun HomeScreen(
             .verticalScroll(scrollState)
 
     ) {
-        Column (
+        Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
             HeroSection()
             Animal(openListProducts)
 
-            Row (
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -115,7 +117,8 @@ fun HomeScreen(
 
                 Text(
                     text = "Xem thêm",
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(0.dp, 30.dp, 0.dp, 0.dp)
                         .clickable { /*TODO*/ },
                     style = TextStyle(
@@ -126,10 +129,11 @@ fun HomeScreen(
                     ),
                 )
             }
-            RecentBlogsSection(openDetailBlogs)
+            RecentBlogsSection(openDetailBlogs, BlogsViewModel(), context)
 
-            Row (
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(8.dp, 0.dp, 8.dp, 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -154,9 +158,10 @@ fun HomeScreen(
 
                 Text(
                     text = "Xem thêm",
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(0.dp, 30.dp, 0.dp, 0.dp)
-                        .clickable { /*TODO*/ },
+                        .clickable { openListProducts() },
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontStyle = FontStyle.Italic,
@@ -167,8 +172,9 @@ fun HomeScreen(
             }
             RecentSalesSection(openDetailProducts, productViewModel, context)
 
-            Row (
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(8.dp, 0.dp, 8.dp, 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -193,9 +199,10 @@ fun HomeScreen(
 
                 Text(
                     text = "Xem thêm",
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(0.dp, 30.dp, 0.dp, 0.dp)
-                        .clickable { /*TODO*/ },
+                        .clickable { openListProducts() },
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontStyle = FontStyle.Italic,
@@ -205,10 +212,17 @@ fun HomeScreen(
                 )
             }
 
-            SuggestToday(openDetailProducts, productViewModel, context, selectedOption.value, selectedAnimal)
+            SuggestToday(
+                openDetailProducts,
+                productViewModel,
+                context,
+                selectedOption.value,
+                selectedAnimal
+            )
         }
     }
 }
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HeroSection() {
@@ -237,7 +251,8 @@ fun HeroSection() {
         }
     }
 
-    HorizontalPager(state = pagerState,
+    HorizontalPager(
+        state = pagerState,
         modifier = Modifier
             .height(235.dp)
             .border(1.dp, color = Color(0xFF000000))
@@ -270,18 +285,19 @@ fun Animal(openListProducts: () -> Unit) {
                     radius = 500f
                 )
             )
-    ){
-        Column (
+    ) {
+        Column(
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
             //hàng animal thứ nhất
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp, 10.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
-            ){
-                IconButton(onClick = { openListProducts() },
+            ) {
+                IconButton(
+                    onClick = { openListProducts() },
                     modifier = Modifier
                         .size(70.dp)
                         .border(1.dp, color = Color(0xFFE96B56), shape = CircleShape)
@@ -290,10 +306,12 @@ fun Animal(openListProducts: () -> Unit) {
                     Image(
                         painter = painterResource(id = R.drawable.dog),
                         contentDescription = "Dog",
-                        modifier = Modifier.size(46.dp))
+                        modifier = Modifier.size(46.dp)
+                    )
                 }
 
-                IconButton(onClick = {openListProducts() },
+                IconButton(
+                    onClick = { openListProducts() },
                     modifier = Modifier
                         .size(70.dp)
                         .border(1.dp, color = Color(0xFF005ce6), shape = CircleShape)
@@ -302,10 +320,12 @@ fun Animal(openListProducts: () -> Unit) {
                     Image(
                         painter = painterResource(id = R.drawable.bird),
                         contentDescription = "Bird",
-                        modifier = Modifier.size(46.dp))
+                        modifier = Modifier.size(46.dp)
+                    )
                 }
 
-                IconButton(onClick = { /*TODO*/ },
+                IconButton(
+                    onClick = { /*TODO*/ },
                     modifier = Modifier
                         .size(70.dp)
                         .border(1.dp, color = Color(0xFFb3b300), shape = CircleShape)
@@ -314,7 +334,8 @@ fun Animal(openListProducts: () -> Unit) {
                     Image(
                         painter = painterResource(id = R.drawable.cat),
                         contentDescription = "Cat",
-                        modifier = Modifier.size(46.dp))
+                        modifier = Modifier.size(46.dp)
+                    )
                 }
             }
 
@@ -322,8 +343,9 @@ fun Animal(openListProducts: () -> Unit) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
-            ){
-                IconButton(onClick = { /*TODO*/ },
+            ) {
+                IconButton(
+                    onClick = { /*TODO*/ },
                     modifier = Modifier
                         .size(70.dp)
                         .border(1.dp, color = Color(0xFF00e600), shape = CircleShape)
@@ -332,10 +354,12 @@ fun Animal(openListProducts: () -> Unit) {
                     Image(
                         painter = painterResource(id = R.drawable.hamster),
                         contentDescription = "Dog",
-                        modifier = Modifier.size(46.dp))
+                        modifier = Modifier.size(46.dp)
+                    )
                 }
 
-                IconButton(onClick = { /*TODO*/ },
+                IconButton(
+                    onClick = { /*TODO*/ },
                     modifier = Modifier
                         .size(70.dp)
                         .border(1.dp, color = Color(0xFFb300b3), shape = CircleShape)
@@ -344,7 +368,8 @@ fun Animal(openListProducts: () -> Unit) {
                     Image(
                         painter = painterResource(id = R.drawable.fish),
                         contentDescription = "Bird",
-                        modifier = Modifier.size(46.dp))
+                        modifier = Modifier.size(46.dp)
+                    )
                 }
             }
         }
@@ -353,7 +378,10 @@ fun Animal(openListProducts: () -> Unit) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun RecentBlogsSection(openDetailBlogs: () -> Unit) {
+fun RecentBlogsSection(
+    openDetailBlogs: () -> Unit, blogViewModel: BlogsViewModel,
+    context: Context
+) {
     val items = listOf(
         R.drawable.cm4,
         R.drawable.cm7,
@@ -362,6 +390,7 @@ fun RecentBlogsSection(openDetailBlogs: () -> Unit) {
         R.drawable.cm11,
         R.drawable.cm13
     )
+    val blogs by blogViewModel.blogs.collectAsState(initial = emptyList())
     val coroutineScope = rememberCoroutineScope()
     val state = rememberLazyListState()
     val currentPage = remember { mutableStateOf(0) }
@@ -382,21 +411,22 @@ fun RecentBlogsSection(openDetailBlogs: () -> Unit) {
     }
 
     LazyRow(state = state) {
-        items(items) { item ->
-            Column (
+        items(blogs.take(6).size) { index ->
+            val blog = blogs[index]
+            Column(
                 horizontalAlignment = Alignment.CenterHorizontally
-            ){
+            ) {
                 Image(
-                    painter = painterResource(id = item),
+                    painter = painterResource(id = items[index]),
                     contentDescription = null,
                     modifier = Modifier
                         .size(137.dp, 73.dp)
                         .padding(6.dp, 0.dp, 6.dp, 0.dp)
                         .border(1.dp, color = Color(0xFF4d4d4d))
-                        .clickable{openDetailBlogs()}
+                        .clickable { openDetailBlogs() }
                 )
                 Text(
-                    text = "Tiêu đề", // Thay đổi thành tiêu đề thực tế của bạn
+                    text = if (blog.title.length > 7) blog.title.take(2) + ".." else blog.title, // Thay đổi thành tiêu đề thực tế của bạn
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontFamily = FontFamily.Monospace,
@@ -419,7 +449,7 @@ fun RecentBlogsSection(openDetailBlogs: () -> Unit) {
 
 @Composable
 fun RecentSalesSection(
-    openDetailProducts: (id:Int) -> Unit,
+    openDetailProducts: (id: Int) -> Unit,
     productViewModel: ProductViewModel,
     context: Context
 ) {
@@ -448,7 +478,7 @@ fun RecentSalesSection(
 
     LazyRow(state = state) {
         items(products.take(6)) { product ->
-            Box (
+            Box(
                 modifier = Modifier
                     .size(170.dp, 200.dp)
                     .padding(0.1.dp)
@@ -465,11 +495,11 @@ fun RecentSalesSection(
                         )
                     ),
                 contentAlignment = Alignment.Center
-            ){
-                Column (
+            ) {
+                Column(
                     modifier = Modifier.clickable { openDetailProducts(product.maSP) },
                     horizontalAlignment = Alignment.CenterHorizontally
-                ){
+                ) {
                     LaunchedEffect(key1 = product.maSP) {
                         delay(10000)
                         productViewModel.fetchImages(product.maSP)
@@ -501,9 +531,16 @@ fun RecentSalesSection(
                                     .padding(8.dp)
                             )
                         } else {
-                            Text(text = "Image not found")
+                            Image(
+                                painter = painterResource(id = R.drawable.rs2),
+                                contentDescription = "Image",
+                                modifier = Modifier
+                                    .width(200.dp)
+                                    .height(155.dp)
+                                    .padding(8.dp)
+                            )
                         }
-                    }else{
+                    } else {
                         Text(text = "Image not found")
                     }
 
@@ -547,15 +584,17 @@ fun RecentSalesSection(
 }
 
 
-
-
-
-
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
     val context = LocalContext.current
     STTCTheme {
-        HomeScreen(openListProducts = {}, openDetailBlogs = {}, openDetailProducts = {}, productViewModel = ProductViewModel(), context)
+        HomeScreen(
+            openListProducts = {},
+            openDetailBlogs = {},
+            openDetailProducts = {},
+            productViewModel = ProductViewModel(),
+            context
+        )
     }
 }

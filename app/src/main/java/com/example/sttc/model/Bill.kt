@@ -14,7 +14,11 @@ data class Bill(
 )
 
 data class BillData(
-    val bills: List<billShow>
+    val bills: List<Bill>,
+    val billCancel : List<billShow> ,
+    val billShip : List<billShow> ,
+    val billHistory : List<billShow> ,
+    val billDetail : List<billDetail>
 )
 
 data class AddBillRequest(
@@ -68,6 +72,7 @@ data class billDetail(
     val tagname : String ,
     val sdt : Int ,
     val proname : String ,
-    val situation : String
+    val situation : String,
+    val image : String
 
 )

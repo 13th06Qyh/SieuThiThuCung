@@ -112,7 +112,7 @@ fun HomeMenuScreen(
     openDetailBlogs: (id: Int) -> Unit,
     openDetailCmt: (id: Int) -> Unit,
     openDetailBillHistory: (billId: Int) -> Unit,
-    openDetailBillShip: (Int) -> Unit,
+    openDetailBillShip: (billId: Int) -> Unit,
 ) { //
     val navController = rememberNavController()
     var selectedProductType by remember { mutableStateOf("") }

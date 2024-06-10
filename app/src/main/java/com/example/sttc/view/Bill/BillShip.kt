@@ -61,7 +61,7 @@ import com.example.sttc.viewmodel.ProductViewModel
 
 @Composable
 fun BillShipScreen(
-    openDetailBillShip: (Int) -> Unit,
+    openDetailBillShip: (billId: Int) -> Unit,
     productViewModel: ProductViewModel,
     accountViewModel: AccountViewModel,
     billViewModel: BillViewModel,
@@ -231,7 +231,11 @@ fun ContentBillShip(
                 Row(
                     modifier = Modifier
 //                        .border(2.dp, color = Color(0xFFff6666))
-                        .clickable { openDetailBillShip(billShow.maBill) },
+                        .clickable {
+                            openDetailBillShip(billShow.maBill)
+                            Log.d("BillShipAiDi", "billShow: $billShow")
+                            Log.d("BillShipAiDi", "billShow.maBill: ${billShow.maBill}")
+                        },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {

@@ -152,9 +152,6 @@ fun ContentBillHistory(
     productViewModel: ProductViewModel,
     context: Context,
 ) {
-    val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())
-    val productImages = remember { mutableStateOf<List<ImageSP>>(emptyList()) }
-
     var items by remember { mutableStateOf(emptyList<billShow>()) }
 
     LaunchedEffect(Unit) {

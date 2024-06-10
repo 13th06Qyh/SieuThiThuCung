@@ -5,10 +5,13 @@ import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,6 +27,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,9 +48,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.sttc.R
+import com.example.sttc.model.billDetail
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.SuggestToday
 import com.example.sttc.view.System.SuggestTodayopen
+import com.example.sttc.view.System.formatCreatedAt
+import com.example.sttc.view.System.formatNumber
 import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.BillViewModel
 import com.example.sttc.viewmodel.CartViewModel
@@ -60,15 +67,29 @@ fun InforBillHistoryShipScreen(
     productViewModel: ProductViewModel,
     context: Context,
     billViewModel: BillViewModel,
-    billId : Int,
+    billId: Int,
     openCart: () -> Unit,
     cartViewModel: CartViewModel,
     accountViewModel: AccountViewModel,
     id: Int,
 ) {
+    var items by remember { mutableStateOf(emptyList<billDetail>()) }
+
+    LaunchedEffect(Unit) {
+
+        billViewModel.fetchBillDetail(billId)
+        billViewModel.billDetail.collect { value ->
+            items = value
+        }
+    }
+
+    Log.e("billId", billId.toString())
+    Log.e("billDetail", items.toString())
     val scrollState = rememberScrollState()
     val selectedOption = remember { mutableStateOf("") }
     val selectedAnimal = 0
+
+    val totalAmount = items.sumBy { it.buyprice * it.soluong }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -83,10 +104,165 @@ fun InforBillHistoryShipScreen(
         ) {
 //            TopIconInforBill()
             TitleInforBill(back)
-            BillSuccess()
-            ContentInforBill(openCart, cartViewModel, productViewModel, accountViewModel, id)
-            PayBill()
-            LocationReceive()
+            if (items.isNotEmpty()) {
+                BillSuccess(item = items[0])
+            }
+            items.forEach { item ->
+                Column(
+                    modifier = Modifier
+                        .padding(0.dp, 10.dp, 0.dp, 0.dp)
+                        .border(1.dp, color = Color(0xFFFFFFFF))
+                        .fillMaxWidth()
+                        .background(Color.White),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Text(
+                            text = item.proname,
+                            style = TextStyle(
+                                fontSize = 15.sp,
+                                fontStyle = FontStyle.Italic,
+                                textAlign = TextAlign.Start,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF000000),
+                            ),
+                            modifier = Modifier
+                                .padding(10.dp, 5.dp)
+                        )
+                    }
+                    HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
+                    Row(
+                        modifier = Modifier
+                            .padding(5.dp, 0.dp)
+                            .clickable { /* Do something! */ },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        val imageUrl = item.image
+                        val fileName =
+                            imageUrl.substringAfterLast("/").substringBeforeLast(".")
+                        val resourceId = context.resources.getIdentifier(
+                            fileName,
+                            "drawable",
+                            context.packageName
+                        )
+                        val a = context.resources.getResourceName(resourceId)
+                        val b = a.substringAfter('/')
+                        if (b == fileName) {
+                            Image(
+                                painter = painterResource(id = resourceId),
+                                contentDescription = "Image",
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .padding(5.dp, 5.dp)
+                                    .border(0.1.dp, color = Color.Black)
+                            )
+                        } else {
+                            Image(
+                                painter = painterResource(id = R.drawable.rs3),
+                                contentDescription = "Image",
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .padding(5.dp, 5.dp)
+                                    .border(0.1.dp, color = Color.Black)
+                            )
+                        }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp)
+                                .padding(5.dp, 10.dp),
+                        ) {
+                            Text(
+                                text = item.tensp,
+                                style = TextStyle(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = item.tagname,
+                                style = TextStyle(
+                                    fontSize = 13.sp,
+                                    fontStyle = FontStyle.Italic,
+                                    color = Color.Black,
+                                )
+                            )
+                            Text(
+                                "x${item.soluong}",
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    color = Color.Black,
+                                    textAlign = TextAlign.End
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                "${formatNumber(item.buyprice)}đ",
+                                style = TextStyle(
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFcc2900),
+                                    textAlign = TextAlign.End
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+
+                    SuccessPay(
+                        openCart,
+                        cartViewModel,
+                        productViewModel,
+                        accountViewModel,
+                        id
+                    )
+
+                    HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Thành tiền",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.End,
+                                color = Color.Black,
+                            ),
+                            modifier = Modifier
+                                .padding(5.dp, 10.dp)
+                        )
+                        Text(
+                            text = "${formatNumber(item.buyprice * item.soluong)}đ",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.End,
+                                color = Color.Black,
+                            ),
+                            modifier = Modifier
+                                .padding(5.dp, 10.dp)
+                        )
+                    }
+
+                    HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
+                }
+            }
+            Money(totalAmount = totalAmount)
+            if (items.isNotEmpty()) {
+                PayBill(item = items[0])
+                LocationReceive(item = items[0])
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -128,7 +304,9 @@ fun InforBillHistoryShipScreen(
 }
 
 @Composable
-fun BillSuccess() {
+fun BillSuccess(
+    item: billDetail
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -196,7 +374,7 @@ fun BillSuccess() {
                 )
             )
             Text(
-                text = "123456",
+                text = item.maBill.toString(),
                 style = TextStyle(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
@@ -220,7 +398,7 @@ fun BillSuccess() {
                     .padding(10.dp, 10.dp)
             )
             Text(
-                text = "11-4-2024 01:23",
+                text = formatCreatedAt(item.created_at),
                 style = TextStyle(
                     fontSize = 18.sp,
                     color = Color.White,
@@ -270,7 +448,7 @@ fun BillSuccess() {
                     .padding(10.dp, 10.dp)
             )
             Text(
-                text = "21-04-2024 11:27",
+                text = formatCreatedAt(item.updated_at),
                 style = TextStyle(
                     fontSize = 18.sp,
                     color = Color.White,
@@ -295,7 +473,7 @@ fun BillSuccess() {
                     .padding(10.dp, 10.dp)
             )
             Text(
-                text = "21-04-2024 11:27",
+                text = formatCreatedAt(item.updated_at),
                 style = TextStyle(
                     fontSize = 18.sp,
                     color = Color.White,
@@ -381,7 +559,7 @@ fun SuccessPay(
             )
         }
 
-        if(errorMessage == "Sản phẩm đã có trong giỏ hàng!"){
+        if (errorMessage == "Sản phẩm đã có trong giỏ hàng!") {
             showDialogError = false
             openCart()
         }
@@ -412,7 +590,7 @@ fun SuccessPay(
                         Button(
                             onClick = {
                                 showDialogError = false
-                                if(errorMessage == "Sản phẩm đã có trong giỏ hàng!"){
+                                if (errorMessage == "Sản phẩm đã có trong giỏ hàng!") {
                                     openCart()
                                 }
                                 okButtonPressed = true
@@ -455,6 +633,189 @@ fun SuccessPay(
         }
     }
 
+}
+
+@Composable
+fun ContentInforBillH(
+    openCart: () -> Unit,
+    cartViewModel: CartViewModel,
+    productViewModel: ProductViewModel,
+    accountViewModel: AccountViewModel,
+    id: Int,
+    billViewModel: BillViewModel,
+    billId: Int,
+    context: Context
+) {
+    var billDetail by remember { mutableStateOf<List<billDetail>>(emptyList()) }
+    LaunchedEffect(Unit) {
+        billViewModel.fetchBillDetail(billId)
+        billViewModel.billDetail.collect {
+            billDetail = it
+        }
+    }
+    Log.e("BillId", billId.toString())
+    Log.e("listBillDetail", billDetail.toString())
+
+    Column(
+        modifier = Modifier
+            .padding(0.dp, 10.dp, 0.dp, 0.dp)
+            .border(1.dp, color = Color(0xFFFFFFFF))
+            .fillMaxWidth()
+            .background(
+                Color.White
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        for (item in billDetail) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    text = item.proname,
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontStyle = FontStyle.Italic,
+                        textAlign = TextAlign.Start,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF000000),
+                    ),
+                    modifier = Modifier
+                        .padding(10.dp, 5.dp)
+                )
+            }
+            HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
+            Column() {
+
+                Row(
+                    modifier = Modifier
+                        .padding(5.dp, 0.dp)
+                        .clickable { /* Do something! */ },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    val imageUrl = item.image
+                    val fileName =
+                        imageUrl.substringAfterLast("/").substringBeforeLast(".")
+                    val resourceId = context.resources.getIdentifier(
+                        fileName,
+                        "drawable",
+                        context.packageName
+                    )
+                    val a = context.resources.getResourceName(resourceId)
+                    val b = a.substringAfter('/')
+                    if (b == fileName) {
+                        Image(
+                            painter = painterResource(id = resourceId),
+                            contentDescription = "Image",
+                            modifier = Modifier
+                                .size(120.dp)
+                                .padding(5.dp, 5.dp)
+                                .border(0.1.dp, color = Color.Black)
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.rs3),
+                            contentDescription = "Image",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .padding(5.dp, 5.dp)
+                                .border(0.1.dp, color = Color.Black)
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                            .padding(5.dp, 10.dp),
+                    ) {
+                        Text(
+                            text = item.tensp,
+                            style = TextStyle(
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(4.dp)) // Thêm khoảng cách ở đây
+                        Text(
+                            text = item.tagname,
+                            style = TextStyle(
+                                fontSize = 13.sp,
+                                fontStyle = FontStyle.Italic,
+                                color = Color.Black,
+                            )
+                        )
+                        Text(
+                            "x" + item.soluong.toString(),
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                color = Color.Black,
+                                textAlign = TextAlign.End
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Text(
+                            formatNumber(item.buyprice) + "đ",
+                            style = TextStyle(
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFcc2900),
+                                textAlign = TextAlign.End
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                }
+
+//                SuccessPay(
+//                    openCart,
+//                    cartViewModel,
+//                    productViewModel,
+//                    accountViewModel,
+//                    id
+//                )
+            }
+
+            HorizontalDivider(thickness = 1.2.dp, color = Color(0xFFcccccc))
+
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+//                        .border(1.dp, color = Color(0xFF006600))
+                ,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Thành tiền",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.End,
+                        color = Color.Black,
+                    ),
+                    modifier = Modifier
+                        .padding(10.dp, 10.dp)
+                )
+                Text(
+                    text = formatNumber(item.buyprice * item.soluong) + "đ",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.End,
+                        color = Color.Black,
+                    ),
+                    modifier = Modifier
+                        .padding(10.dp, 10.dp)
+                )
+
+            }
+        }
+    }
 }
 
 @Preview(showBackground = true)

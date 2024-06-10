@@ -74,7 +74,7 @@ fun DetailCommentScreen(
     openLogin: () -> Unit,
 ) {
     commentViewModel.fetchComments(blogId)
-
+    var selectedMaBL by remember { mutableStateOf<Int?>(null) }
     val cmt by commentViewModel.comments.collectAsState()
     Log.e("ShowCmt", "Comments: $cmt")
 
@@ -140,7 +140,7 @@ fun DetailCommentScreen(
                                 .fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
-                        ){
+                        ) {
                             Text(
                                 "Chưa có bình luận nào",
                                 modifier = Modifier.padding(16.dp),
@@ -148,7 +148,7 @@ fun DetailCommentScreen(
                             )
                         }
                     }
-                }else{
+                } else {
                     items(items = cmt) { task ->
                         Surface(
                             color = Color.White,
@@ -208,14 +208,20 @@ fun DetailCommentScreen(
                                         )
                                         val date = task.updated_at
                                         Log.e("Update_at", "Update_at: $date")
-                                        Text(text = formatUpdatedAt(task.updated_at), style = TextStyle(fontSize = 14.sp)) //line 195
+                                        Text(
+                                            text = formatUpdatedAt(task.updated_at),
+                                            style = TextStyle(fontSize = 14.sp)
+                                        ) //line 195
 
                                         if (accountViewModel.getUserIdFromSharedPreferences() == task.iduser) {
                                             Row(
                                                 modifier = Modifier,
                                                 horizontalArrangement = Arrangement.End,
                                             ) {
-                                                IconButton(onClick = { openDialogDelete = true }) {
+                                                IconButton(onClick = {
+                                                    openDialogDelete = true
+                                                    selectedMaBL = task.maBL
+                                                }) {
                                                     Icon(
                                                         Icons.Default.Delete,
                                                         contentDescription = "DeleteCmt",
@@ -225,7 +231,7 @@ fun DetailCommentScreen(
                                                 }
                                                 IconButton(onClick = {
                                                     openDialogBuild = true
-                                                    selectedTaskCmt = task.noidungbl
+                                                    selectedMaBL = task.maBL
                                                 }) {
                                                     Icon(
                                                         Icons.Default.Create,
@@ -256,7 +262,7 @@ fun DetailCommentScreen(
 
                             }
                         }
-                        if (openDialogDelete) {
+                        if (openDialogDelete && selectedMaBL != null && selectedMaBL == task.maBL) {
                             AlertDialog(
                                 containerColor = Color(0xFFfffff5),
                                 onDismissRequest = { openDialogDelete = false },
@@ -274,6 +280,7 @@ fun DetailCommentScreen(
                                 confirmButton = {
                                     TextButton(
                                         onClick = {
+                                            commentViewModel.deleteCmt( blogId, task.maBL)
                                             openDialogDelete = false
                                         },
                                         colors = ButtonDefaults.buttonColors(
@@ -313,7 +320,7 @@ fun DetailCommentScreen(
                                 }
                             )
                         }
-                        if (openDialogBuild) {
+                        if (openDialogBuild && selectedMaBL != null && selectedMaBL == task.maBL) {
                             AlertDialog(
                                 containerColor = Color(0xFFcce6ff),
                                 onDismissRequest = { openDialogBuild = false },
@@ -343,8 +350,22 @@ fun DetailCommentScreen(
                                 confirmButton = {
                                     Button(
                                         onClick = {
-                                            cmt[0].noidungbl = newCmt
-                                            openDialogBuild = false
+                                            if(newCmt.isNotBlank()) {
+                                                val userId = accountViewModel.getUserIdFromSharedPreferences() ?: 0
+                                                val newComment = Comments(
+                                                    maBL = task.maBL,
+                                                    iduser = userId,
+                                                    idblog = blogId,
+                                                    noidungbl = newCmt,
+                                                    created_at = "",
+                                                    updated_at = ""
+                                                )
+
+                                                Log.e("newComment", newComment.toString())
+                                                commentViewModel.updateCmt(newComment, blogId, task.maBL)
+                                                openDialogBuild = false
+                                                newCmt = ""
+                                            }
                                         },
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = Color(0xFFccffff), // Màu nền của nút
@@ -433,7 +454,7 @@ fun DetailCommentScreen(
                                 created_at = "",
                                 updated_at = ""
                             )
-                            Log.e("newComment", newComment.toString() )
+                            Log.e("newComment", newComment.toString())
 
                             commentViewModel.createCmt(newComment, blogId)
                             comment.value = ""

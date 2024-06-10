@@ -124,4 +124,9 @@ interface ApiInterface {
     fun getBillHistory(@Path("id") userId: Int): Call<BillData>
     @GET ("admin/bill/billDetail/{id}")
     fun getBillDetail(@Path("id") billId: Int): Call<BillData>
+
+    @POST("admin/blogs/comments/{idComment}/delete")
+    fun deleteCmt( @Path("idComment") cmtId: Int): Call<Comments>
+    @POST("admin/blogs/comments/{idComment}/update")
+    fun updateCmt(@Path("idComment") cmtId: Int, @Body comment: Comments): Call<Comments>
 }

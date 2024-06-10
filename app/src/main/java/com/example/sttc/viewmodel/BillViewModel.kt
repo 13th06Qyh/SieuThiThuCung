@@ -32,6 +32,9 @@ class BillViewModel(context: Context) : ViewModel() {
     private val _bill = MutableStateFlow<List<billShow>>(emptyList())
     val bill = _bill.asStateFlow()
 
+    private val _count = MutableLiveData<Int>()
+    val count = _count.asFlow()
+
     private val _billShow = MutableStateFlow<List<billShow>>(emptyList())
     val billShow: StateFlow<List<billShow>> = _billShow.asStateFlow()
 
@@ -120,10 +123,27 @@ class BillViewModel(context: Context) : ViewModel() {
                     override fun onResponse(call: Call<BillData>, response: Response<BillData>) {
                         if (response.isSuccessful) {
                             val billCancelData = response.body()
-                            _bill.value = billCancelData?.bills ?: emptyList()
+                            val billMap = mutableMapOf<Int, billShow>()
+
+                            billCancelData?.billCancel?.forEach { item ->
+                                val maBill = item.maBill
+                                if (billMap.containsKey(maBill)) {
+                                    val existingItem = billMap[maBill]!!
+                                    billMap[maBill] = existingItem.copy(
+                                        soluong = existingItem.soluong + item.soluong,
+                                        buyprice = existingItem.buyprice + item.buyprice
+                                    )
+                                } else {
+                                    billMap[maBill] = item
+                                }
+                            }
+                            val filteredBillCancelData = billMap.values.toList()
+                            Log.e("dsBillcancel", filteredBillCancelData.toString())
+
+                            _bill.value = filteredBillCancelData
                             Log.e("API Response billCancelData", billCancelData.toString())
 
-                            Log.d("billCancelDataViewModel", "Fetched Cart Data: ${billCancelData?.bills}")
+                            Log.d("billCancelDataViewModel", "Fetched billCancelData Data: ${billCancelData?.bills}")
                             lastFetchTime = System.currentTimeMillis()
 
                         }
@@ -153,10 +173,25 @@ class BillViewModel(context: Context) : ViewModel() {
                     override fun onResponse(call: Call<BillData>, response: Response<BillData>) {
                         if (response.isSuccessful) {
                             val billShipData = response.body()
-                            _bill.value = billShipData?.bills ?: emptyList()
+                            val billMap = mutableMapOf<Int, billShow>()
+
+                            billShipData?.billShip?.forEach { item ->
+                                val maBill = item.maBill
+                                if (billMap.containsKey(maBill)) {
+                                    val existingItem = billMap[maBill]!!
+                                    billMap[maBill] = existingItem.copy(
+                                        soluong = existingItem.soluong + item.soluong,
+                                        buyprice = existingItem.buyprice + item.buyprice
+                                    )
+                                } else {
+                                    billMap[maBill] = item
+                                }
+                            }
+                            val filteredBillShipData = billMap.values.toList()
+                            _bill.value = filteredBillShipData
                             Log.e("API Response billShipData", billShipData.toString())
 
-                            Log.d("billShipDataViewModel", "Fetched Cart Data: ${billShipData?.bills}")
+                            Log.d("billShipDataViewModel", "Fetched billShipData Data: ${billShipData?.bills}")
                             lastFetchTime = System.currentTimeMillis()
                         } else {
                             if (response.code() == 429) {
@@ -199,10 +234,27 @@ class BillViewModel(context: Context) : ViewModel() {
                     override fun onResponse(call: Call<BillData>, response: Response<BillData>) {
                         if (response.isSuccessful) {
                             val billHistoryData = response.body()
-                            _bill.value = billHistoryData?.bills ?: emptyList()
+                            val billMap = mutableMapOf<Int, billShow>()
+
+                            billHistoryData?.billHistory?.forEach { item ->
+                                val maBill = item.maBill
+                                if (billMap.containsKey(maBill)) {
+                                    val existingItem = billMap[maBill]!!
+                                    billMap[maBill] = existingItem.copy(
+                                        soluong = existingItem.soluong + item.soluong,
+                                        buyprice = existingItem.buyprice + item.buyprice
+                                    )
+                                } else {
+                                    billMap[maBill] = item
+                                }
+                            }
+                            val filteredBillCancelData = billMap.values.toList()
+                            Log.e("dsBillHistory", filteredBillCancelData.toString())
+
+                            _bill.value = filteredBillCancelData
                             Log.e("API Response BillHistory", billHistoryData.toString())
 
-                            Log.d("BillHistoryDataViewModel", "Fetched Cart Data: ${billHistoryData?.bills}")
+                            Log.d("BillHistoryDataViewModel", "Fetched BillHistory Data: ${billHistoryData?.bills}")
                             lastFetchTime = System.currentTimeMillis()
 
                         } else {
@@ -232,30 +284,47 @@ class BillViewModel(context: Context) : ViewModel() {
             }
         }
     }
-//    fun fetchBillDetail(billId: Int) {
-//        viewModelScope.launch {
-//            try {
-//                val call: Call<BillData> = ApiService.apiService.getBillDetail(billId)
-//                call.enqueue(object : Callback<BillData> {
-//                    override fun onResponse(call: Call<BillData>, response: Response<BillData>) {
-//                        if (response.isSuccessful) {
-//                            val billDetailData = response.body()
-//                            _billDetail.value = billDetailData?.billDetail ?: emptyList()
-//                            Log.e("dsbilldetail", _billDetail.value.toString())
-//                        }
-//                    }
-//
-//                    override fun onFailure(call: Call<BillData>, t: Throwable) {
-//                        Log.e("API Error", "Error: ${t.message}")
-//                        t.printStackTrace()
-//                    }
-//                })
-//            } catch (e: Exception) {
-//                Log.e("API Error", "Error: ${e.message}")
-//                e.printStackTrace()
-//            }
-//        }
-//    }
+    fun fetchBillDetail(billId: Int) {
+        viewModelScope.launch {
+            if (System.currentTimeMillis() - lastFetchTime < 60000) {
+                // Nếu lần tải trước đó chưa quá 60 giây, không tải lại
+                return@launch
+            }
+            try {
+                val call: Call<BillData> = ApiService.apiService.getBillDetail(billId)
+                call.enqueue(object : Callback<BillData> {
+                    override fun onResponse(call: Call<BillData>, response: Response<BillData>) {
+                        if (response.isSuccessful) {
+                            val billDetailData = response.body()
+                            _billDetail.value = billDetailData?.billDetail ?: emptyList()
+                            Log.e("dsbilldetail", _billDetail.value.toString())
+                        } else {
+                            if (response.code() == 429) {
+                                Log.e(
+                                    "API dsbilldetail Error",
+                                    "Error: Too Many Requests (429), retrying in 60 seconds"
+                                )
+                                viewModelScope.launch(Dispatchers.IO) {
+                                    delay(60000) // Wait for 60 seconds before retrying
+                                    fetchBillDetail(billId)
+                                }
+                            } else {
+                                Log.e("API dsbilldetail Error", "Error: ${response.code()}")
+                            }
+                        }
+                    }
+
+                    override fun onFailure(call: Call<BillData>, t: Throwable) {
+                        Log.e("API dsbilldetail Error", "Error: ${t.message}")
+                        t.printStackTrace()
+                    }
+                })
+            } catch (e: Exception) {
+                Log.e("API dsbilldetail Error", "Error: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
 
 
 

@@ -71,5 +71,59 @@ class CommentsViewModel : ViewModel() {
             })
         }
     }
+
+    fun updateCmt (comment: Comments, blogId: Int, cmtId: Int) {
+        if (comment.noidungbl.isBlank()) {
+            _error.value = "Comment content cannot be blank"
+            return
+        }
+        viewModelScope.launch {
+            apiService.updateCmt(cmtId, comment).enqueue(object : Callback<Comments> {
+                override fun onResponse(
+                    call: Call<Comments>,
+                    response: Response<Comments>
+                ) {
+                    if (response.isSuccessful) {
+
+                        fetchComments(blogId)
+                        Log.e("dscmtupdate", response.body().toString())
+
+                    } else {
+                        Log.e("API Error", "Error: ${response.code()}")
+                        _error.value = "Error: ${response.code()}"
+                    }
+                }
+
+                override fun onFailure(call: Call<Comments>, t: Throwable) {
+                    Log.e("API Error", "Error: ${t.message}")
+                    _error.value = "Error: ${t.message}"
+                    t.printStackTrace()
+                }
+            })
+        }
+    }
+    fun deleteCmt( blogId: Int, cmtId: Int) {
+        viewModelScope.launch {
+            apiService.deleteCmt(cmtId).enqueue(object : Callback<Comments> {
+                override fun onResponse(
+                    call: Call<Comments>,
+                    response: Response<Comments>
+                ) {
+                    if (response.isSuccessful) {
+                        fetchComments(blogId)
+                    } else {
+                        Log.e("API Error", "Error: ${response.code()}")
+                        _error.value = "Error: ${response.code()}"
+                    }
+                }
+
+                override fun onFailure(call: Call<Comments>, t: Throwable) {
+                    Log.e("API Error", "Error: ${t.message}")
+                    _error.value = "Error: ${t.message}"
+                    t.printStackTrace()
+                }
+            })
+        }
+    }
 }
 

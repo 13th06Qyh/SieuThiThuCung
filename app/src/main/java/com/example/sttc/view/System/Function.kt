@@ -161,6 +161,24 @@ fun formatUpdatedAt(updatedAt: String): String {
     }
 }
 
+fun formatCreatedAt(updatedAt: String): String {
+    return try {
+        // Chuyển đổi chuỗi định dạng ISO 8601 sang đối tượng Date
+        val isoDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+        val date = isoDateFormat.parse(updatedAt)
+
+        // Định dạng lại ngày thành định dạng mong muốn
+        val outputFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        date?.let {
+            outputFormatter.format(it)
+        } ?: ""
+    } catch (e: Exception) {
+        // Xử lý lỗi nếu có xảy ra
+        ""
+    }
+}
+
+
 fun formatEstimatedDeliveryDate(createdAt: String): String {
     val inputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val outputFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -178,6 +196,26 @@ fun formatEstimatedDeliveryDate(createdAt: String): String {
     // Chuyển đổi Date sang chuỗi với định dạng đầu ra
     return outputFormatter.format(calendar.time)
 }
+
+fun formatEstimatedDeliveryDateO(createdAt: String): String {
+    val inputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val outputFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+    // Chuyển đổi chuỗi ngày đầu vào thành Date
+    val createdDate = inputFormatter.parse(createdAt)
+
+    // Sử dụng Calendar để thêm 7 ngày
+    val calendar = Calendar.getInstance()
+    createdDate?.let {
+        calendar.time = createdDate
+    } ?: ""
+    calendar.add(Calendar.DAY_OF_YEAR, 8)
+
+    // Chuyển đổi Date sang chuỗi với định dạng đầu ra
+    return outputFormatter.format(calendar.time)
+}
+
+
 
 
 
