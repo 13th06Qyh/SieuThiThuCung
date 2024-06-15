@@ -98,7 +98,8 @@ fun NotificationScreen(
                     modifier = Modifier.size(33.dp)
                 )
                 Row(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(start = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -121,7 +122,6 @@ fun NotificationScreen(
                         },
                         modifier = Modifier
                             .height(30.dp)
-                            .border(1.dp, Color.Gray)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.trash3),
@@ -222,116 +222,20 @@ fun NotificationScreen(
                 }
             }
         }else{
-            val items = listOf(
-                ItemsNotification(
-                    id = 1,
-                    content = "Chúc bạn một ngày tốt lành",
-                    time = "15/06/2024"
-                ),
-                ItemsNotification(
-                    id = 2,
-                    content = "Bạn đã thay đổi thông tin cá nhân",
-                    time = "15/06/2024"
-                ),
-                ItemsNotification(
-                    id = 3,
-                    content = "Thêm vào giỏ hàng thành công",
-                    time = "14/06/2024"
-                ),
-                ItemsNotification(
-                    id = 4,
-                    content = "Thêm vào giỏ hàng thành công",
-                    time = "14/06/2024"
-                ),
-                ItemsNotification(
-                    id = 5,
-                    content = "Thêm vào giỏ hàng thành công",
-                    time = "14/06/2024"
-                ),
-            )
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .background(Color(0xFFfff2e6))
-            ) {
-                items(items = items, key = { it.id }) { task ->
-                    Surface(
-                        color = Color.White,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp)
-
-                    ) {
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(5.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                modifier = Modifier
-                                    .size(27.dp)
-                                    .border(
-                                        BorderStroke(1.dp, Color(0xFFff9933)),
-                                        shape = CircleShape
-                                    )
-                                    .clip(shape = CircleShape)
-                            ) {
-
-                                Image(
-                                    Icons.Filled.Notifications,
-                                    contentDescription = "Notifications",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .clip(CircleShape) ,
-                                    colorFilter = ColorFilter.tint(Color(0xFFff9933))
-                                )
-                            }
-                            Column(
-                                modifier = Modifier
-                                    .padding(start = 10.dp)
-                                    .fillMaxWidth()
-                            ) {
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ){
-                                    Text(
-                                        text = task.content,
-                                        color = Color.Black
-                                    )
-                                    Text(
-                                        text = "13:27",
-                                        color = Color.Black,
-                                        style = TextStyle(
-                                            fontSize = 12.sp,
-                                            fontStyle = FontStyle.Italic
-                                        ),
-                                        modifier = Modifier.padding(top = 5.dp, end = 5.dp)
-                                    )
-                                }
-                                Text(
-                                    text = task.time,
-                                    color = Color.Black,
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontStyle = FontStyle.Italic
-                                    )
-                                )
-
-                            }
-                            Spacer(modifier =Modifier.height(50.dp))
-
-                        }
-
-                    }
-                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFff9933))
-
-                }
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
+                Text(
+                    text = "Không có thông báo nào!",
+                    style = TextStyle(
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF994a00)
+                    ),
+                    modifier = Modifier.padding(10.dp)
+                )
             }
         }
     }

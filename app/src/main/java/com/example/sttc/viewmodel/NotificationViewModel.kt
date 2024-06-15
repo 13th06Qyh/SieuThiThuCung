@@ -20,7 +20,9 @@ class NotificationViewModel(context: Context) : ViewModel() {
 
     init {
         readFromSharedPreferences()
-        initializeNotifications() // Initialize with a default notification if empty
+        if (noticeList.isEmpty()){
+            initializeNotifications()
+        }
         count()
     }
 

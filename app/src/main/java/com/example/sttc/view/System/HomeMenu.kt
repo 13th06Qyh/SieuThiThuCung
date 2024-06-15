@@ -253,20 +253,6 @@ fun HomeMenuScreen(
                                 .background(Color.Red, shape = CircleShape)
                                 .padding(0.dp)
                         )
-                    }else{
-                        Text(
-                            text = "1",
-                            color = Color.White,
-                            fontSize = 15.sp,
-                            textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .size(18.dp)
-                                .align(Alignment.TopEnd)
-                                .offset(2.dp, (-2).dp)
-                                .background(Color.Red, shape = CircleShape)
-                                .padding(0.dp)
-                        )
                     }
                 }
 
