@@ -114,12 +114,16 @@ fun HomeMenuScreen(
     openDetailCmt: (id: Int) -> Unit,
     openDetailBillHistory: (billId: Int) -> Unit,
     openDetailBillShip: (billId: Int) -> Unit,
+    notificationViewModel: NotificationViewModel
 ) { //
     val navController = rememberNavController()
     var selectedProductType by remember { mutableStateOf("") }
     var selectBlogType by remember { mutableStateOf("") }
     val count by cartViewModel.count.collectAsState(0)
     val user by accountViewModel.userInfoFlow.collectAsState(null)
+    val notify by notificationViewModel.count.collectAsState(0)
+    val noticesResult by notificationViewModel.notice.collectAsState(emptyList())
+    val filteredNotices = noticesResult.count { it.userid == user?.id }
     Column(
         modifier = Modifier.fillMaxSize(),
     )
@@ -228,12 +232,44 @@ fun HomeMenuScreen(
                     }
                 }
             }) {
-                Icon(
-                    Icons.Filled.Notifications,
-                    contentDescription = "Notice",
-                    modifier = Modifier.size(30.dp),
-                    tint = Color(0xFFffc266)
-                )
+                Box {
+                    Icon(
+                        Icons.Filled.Notifications,
+                        contentDescription = "Notice",
+                        modifier = Modifier.size(30.dp),
+                        tint = Color(0xFFffc266)
+                    )
+                    if (filteredNotices > 0) {
+                        Text(
+                            text = filteredNotices.toString(),
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .align(Alignment.TopEnd)
+                                .offset(2.dp, (-2).dp)
+                                .background(Color.Red, shape = CircleShape)
+                                .padding(0.dp)
+                        )
+                    }else{
+                        Text(
+                            text = "1",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .align(Alignment.TopEnd)
+                                .offset(2.dp, (-2).dp)
+                                .background(Color.Red, shape = CircleShape)
+                                .padding(0.dp)
+                        )
+                    }
+                }
+
             }
         }
 
@@ -641,6 +677,7 @@ fun MenuScreenPreview() {
         openDetailBlogs = {},
         openDetailCmt = {},
         openDetailBillHistory = {},
-        openDetailBillShip = {}
+        openDetailBillShip = {},
+        notificationViewModel = NotificationViewModel(LocalContext.current)
     )
 }

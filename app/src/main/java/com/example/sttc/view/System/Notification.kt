@@ -45,16 +45,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
+import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.BillViewModel
 import com.example.sttc.viewmodel.NotificationViewModel
 
 @Composable
 fun NotificationScreen(
     back: () -> Unit,
-    notificationViewModel: NotificationViewModel
+    notificationViewModel: NotificationViewModel,
+    accountViewModel: AccountViewModel
 ) {
     val noticesResult by notificationViewModel.notice.collectAsState(emptyList())
+    val userState by accountViewModel.userInfoFlow.collectAsState(null)
+    val filteredNotices = noticesResult.filter { it.userid == userState?.id }
+    
     Log.d("NotificationScreen", "noticesResult: $noticesResult")
+    Log.d("NotificationScreen", "Filtered notices: $filteredNotices")
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -91,31 +97,52 @@ fun NotificationScreen(
                     tint = Color(0xFFcc6300),
                     modifier = Modifier.size(33.dp)
                 )
-                Text(
-                    text = "Thông báo",
-                    style = TextStyle(
-                        fontSize = 25.sp,
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(start = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ){
+                    Text(
+                        text = "Thông báo",
+                        style = TextStyle(
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF994a00)
+                        ),
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF994a00)
-                    ),
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 5.dp)
-                )
+                        textAlign = TextAlign.Start
+                    )
+                    IconButton(
+                        onClick = {
+                            userState?.let {
+                                notificationViewModel.deleteNotice(it.id)
+                            }
+                        },
+                        modifier = Modifier
+                            .height(30.dp)
+                            .border(1.dp, Color.Gray)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.trash3),
+                            contentDescription = "Delete",
+                            tint = Color.Red,
+                            modifier = Modifier.size(25.dp)
+                        )
+                    }
+                }
             }
 
         }
 
-        if (noticesResult.isNotEmpty()){
+        if (filteredNotices.isNotEmpty()){
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
                     .background(Color(0xFFfff2e6))
             ) {
-                items(items = noticesResult) { notice ->
+                items(items = filteredNotices) { notice ->
                     Surface(
                         color = Color.White,
                         shape = RoundedCornerShape(8.dp),
@@ -316,7 +343,8 @@ fun NotificationPreview() {
     STTCTheme {
         NotificationScreen(
             back = {},
-            notificationViewModel = NotificationViewModel(LocalContext.current)
+            notificationViewModel = NotificationViewModel(LocalContext.current),
+            accountViewModel = AccountViewModel(LocalContext.current)
         )
     }
 }

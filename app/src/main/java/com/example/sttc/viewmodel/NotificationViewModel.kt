@@ -15,11 +15,13 @@ class NotificationViewModel(context: Context) : ViewModel() {
     private val _notice = MutableStateFlow<List<Notice>>(emptyList())
     val notice = _notice.asStateFlow()
 
+    private val _count = MutableStateFlow<Int>(0)
+    val count = _count.asStateFlow()
+
     init {
-        readFromSharedPreferences() // Read initial data from shared preferences
-        if (noticeList.isEmpty()) {
-            initializeNotifications() // Initialize with a default notification if empty
-        }
+        readFromSharedPreferences()
+        initializeNotifications() // Initialize with a default notification if empty
+        count()
     }
 
     fun updateNotice(message: String) {
@@ -40,6 +42,11 @@ class NotificationViewModel(context: Context) : ViewModel() {
 
         // Cập nhật SharedPreferences
         saveToSharedPreferences()
+    }
+
+    fun count() {
+        val id = getUserIdFromSharedPreferences() ?: return
+        _count.value = noticeList.count { it.userid == id }
     }
 
     private fun saveToSharedPreferences() {

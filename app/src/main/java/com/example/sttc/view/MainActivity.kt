@@ -83,7 +83,8 @@ fun App(
                 openDetailBlogs = { id -> navController.navigate("detailBlog/$id") },
                 openDetailCmt = { id -> navController.navigate("detailComments/$id") },
                 openDetailBillHistory = { navController.navigate("detailBillHistory/$it") },
-                openDetailBillShip = { navController.navigate("detailBillShip/$it") }
+                openDetailBillShip = { navController.navigate("detailBillShip/$it") },
+                notificationViewModel = NotificationViewModel(context)
             )
         }
         composable("detailProducts/{productId}") { backStackEntry ->
@@ -226,7 +227,8 @@ fun App(
         composable("notification") {
             NotificationScreen(
                 back = { navController.popBackStack() },
-                notificationViewModel = NotificationViewModel(context)
+                notificationViewModel = NotificationViewModel(context),
+                accountViewModel = AccountViewModel(context),
                 )
         }
 
