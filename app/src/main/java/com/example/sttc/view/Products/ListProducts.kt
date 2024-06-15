@@ -40,6 +40,7 @@ import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
+import com.example.sttc.view.System.SuggestToday
 import com.example.sttc.view.System.SuggestTodayopen
 import com.example.sttc.viewmodel.ProductViewModel
 
@@ -117,7 +118,7 @@ fun ListProductScreen(
         }
         item {
             HorizontalDivider(thickness = 2.dp, color = Color(0xFFffdab3), modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 5.dp))
-            SuggestTodayopen(openDetailProducts, productViewModel, context, selectedOption, selectedAnimal)
+            SuggestToday(openDetailProducts, productViewModel, context, selectedOption, selectedAnimal)
         }
     }
 }

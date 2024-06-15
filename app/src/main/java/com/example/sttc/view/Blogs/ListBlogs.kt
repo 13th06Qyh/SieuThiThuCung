@@ -72,14 +72,15 @@ fun ListBlogScreen(
         "hamster" -> 4
         else -> 1
     }
-    val filteredBlogs = blogs.filter { it.idanimal == selectedAnimal }
 
+    val filteredBlogs = blogs.filter { it.idanimal == selectedAnimal }
+    val limitedProducts = filteredBlogs.take(2)
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF000000)),
     ) {
-        items(items = filteredBlogs) { blog ->
+        items(items = limitedProducts) { blog ->
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
