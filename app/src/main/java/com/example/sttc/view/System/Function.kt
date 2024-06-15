@@ -54,6 +54,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 data class Bank(
@@ -142,6 +143,16 @@ data class ItemsNotification(
 fun formatNumber(number: Int): String {
     val format = NumberFormat.getNumberInstance(Locale.GERMAN)
     return format.format(number)
+}
+
+fun formatDate(date: Date, format: String = "dd/MM/yyyy"): String {
+    val formatter = SimpleDateFormat(format, Locale.getDefault())
+    return formatter.format(date)
+}
+
+fun formatTime(date: Date, format: String = "HH:mm"): String {
+    val formatter = SimpleDateFormat(format, Locale.getDefault())
+    return formatter.format(date)
 }
 
 fun formatUpdatedAt(updatedAt: String): String {

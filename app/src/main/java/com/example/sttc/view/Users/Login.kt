@@ -53,6 +53,7 @@ import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.CartViewModel
+import com.example.sttc.viewmodel.NotificationViewModel
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,6 +61,7 @@ import kotlinx.coroutines.delay
 fun LoginForm(
     navController: NavController,
     accountViewModel: AccountViewModel,
+    notificationViewModel: NotificationViewModel
 ) {
     val username = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
@@ -247,6 +249,9 @@ fun LoginForm(
 //                        println("heelooooo")
                     },
                     onFailure = { exception ->
+                        LaunchedEffect(exception) {
+                            notificationViewModel.updateNotice("Cảnh báo đăng nhập! Vui lòng kiểm tra!")
+                        }
                         showError = true
                         errorMessage = exception.message ?: "Đăng nhập thất bại"
                         Log.e("LoginForm", "Đăng nhập thất bại: ${exception.message}")
@@ -267,6 +272,6 @@ fun LoginPreview() {
     val context = LocalContext.current
     STTCTheme {
         val navController = rememberNavController()
-        LoginForm(navController, AccountViewModel(context))
+        LoginForm(navController, AccountViewModel(context), NotificationViewModel(context))
     }
 }

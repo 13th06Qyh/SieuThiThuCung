@@ -58,6 +58,7 @@ import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.ItemsCmt
 import com.example.sttc.view.System.formatUpdatedAt
 import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.NotificationViewModel
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -72,6 +73,7 @@ fun DetailCommentScreen(
     accountViewModel: AccountViewModel,
     blogId: Int,
     openLogin: () -> Unit,
+    notificationViewModel: NotificationViewModel
 ) {
     commentViewModel.fetchComments(blogId)
     var selectedMaBL by remember { mutableStateOf<Int?>(null) }
@@ -558,7 +560,8 @@ fun DetailCommentPreview() {
             commentViewModel = CommentsViewModel(),
             accountViewModel = AccountViewModel(context),
             blogId = 0,
-            openLogin = {}
+            openLogin = {},
+            notificationViewModel = NotificationViewModel(context)
         )
     }
 }

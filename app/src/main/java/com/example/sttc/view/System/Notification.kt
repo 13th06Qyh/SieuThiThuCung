@@ -1,5 +1,6 @@
 package com.example.sttc.view.System
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,12 +26,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -41,13 +45,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sttc.R
 import com.example.sttc.ui.theme.STTCTheme
+import com.example.sttc.viewmodel.BillViewModel
+import com.example.sttc.viewmodel.NotificationViewModel
 
 @Composable
 fun NotificationScreen(
-    back: () -> Unit
+    back: () -> Unit,
+    notificationViewModel: NotificationViewModel
 ) {
+    val noticesResult by notificationViewModel.notice.collectAsState(emptyList())
+    Log.d("NotificationScreen", "noticesResult: $noticesResult")
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .background(Color(0xFFffe6cc))
     ) {
         Row(
@@ -97,101 +107,204 @@ fun NotificationScreen(
             }
 
         }
-        val items = listOf(
-            ItemsNotification(
-                id = 1,
-                content = "Bạn có thông báo mới 0",
-                time = "20/10/2021"
-            ),
-            ItemsNotification(
-                id = 2,
-                content = "Bạn có thông báo mới 1",
-                time = "21/10/2021"
-            ),
-            ItemsNotification(
-                id = 3,
-                content = "Bạn có thông báo mới 2",
-                time = "23/10/2021"
-            ),
-            ItemsNotification(
-                id = 4,
-                content = "Bạn có thông báo mới 3",
-                time = "27/10/2021"
-            ),
-            ItemsNotification(
-                id = 5,
-                content = "Bạn có thông báo mới 4",
-                time = "20/12/2021"
-            ),
-        )
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .background(Color(0xFFfff2e6))
-        ) {
-            items(items = items, key = { it.id }) { task ->
-                Surface(
-                    color = Color.White,
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(5.dp)
 
-                ) {
-
-                    Row(
+        if (noticesResult.isNotEmpty()){
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .background(Color(0xFFfff2e6))
+            ) {
+                items(items = noticesResult) { notice ->
+                    Surface(
+                        color = Color.White,
+                        shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(5.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(5.dp)
+
                     ) {
-                        Surface(
-                            modifier = Modifier
-                                .size(27.dp)
-                                .border(
-                                    BorderStroke(1.dp, Color(0xFFff9933)),
-                                    shape = CircleShape
-                                )
-                                .clip(shape = CircleShape)
-                        ) {
 
-                            Image(
-                                Icons.Filled.Notifications,
-                                contentDescription = "Notifications",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .clip(CircleShape) ,
-                                        colorFilter = ColorFilter.tint(Color(0xFFff9933))
-                            )
-                        }
-                        Column(
+                        Row(
                             modifier = Modifier
-                                .padding(start = 10.dp)
                                 .fillMaxWidth()
+                                .padding(5.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Surface(
+                                modifier = Modifier
+                                    .size(27.dp)
+                                    .border(
+                                        BorderStroke(1.dp, Color(0xFFff9933)),
+                                        shape = CircleShape
+                                    )
+                                    .clip(shape = CircleShape)
+                            ) {
 
-                            Text(
-                                text = task.content,
-                                color = Color.Black
-                            )
-                            Text(
-                                text = task.time,
-                                color = Color.Black,
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    fontStyle = FontStyle.Italic
+                                Image(
+                                    Icons.Filled.Notifications,
+                                    contentDescription = "Notifications",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .clip(CircleShape),
+                                    colorFilter = ColorFilter.tint(Color(0xFFff9933))
                                 )
-                            )
+                            }
+                            Column(
+                                modifier = Modifier
+                                    .padding(start = 10.dp)
+                                    .fillMaxWidth()
+                            ) {
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ){
+                                    Text(
+                                        text = notice.message,
+                                        color = Color.Black
+                                    )
+                                    Text(
+                                        text = formatTime(notice.date),
+                                        color = Color.Black,
+                                        style = TextStyle(
+                                            fontSize = 12.sp,
+                                            fontStyle = FontStyle.Italic
+                                        ),
+                                        modifier = Modifier.padding(top = 5.dp, end = 5.dp)
+                                    )
+                                }
+
+                                Text(
+                                    text = formatDate(notice.date),
+                                    color = Color.Black,
+                                    style = TextStyle(
+                                        fontSize = 12.sp,
+                                        fontStyle = FontStyle.Italic
+                                    )
+                                )
+
+                            }
+                            Spacer(modifier = Modifier.height(50.dp))
 
                         }
-                        Spacer(modifier =Modifier.height(50.dp))
 
                     }
+                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFff9933))
 
                 }
-                HorizontalDivider(thickness = 1.dp, color = Color(0xFFff9933))
+            }
+        }else{
+            val items = listOf(
+                ItemsNotification(
+                    id = 1,
+                    content = "Chúc bạn một ngày tốt lành",
+                    time = "15/06/2024"
+                ),
+                ItemsNotification(
+                    id = 2,
+                    content = "Bạn đã thay đổi thông tin cá nhân",
+                    time = "15/06/2024"
+                ),
+                ItemsNotification(
+                    id = 3,
+                    content = "Thêm vào giỏ hàng thành công",
+                    time = "14/06/2024"
+                ),
+                ItemsNotification(
+                    id = 4,
+                    content = "Thêm vào giỏ hàng thành công",
+                    time = "14/06/2024"
+                ),
+                ItemsNotification(
+                    id = 5,
+                    content = "Thêm vào giỏ hàng thành công",
+                    time = "14/06/2024"
+                ),
+            )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .background(Color(0xFFfff2e6))
+            ) {
+                items(items = items, key = { it.id }) { task ->
+                    Surface(
+                        color = Color.White,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)
 
+                    ) {
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(5.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                modifier = Modifier
+                                    .size(27.dp)
+                                    .border(
+                                        BorderStroke(1.dp, Color(0xFFff9933)),
+                                        shape = CircleShape
+                                    )
+                                    .clip(shape = CircleShape)
+                            ) {
+
+                                Image(
+                                    Icons.Filled.Notifications,
+                                    contentDescription = "Notifications",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .clip(CircleShape) ,
+                                    colorFilter = ColorFilter.tint(Color(0xFFff9933))
+                                )
+                            }
+                            Column(
+                                modifier = Modifier
+                                    .padding(start = 10.dp)
+                                    .fillMaxWidth()
+                            ) {
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ){
+                                    Text(
+                                        text = task.content,
+                                        color = Color.Black
+                                    )
+                                    Text(
+                                        text = "13:27",
+                                        color = Color.Black,
+                                        style = TextStyle(
+                                            fontSize = 12.sp,
+                                            fontStyle = FontStyle.Italic
+                                        ),
+                                        modifier = Modifier.padding(top = 5.dp, end = 5.dp)
+                                    )
+                                }
+                                Text(
+                                    text = task.time,
+                                    color = Color.Black,
+                                    style = TextStyle(
+                                        fontSize = 12.sp,
+                                        fontStyle = FontStyle.Italic
+                                    )
+                                )
+
+                            }
+                            Spacer(modifier =Modifier.height(50.dp))
+
+                        }
+
+                    }
+                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFff9933))
+
+                }
             }
         }
     }
@@ -201,7 +314,10 @@ fun NotificationScreen(
 @Composable
 fun NotificationPreview() {
     STTCTheme {
-        NotificationScreen(back = {})
+        NotificationScreen(
+            back = {},
+            notificationViewModel = NotificationViewModel(LocalContext.current)
+        )
     }
 }
 

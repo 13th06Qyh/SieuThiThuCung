@@ -25,6 +25,7 @@ import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.BillViewModel
 import com.example.sttc.viewmodel.BlogsViewModel
 import com.example.sttc.viewmodel.CartViewModel
+import com.example.sttc.viewmodel.NotificationViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 import com.example.sttc.viewmodel.SharedViewModel
 
@@ -52,6 +53,7 @@ fun App(
             LoginForm(
                 navController,
                 accountViewModel = AccountViewModel(context),
+                notificationViewModel = NotificationViewModel(context)
             )
         }
         composable("signup") {
@@ -105,6 +107,7 @@ fun App(
                         popUpTo("homemenu") { inclusive = true }
                     }
                 },
+                notificationViewModel = NotificationViewModel(context)
             )
         }
         composable("detailBlog/{id}") { backStackEntry ->
@@ -128,6 +131,7 @@ fun App(
                         popUpTo("homemenu") { inclusive = true }
                     }
                 },
+                notificationViewModel = NotificationViewModel(context)
             )
         }
         composable("detailBillShip/{id}") { backStackEntry ->
@@ -173,7 +177,8 @@ fun App(
                 },
                 accountViewModel = AccountViewModel(context),
                 cartViewModel = CartViewModel(context),
-                context = context
+                context = context,
+                notificationViewModel = NotificationViewModel(context)
             )
         }
         // ------------payment---------------
@@ -193,7 +198,8 @@ fun App(
                 sharedViewModel = SharedViewModel(context),
                 billViewModel = BillViewModel(context),
                 cartViewModel = CartViewModel(context),
-                openComeBack = { navController.navigate("comeback") }
+                openComeBack = { navController.navigate("comeback") },
+                notificationViewModel = NotificationViewModel(context)
             )
         }
         composable("comeback") {
@@ -218,7 +224,10 @@ fun App(
         }
         // ------------notification---------------
         composable("notification") {
-            NotificationScreen(back = { navController.popBackStack() })
+            NotificationScreen(
+                back = { navController.popBackStack() },
+                notificationViewModel = NotificationViewModel(context)
+                )
         }
 
     }

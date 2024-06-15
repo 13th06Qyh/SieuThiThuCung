@@ -75,6 +75,7 @@ import com.example.sttc.view.System.capitalizeWords
 import com.example.sttc.view.System.formatNumber
 import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.CartViewModel
+import com.example.sttc.viewmodel.NotificationViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -94,6 +95,7 @@ fun DetailProductsScreen(
     productId: Int,
     openPayment: (List<PayData>) -> Unit,
     openLogin: () -> Unit,
+    notificationViewModel: NotificationViewModel
 ) {
     val scrollState = rememberScrollState()
     val selectedOption = remember { mutableStateOf("") }
@@ -115,7 +117,8 @@ fun DetailProductsScreen(
             accountViewModel,
             productId,
             openPayment,
-            openLogin
+            openLogin,
+            notificationViewModel
         )
         ContentProduct(productViewModel, productId)
         Row(
@@ -598,7 +601,8 @@ fun BuyProduct(
     accountViewModel: AccountViewModel,
     id: Int,
     openPayment: (List<PayData>) -> Unit,
-    openLogin: () -> Unit
+    openLogin: () -> Unit,
+    notificationViewModel: NotificationViewModel
 ) {
     val products by productViewModel.products.collectAsState(initial = emptyList())
     val nows by cartViewModel.now.collectAsState(emptyList())
@@ -845,6 +849,9 @@ fun BuyProduct(
             result.fold(
                 onSuccess = { token ->
                     println("Them vao gio thành công")
+                    LaunchedEffect(user) {
+                        notificationViewModel.updateNotice("Thêm vào giỏ hàng thành công")
+                    }
                 },
                 onFailure = { exception ->
                     showErrorCart = true
@@ -972,7 +979,8 @@ fun DetailProductsPreview() {
             LocalContext.current,
             0,
             openPayment = {},
-            openLogin = {}
+            openLogin = {},
+            NotificationViewModel(LocalContext.current)
         )
     }
 }

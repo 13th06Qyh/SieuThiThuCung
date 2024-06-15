@@ -69,6 +69,7 @@ import com.example.sttc.view.System.ItemAccount
 import com.example.sttc.view.System.Allow
 import com.example.sttc.view.System.getAddress
 import com.example.sttc.viewmodel.AccountViewModel
+import com.example.sttc.viewmodel.NotificationViewModel
 
 @Composable
 fun AccountScreen(
@@ -76,7 +77,8 @@ fun AccountScreen(
     openBillHistory: () -> Unit,
     openBillCancel: () -> Unit,
     openLogout: () -> Unit,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
+    notificationViewModel: NotificationViewModel
 ) {
     val scrollState = rememberScrollState()
     Box(
@@ -92,7 +94,7 @@ fun AccountScreen(
         ) {
             TopIcon(openLogout)
             StatusBill(openBillShip, openBillHistory, openBillCancel)
-            InfoAccount(accountViewModel)
+            InfoAccount(accountViewModel, notificationViewModel)
         }
     }
 
@@ -368,7 +370,7 @@ fun StatusBill(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InfoAccount(accountViewModel: AccountViewModel) {
+fun InfoAccount(accountViewModel: AccountViewModel, notificationViewModel: NotificationViewModel) {
     val loginResult by accountViewModel.update.collectAsState(null)
     val requestType by accountViewModel.request.collectAsState(initial = "")
 
@@ -1297,6 +1299,9 @@ fun InfoAccount(accountViewModel: AccountViewModel) {
                         }
                     },
                     onSuccess = { type ->
+                        LaunchedEffect(type) {
+                            notificationViewModel.updateNotice("Bạn đã thay đổi thông tin cá nhân")
+                        }
                         val request = type.second
                         when (request) {
                             "updateName" -> {
@@ -1351,7 +1356,8 @@ fun AccountScreenPreview() {
             openBillHistory = {},
             openBillCancel = {},
             openLogout = {},
-            AccountViewModel(context)
+            AccountViewModel(context),
+            notificationViewModel = NotificationViewModel(context)
         )
     }
 }

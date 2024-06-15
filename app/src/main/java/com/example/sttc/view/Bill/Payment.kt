@@ -67,6 +67,7 @@ import com.example.sttc.view.System.getLocation
 import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.BillViewModel
 import com.example.sttc.viewmodel.CartViewModel
+import com.example.sttc.viewmodel.NotificationViewModel
 import com.example.sttc.viewmodel.SharedViewModel
 
 @Composable
@@ -81,7 +82,8 @@ fun PaymentScreen(
     sharedViewModel: SharedViewModel,
     billViewModel: BillViewModel,
     cartViewModel: CartViewModel,
-    openComeBack: () -> Unit
+    openComeBack: () -> Unit,
+    notificationViewModel: NotificationViewModel
 ) {
     Log.d("PaymentScreen", selectedProducts.toString())
     val scrollState = rememberScrollState()
@@ -211,7 +213,7 @@ fun PaymentScreen(
                 }
             }
             HorizontalDivider(thickness = 1.dp, color = Color(0xFF000000))
-            SuccessPayment(selectedProducts, accountViewModel, sharedViewModel, billViewModel, back, cartViewModel, openComeBack)
+            SuccessPayment(selectedProducts, accountViewModel, sharedViewModel, billViewModel, back, cartViewModel, openComeBack, notificationViewModel)
         }
     }
 }
@@ -425,7 +427,8 @@ fun SuccessPayment(
     billViewModel: BillViewModel,
     back: () -> Unit,
     cartViewModel: CartViewModel,
-    openComeBack: () -> Unit
+    openComeBack: () -> Unit,
+    notificationViewModel: NotificationViewModel
 ) {
     val total = selectedProducts.sumOf { it.oneprice * it.quantity }
     var showDialogSecret by remember { mutableStateOf(false) }
@@ -661,6 +664,9 @@ fun SuccessPayment(
             result.fold(
                 onSuccess = { token ->
                     println("Mua hang thành công")
+                    LaunchedEffect(Unit) {
+                        notificationViewModel.updateNotice("Bạn đã mua hàng thành công")
+                    }
                     showDialogSecret = false
                     openComeBack()
                 },
@@ -703,7 +709,8 @@ fun PaymentPreview() {
             sharedViewModel = SharedViewModel(LocalContext.current),
             billViewModel = BillViewModel(LocalContext.current),
             cartViewModel = CartViewModel(LocalContext.current),
-            openComeBack = { }
+            openComeBack = { },
+            notificationViewModel = NotificationViewModel(LocalContext.current)
         )
     }
 }

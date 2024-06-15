@@ -75,7 +75,6 @@ class BillViewModel(context: Context) : ViewModel() {
                 if (response.isSuccessful) {
                     response.body()?.let {
                         _buy.value = Result.success(it.token)
-//                        fetchBill()
                     } ?: run {
                         _buy.value = Result.failure(Exception("No token found"))
                     }

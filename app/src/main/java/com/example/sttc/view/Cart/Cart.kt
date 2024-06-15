@@ -64,6 +64,7 @@ import com.example.sttc.ui.theme.STTCTheme
 import com.example.sttc.view.System.formatNumber
 import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.CartViewModel
+import com.example.sttc.viewmodel.NotificationViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 import kotlinx.coroutines.delay
 
@@ -74,7 +75,8 @@ fun CartScreen(
     openPayment: (List<PayData>) -> Unit,
     accountViewModel: AccountViewModel,
     cartViewModel: CartViewModel,
-    context: Context
+    context: Context,
+    notificationViewModel: NotificationViewModel
 ) {
     val users by accountViewModel.userInfoFlow.collectAsState(null)
     val carts by cartViewModel.cart.collectAsState(emptyList())
@@ -565,7 +567,8 @@ fun CartPreview() {
             openPayment = {},
             AccountViewModel(LocalContext.current),
             CartViewModel(LocalContext.current),
-            LocalContext.current
+            LocalContext.current,
+            NotificationViewModel(LocalContext.current)
         )
     }
 }

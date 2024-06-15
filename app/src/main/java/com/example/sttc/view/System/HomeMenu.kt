@@ -94,6 +94,7 @@ import com.example.sttc.viewmodel.AccountViewModel
 import com.example.sttc.viewmodel.BillViewModel
 import com.example.sttc.viewmodel.BlogsViewModel
 import com.example.sttc.viewmodel.CartViewModel
+import com.example.sttc.viewmodel.NotificationViewModel
 import com.example.sttc.viewmodel.ProductViewModel
 import com.example.sttc.viewmodel.SharedViewModel
 
@@ -218,7 +219,15 @@ fun HomeMenuScreen(
                     }
                 }
             }
-            IconButton(onClick = { openNotification() }) {
+            IconButton(onClick = {
+                user?.let { user ->
+                    if (user.id == 0) {
+                        openLogin()
+                    } else {
+                        openNotification()
+                    }
+                }
+            }) {
                 Icon(
                     Icons.Filled.Notifications,
                     contentDescription = "Notice",
@@ -266,9 +275,10 @@ fun HomeMenuScreen(
                     }
                     composable("blogs") {
                         BlogsScreens(
-                            openListBlogs = { blogType->
+                            openListBlogs = { blogType ->
                                 selectBlogType = blogType
-                                navController.navigate("listBlogs") }
+                                navController.navigate("listBlogs")
+                            }
                         )
                     }
                     composable("account") {
@@ -287,7 +297,8 @@ fun HomeMenuScreen(
                                 openBillHistory = { navController.navigate("billHistory") },
                                 openBillCancel = { navController.navigate("billCancel") },
                                 openLogout = { openLogout() },
-                                accountViewModel = AccountViewModel(context)
+                                accountViewModel = AccountViewModel(context),
+                                notificationViewModel = NotificationViewModel(context)
                             )
                         }
 
@@ -324,7 +335,7 @@ fun HomeMenuScreen(
                     //---------------blogs------------
                     composable("listBlogs") {
                         ListBlogScreen(
-                            blogsViewModel = BlogsViewModel() ,
+                            blogsViewModel = BlogsViewModel(),
                             blogType = selectBlogType,
                             openDetailBlogs = { openDetailBlogs(it) },
                             openDetailCmt = { openDetailCmt(it) },
