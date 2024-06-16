@@ -273,11 +273,16 @@ fun HomeMenuScreen(
                 NavHost(navController = navController, startDestination = "home") {
                     composable("home") {
                         HomeScreen(
-                            openListProducts = { navController.navigate("listProducts") },
+                            openListProducts = { productType ->
+                                selectedProductType = productType
+                                navController.navigate("listProducts")
+                            },
                             openDetailProducts = { openDetailProducts(it) },
-                            openDetailBlogs = { navController.navigate("DetailBlogs") },
+                            openDetailBlogs = { openDetailBlogs(it) },
                             productViewModel = ProductViewModel(),
-                            context = LocalContext.current
+                            context = LocalContext.current,
+                            openBlogs = { navController.navigate("blogs") },
+                            openProduct = { navController.navigate("product") },
                         )
                     }
                     composable("search") {

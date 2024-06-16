@@ -490,7 +490,7 @@ fun SuggestToday(
     productViewModel: ProductViewModel,
     context: Context,
     selectedOption: String,
-    selectedAnimal: Int
+    selectedAnimal: Int,
 ) {
     val products by productViewModel.products.collectAsState(initial = emptyList())
     val imagesMap by productViewModel.images.collectAsState(initial = emptyMap())

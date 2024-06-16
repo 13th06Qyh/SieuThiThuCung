@@ -67,11 +67,13 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
-    openListProducts: () -> Unit,
-    openDetailBlogs: () -> Unit,
+    openListProducts: (String) -> Unit,
+    openDetailBlogs: (id: Int) -> Unit,
     openDetailProducts: (id: Int) -> Unit,
     productViewModel: ProductViewModel,
-    context: Context
+    context: Context,
+    openBlogs: () -> Unit,
+    openProduct: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     val selectedOption = remember { mutableStateOf("") }
@@ -120,7 +122,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(0.dp, 30.dp, 0.dp, 0.dp)
-                        .clickable { /*TODO*/ },
+                        .clickable { openBlogs() },
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontStyle = FontStyle.Italic,
@@ -161,7 +163,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(0.dp, 30.dp, 0.dp, 0.dp)
-                        .clickable { openListProducts() },
+                        .clickable { openProduct() },
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontStyle = FontStyle.Italic,
@@ -202,7 +204,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(0.dp, 30.dp, 0.dp, 0.dp)
-                        .clickable { openListProducts() },
+                        .clickable { openProduct() },
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontStyle = FontStyle.Italic,
@@ -269,7 +271,7 @@ fun HeroSection() {
 }
 
 @Composable
-fun Animal(openListProducts: () -> Unit) {
+fun Animal(openListProducts: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -297,7 +299,7 @@ fun Animal(openListProducts: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 IconButton(
-                    onClick = { openListProducts() },
+                    onClick = { openListProducts("dog") },
                     modifier = Modifier
                         .size(70.dp)
                         .border(1.dp, color = Color(0xFFE96B56), shape = CircleShape)
@@ -311,7 +313,7 @@ fun Animal(openListProducts: () -> Unit) {
                 }
 
                 IconButton(
-                    onClick = { openListProducts() },
+                    onClick = { openListProducts("bird") },
                     modifier = Modifier
                         .size(70.dp)
                         .border(1.dp, color = Color(0xFF005ce6), shape = CircleShape)
@@ -325,7 +327,7 @@ fun Animal(openListProducts: () -> Unit) {
                 }
 
                 IconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = { openListProducts("cat") },
                     modifier = Modifier
                         .size(70.dp)
                         .border(1.dp, color = Color(0xFFb3b300), shape = CircleShape)
@@ -345,7 +347,7 @@ fun Animal(openListProducts: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 IconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = { openListProducts("hamster") },
                     modifier = Modifier
                         .size(70.dp)
                         .border(1.dp, color = Color(0xFF00e600), shape = CircleShape)
@@ -353,13 +355,13 @@ fun Animal(openListProducts: () -> Unit) {
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.hamster),
-                        contentDescription = "Dog",
+                        contentDescription = "Hamster",
                         modifier = Modifier.size(46.dp)
                     )
                 }
 
                 IconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = { openListProducts("fish") },
                     modifier = Modifier
                         .size(70.dp)
                         .border(1.dp, color = Color(0xFFb300b3), shape = CircleShape)
@@ -367,7 +369,7 @@ fun Animal(openListProducts: () -> Unit) {
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.fish),
-                        contentDescription = "Bird",
+                        contentDescription = "Fish",
                         modifier = Modifier.size(46.dp)
                     )
                 }
@@ -379,7 +381,7 @@ fun Animal(openListProducts: () -> Unit) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RecentBlogsSection(
-    openDetailBlogs: () -> Unit, blogViewModel: BlogsViewModel,
+    openDetailBlogs: (id: Int) -> Unit, blogViewModel: BlogsViewModel,
     context: Context
 ) {
     val items = listOf(
@@ -423,10 +425,10 @@ fun RecentBlogsSection(
                         .size(137.dp, 73.dp)
                         .padding(6.dp, 0.dp, 6.dp, 0.dp)
                         .border(1.dp, color = Color(0xFF4d4d4d))
-                        .clickable { openDetailBlogs() }
+                        .clickable { openDetailBlogs(blog.maBlog) }
                 )
                 Text(
-                    text = if (blog.title.length > 7) blog.title.take(2) + ".." else blog.title, // Thay đổi thành tiêu đề thực tế của bạn
+                    text = if (blog.title.length > 7) blog.title.take(5) + ".." else blog.title, // Thay đổi thành tiêu đề thực tế của bạn
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontFamily = FontFamily.Monospace,
@@ -479,7 +481,7 @@ fun RecentSalesSection(
     LazyRow(state = state) {
         items(products.take(6)) { product ->
             Box(
-                modifier = Modifier
+                modifier = Modifier.clickable { openDetailProducts(product.maSP) }
                     .size(170.dp, 200.dp)
                     .padding(0.1.dp)
                     .border(1.dp, color = Color(0xFFffe1c2))
@@ -529,6 +531,7 @@ fun RecentSalesSection(
                                     .width(200.dp)
                                     .height(155.dp)
                                     .padding(8.dp)
+                                    .clickable { openDetailProducts(product.maSP) }
                             )
                         } else {
                             Image(
@@ -594,7 +597,9 @@ fun HomeScreenPreview() {
             openDetailBlogs = {},
             openDetailProducts = {},
             productViewModel = ProductViewModel(),
-            context
+            context,
+            openBlogs = {},
+            openProduct = {}
         )
     }
 }
