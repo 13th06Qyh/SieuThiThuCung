@@ -383,7 +383,7 @@ fun Bill(
 
                 val dukien = formatUpdatedAt(item.created_at)
                 Text(
-                    text = "Ngày nhận hàng dự kiến từ " + formatEstimatedDeliveryDate(dukien) + "đến " + formatEstimatedDeliveryDateO(dukien) + ". Xin hãy vui lòng chờ đợi và chú ý điện thoại nhé!",
+                    text = "Ngày nhận hàng dự kiến từ " + formatEstimatedDeliveryDate(dukien) + " đến " + formatEstimatedDeliveryDateO(dukien) + ". Xin hãy vui lòng chờ đợi và chú ý điện thoại nhé!",
                     style = TextStyle(
                         fontSize = 17.sp,
                         fontStyle = FontStyle.Italic,

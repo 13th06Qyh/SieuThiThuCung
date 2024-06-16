@@ -340,7 +340,7 @@ fun LocationPayment(
                                 },
                                 text = {
                                     Text(
-                                        "Chuyển hướng đến trang tài khoản ngay bây giờ?",
+                                        "Hãy chuyển hướng đến trang tài khoản để thêm địa chỉ mặc định!",
                                         style = TextStyle(
                                             textAlign = TextAlign.Center,
                                             fontWeight = FontWeight.Bold,

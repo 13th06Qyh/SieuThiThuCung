@@ -194,7 +194,7 @@ fun App(
                 openOTP = { navController.navigate("otp") },
                 openCard = { navController.navigate("card") },
                 accountViewModel = AccountViewModel(context),
-                openAccount = { navController.navigate("account") },
+                openAccount = { navController.navigate("homemenu") },
                 selectedProducts = selectedProducts,
                 sharedViewModel = SharedViewModel(context),
                 billViewModel = BillViewModel(context),
